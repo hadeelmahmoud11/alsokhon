@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+working_calendar_change_request_access_full,working_calendar_change_request_access_full,model_working_calendar_change_request,base.group_user,1,1,1,1

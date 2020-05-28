@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_partner_inherited_form_view" model="ir.ui.view">
+        <field name="name">res.partner.inherited.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="product_category_ids" widget="many2many_tags"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_order_inherited_form_view" model="ir.ui.view">
+        <field name="name">purchase.order.inherited.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='currency_id']" position="after">
+                <field name="product_category_ids" widget="many2many_tags"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="attributes">
+                <attribute name="domain">[('categ_id', 'in', parent.product_category_ids)]</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

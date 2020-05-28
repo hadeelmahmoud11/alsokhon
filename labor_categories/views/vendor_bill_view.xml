@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="labor_changes_view_purchase_order_form" model="ir.ui.view">
+        <field name="name">Labor Purchase form view</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']/tree/field[@name='name']" position="after">
+                <field name="product_typee" />
+                <field name="labor_Charges" />
+            </xpath>
+
+            <xpath expr="//field[@name='amount_tax']" position="after">
+                <field name="total_labor_charges" />
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

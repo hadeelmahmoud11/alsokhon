@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="calendar_event_inherited_form_view" model="ir.ui.view">
+        <field name="name">calendar.event.inherited.form</field>
+        <field name="model">calendar.event</field>
+        <field name="inherit_id" ref="calendar.view_calendar_event_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='start_datetime']" position="before">
+                <field name="vendor_id" readonly="0"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="calendar_event_smart_button" model="ir.ui.view">
+        <field name="name">calendar.event.buttons</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button class="oe_stat_button" type="object" name="get_calendar_events" icon="fa-calendar">
+                    <field string="Events" name="events_count" widget="statinfo"/>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>

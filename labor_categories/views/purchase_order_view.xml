@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_purchase_inherit" model="ir.ui.view">
+        <field name="name">res_config_settings_view_form_purchase_inherit</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="purchase.res_config_settings_view_form_purchase"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('row mt16 o_settings_container')][3]" position="after">
+                <h2>Discount</h2>
+                    <div class="row mt16 o_settings_container">
+                      <div class="col-12 col-lg-6 o_setting_box">
+                           <div class="o_setting_left_pane">
+                               <field name="gold_labor_charges"/>
+                           </div>
+                          <div class="o_setting_right_pane">
+                                <label for="gold_labor_charges" string="Gold Labor Charges"/>
+                          </div>
+                      </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                           <div class="o_setting_left_pane">
+                               <field name="diamond_labor_charges"/>
+                           </div>
+                          <div class="o_setting_right_pane">
+                                <label for="diamond_labor_charges" string="Diamond Labor Charges"/>
+                          </div>
+                      </div>
+                         <div class="col-12 col-lg-6 o_setting_box">
+                           <div class="o_setting_left_pane">
+                               <field name="g_d_labor_charges"/>
+                           </div>
+                          <div class="o_setting_right_pane">
+                                <label for="g_d_labor_charges" string="Gold/Diamond Labor Charges"/>
+                          </div>
+                      </div>
+
+                    </div>
+
+             </xpath>
+        </field>
+    </record>
+
+
+
+</odoo>

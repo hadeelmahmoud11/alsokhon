@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="working_calendar_change_request_view_tree" model="ir.ui.view">
+        <field name="name">working.calendar.change.request.tree</field>
+        <field name="model">working.calendar.change.request</field>
+        <field name="arch" type="xml">
+            <tree string="Futures">
+                <field name="employee_id" />
+                <field name="current_working_time" />
+                <field name="new_working_time" />
+
+            </tree>
+        </field>
+    </record>
+
+    <record id="working_calendar_change_request_view_form" model="ir.ui.view">
+        <field name="name">working.calendar.change.request.form</field>
+        <field name="model">working.calendar.change.request</field>
+        <field name="arch" type="xml">
+            <form>
+                 <header>
+                    <button string="submit" type="object"  states="draft" name="action_submit" class="oe_highlight"/>
+                    <button string="Approve" type="object" states="in-progress" name="action_approve" class="oe_highlight" groups="hr.group_hr_manager" />
+                    <button string="Reject" type="object" states="in-progress" name="action_reject" class="oe_highlight" groups="hr.group_hr_manager"/>
+<!--                    <button string="Confirm" type="object" states="draft" name="action_confirm" class="oe_read_only" />-->
+                    <field name="state" widget="statusbar" />
+                </header>
+                <sheet>
+
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="current_working_time"/>
+                        <field name="new_working_time"/>
+                    </group>
+
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+
+
+    <record id="working_calendar_change_action_main" model="ir.actions.act_window">
+        <field name="name">Working Calendar Change</field>
+        <field name="res_model">working.calendar.change.request</field>
+        <field name="view_mode">tree,form,kanban</field>
+    </record>
+
+    <menuitem name="Working Calendar Change"
+              id="working_calendar_change_menu_first"
+              groups="base.group_user"
+              sequence="8"
+              action="working_calendar_change_action_main"
+              />
+
+    <menuitem name="Working Calendar Change Requests"
+              id="working_calendar_change_menu_second"
+              action="working_calendar_change_action_main"
+              groups="base.group_user"
+              sequence="1"
+              parent="working_calendar_change_menu_first"
+              />
+
+</odoo>
