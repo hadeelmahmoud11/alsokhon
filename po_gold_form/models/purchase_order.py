@@ -11,8 +11,6 @@ class PurchaseOrder(models.Model):
     @api.onchange('currency_id', 'date_order')
     def get_gold_rate(self):
         if self.date_order and self.currency_id and self.currency_id.is_gold:
-            print ('----------test-----------', self.date_order,
-                   self.date_order.date())
             rates = self.env['gold.rates'].search([
                 ('currency_id', '=', self.currency_id.id),
                 ('name', '=', self.date_order.date()),
