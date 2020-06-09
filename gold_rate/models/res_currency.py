@@ -14,6 +14,13 @@ class ResCurrency(models.Model):
         compute='_compute_current_gold_rate', string='Current Rate',
         digits=(12, 12), help='The rate of the currency to the currency of '
                               'rate 1.')
+    @api.onchange('is_gold')
+    def onchange_is_gold(self):
+        if self.is_gold:
+            if self.env.ref('uom.product_uom_oz'):
+                self.uom_id = self.env.ref('uom.product_uom_oz').id
+        else:
+            self.uom_id = False
 
     def _get_gold_rates(self, company, date):
         self.env['gold.rates'].flush(

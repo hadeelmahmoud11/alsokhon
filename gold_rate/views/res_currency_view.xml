@@ -6,7 +6,7 @@
             <field name="inherit_id" ref="base.view_currency_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//sheet" position="inside">
-                    <group string="Gold Detaisl">
+                    <group string="Gold Details">
                         <field name="is_gold"/>
                         <field name="gold_rate"/>
                         <field name="uom_id"/>
