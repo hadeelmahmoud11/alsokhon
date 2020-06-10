@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_gold_purity,access_gold_purity,model_gold_purity,,1,1,1,1
+

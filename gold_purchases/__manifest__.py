@@ -10,8 +10,11 @@
     'version': '13.0.0.1',
     'depends': ['purchase_stock'],
     'data': [
+        'security/ir.model.access.csv',
+        'data/gold_purity_data.xml',
         'views/purchase_order_view.xml',
         'views/stock_picking_view.xml',
+        'views/gold_purity_view.xml'
     ],
 
 }

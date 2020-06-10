@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+    	<record id="gold_purity_1" model="gold.purity">
+            <field name="karat" eval="6"/>
+            <field name="parts" eval="6"/>
+            <field name="out_of_parts" eval="24"/>
+            <field name="purity" eval="250"/>
+            <field name="gold_percent" eval="25"/>
+            <field name="allow_delete" eval="False"/>
+        </record>
+        <record id="gold_purity_2" model="gold.purity">
+            <field name="karat" eval="8"/>
+            <field name="parts" eval="8"/>
+            <field name="out_of_parts" eval="24"/>
+            <field name="purity" eval="333"/>
+            <field name="gold_percent" eval="33.3"/>
+            <field name="allow_delete" eval="False"/>
+        </record>
+        <record id="gold_purity_3" model="gold.purity">
+            <field name="karat" eval="9"/>
+            <field name="parts" eval="9"/>
+            <field name="out_of_parts" eval="24"/>
+            <field name="purity" eval="375"/>
+            <field name="gold_percent" eval="37.5"/>
+            <field name="allow_delete" eval="False"/>
+        </record>
+        <record id="gold_purity_4" model="gold.purity">
+            <field name="karat" eval="10"/>
+            <field name="parts" eval="10"/>
+            <field name="out_of_parts" eval="24"/>
+            <field name="purity" eval="417"/>
+            <field name="gold_percent" eval="41.7"/>
+            <field name="allow_delete" eval="False"/>
+        </record>
+        <record id="gold_purity_5" model="gold.purity">
+            <field name="karat" eval="12"/>
+            <field name="parts" eval="12"/>
+            <field name="out_of_parts" eval="24"/>
+            <field name="purity" eval="500"/>
+            <field name="gold_percent" eval="50"/>
+            <field name="allow_delete" eval="False"/>
+        </record>
+        <record id="gold_purity_6" model="gold.purity">
+            <field name="karat" eval="14"/>
+            <field name="parts" eval="7"/>
+            <field name="out_of_parts" eval="12"/>
+            <field name="purity" eval="583"/>
+            <field name="gold_percent" eval="58.3"/>
+            <field name="allow_delete" eval="False"/>
+        </record>
+        <record id="gold_purity_7" model="gold.purity">
+            <field name="karat" eval="15"/>
+            <field name="parts" eval="5"/>
+            <field name="out_of_parts" eval="8"/>
+            <field name="purity" eval="625"/>
+            <field name="gold_percent" eval="62.5"/>
+            <field name="allow_delete" eval="False"/>
+        </record>
+        <record id="gold_purity_8" model="gold.purity">
+            <field name="karat" eval="18"/>
+            <field name="parts" eval="3"/>
+            <field name="out_of_parts" eval="4"/>
+            <field name="purity" eval="750"/>
+            <field name="gold_percent" eval="75"/>
+            <field name="allow_delete" eval="False"/>
+        </record>
+        <record id="gold_purity_9" model="gold.purity">
+            <field name="karat" eval="20"/>
+            <field name="parts" eval="5"/>
+            <field name="out_of_parts" eval="6"/>
+            <field name="purity" eval="833"/>
+            <field name="gold_percent" eval="83.3"/>
+            <field name="allow_delete" eval="False"/>
+        </record>
+        <record id="gold_purity_10" model="gold.purity">
+            <field name="karat" eval="21"/>
+            <field name="parts" eval="7"/>
+            <field name="out_of_parts" eval="8"/>
+            <field name="purity" eval="875"/>
+            <field name="gold_percent" eval="87.5"/>
+            <field name="allow_delete" eval="False"/>
+        </record>
+        <record id="gold_purity_11" model="gold.purity">
+            <field name="karat" eval="22"/>
+            <field name="parts" eval="11"/>
+            <field name="out_of_parts" eval="12"/>
+            <field name="purity" eval="916"/>
+            <field name="gold_percent" eval="91.6"/>
+            <field name="allow_delete" eval="False"/>
+        </record>
+        <record id="gold_purity_12" model="gold.purity">
+            <field name="karat" eval="24"/>
+            <field name="parts" eval="24"/>
+            <field name="out_of_parts" eval="24"/>
+            <field name="purity" eval="999"/>
+            <field name="gold_percent" eval="99.9"/>
+            <field name="allow_delete" eval="False"/>
+        </record>
+    </data>
+</odoo>
