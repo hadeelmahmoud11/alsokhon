@@ -17,7 +17,10 @@ class PurchaseOrder(models.Model):
                 ('company_id', 'in', [False, self.company_id and
                                       self.company_id.id or False])
             ], limit=1, order='name desc, id desc')
-            if rates:
-                self.gold_rate = rates[0].rate
+            ozs = self.env.ref('uom.product_uom_oz')
+            if rates and ozs:
+                self.gold_rate = (1.000/rates[0].rate)*ozs.factor
+            else:
+                self.gold_rate = 0.00
         else:
             self.gold_rate = 0.00

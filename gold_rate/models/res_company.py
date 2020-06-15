@@ -2,7 +2,7 @@
 import requests
 from lxml import etree
 import logging
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
@@ -67,6 +67,8 @@ class ResCompany(models.Model):
         return rslt
 
     def _generate_gold_rates(self, parsed_data):
+        if not parsed_data:
+            return True
         Currency = self.env['res.currency']
         GoldRate = self.env['gold.rates']
         today = fields.Date.today()
