@@ -18,3 +18,63 @@ class PurchaseOrder(models.Model):
             'period_uom_id': self.period_uom_id and self.period_uom_id.id or False
         })
         return res
+
+
+class PurchaseOrderLine(models.Model):
+    _inherit = 'purchase.order.line'
+
+    gross_wt = fields.Float('Gross Wt')
+    purity_id = fields.Many2one('gold.purity', 'Purity')
+    pure_wt = fields.Float('Pure Wt', compute='_get_gold_rate')
+    purity_diff = fields.Float('Purity +/-')
+    stock = fields.Float('Stock', compute='_get_gold_rate')
+    make_rate = fields.Monetary('Make Rate/G')
+    make_value = fields.Monetary('Make Value', compute='_get_gold_rate')
+    gold_rate = fields.Float('Gold Rate/G', compute='_get_gold_rate')
+    gold_value = fields.Monetary('Gold Value', compute='_get_gold_rate')
+
+    @api.depends('product_id', 'product_qty', 'price_unit', 'gross_wt',
+                 'purity_id', 'purity_diff', 'make_rate',
+                 'order_id', 'order_id.order_type', 'order_id.currency_id')
+    def _get_gold_rate(self):
+        for rec in self:
+            rec.pure_wt = rec.gross_wt * (rec.purity_id and (
+                    rec.purity_id.purity / 1000.000) or 1)
+            rec.stock = rec.product_id and rec.product_id.qty_available or 0.00 + rec.pure_wt + rec.purity_diff
+            rec.make_value = rec.gross_wt * rec.make_rate
+            rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
+            rec.gold_value = rec.gold_rate and (
+                    rec.pure_wt / rec.gold_rate) or rec.pure_wt
+
+    @api.depends('product_qty', 'price_unit', 'taxes_id', 'gross_wt',
+                 'purity_id', 'purity_diff', 'make_rate',
+                 'order_id', 'order_id.order_type')
+    def _compute_amount(self):
+        for line in self:
+            if line.order_id and line.order_id.order_type.is_fixed:
+                taxes = line.taxes_id.compute_all(
+                    line.make_value + line.gold_value,
+                    line.order_id.currency_id,
+                    1,
+                    line.product_id,
+                    line.order_id.partner_id)
+                line.update({
+                    'price_tax': sum(
+                        t.get('amount', 0.0) for t in taxes.get('taxes', [])),
+                    'price_total': taxes['total_included'],
+                    'price_subtotal': taxes['total_excluded'],
+                })
+            else:
+                vals = line._prepare_compute_all_values()
+                taxes = line.taxes_id.compute_all(
+                    vals['price_unit'],
+                    vals['currency_id'],
+                    vals['product_qty'],
+                    vals['product'],
+                    vals['partner'])
+                line.update({
+                    'price_tax': sum(
+                        t.get('amount', 0.0) for t in taxes.get('taxes', [])),
+                    'price_total': taxes['total_included'],
+                    'price_subtotal': taxes['total_excluded'],
+                })

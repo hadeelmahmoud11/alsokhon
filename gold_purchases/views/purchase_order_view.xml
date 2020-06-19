@@ -19,6 +19,28 @@
                         </div>
                     </group>
                 </xpath>
+                <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="after">
+                    <field name="gross_wt"/>
+                    <field name="purity_id"/>
+                    <field name="pure_wt"/>
+                    <field name="purity_diff"/>
+                    <field name="stock"/>
+                    <field name="make_rate"/>
+                    <field name="make_value"/>
+                    <field name="gold_rate"/>
+                    <field name="gold_value"/>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/form/group/group/field[@name='qty_received']" position="before">
+                    <field name="gross_wt"/>
+                    <field name="purity_id"/>
+                    <field name="pure_wt"/>
+                    <field name="purity_diff"/>
+                    <field name="stock"/>
+                    <field name="make_rate"/>
+                    <field name="make_value"/>
+                    <field name="gold_rate"/>
+                    <field name="gold_value"/>
+                </xpath>
             </field>
         </record>
     </data>
