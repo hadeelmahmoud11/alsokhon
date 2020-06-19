@@ -78,3 +78,11 @@ class PurchaseOrderLine(models.Model):
                     'price_total': taxes['total_included'],
                     'price_subtotal': taxes['total_excluded'],
                 })
+
+    def _prepare_stock_moves(self, picking):
+        res = super(PurchaseOrderLine, self)._prepare_stock_moves(picking)
+        res[0].update({
+            'gross_weight': self.gross_wt,
+            'pure_weight': self.pure_wt,
+        })
+        return res

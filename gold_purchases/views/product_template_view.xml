@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="gold_purchases_product_template_form_view_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.product.template.form.view.inherit</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_form_view"/>
+            <field name="arch" type="xml">
+                <field name="type" position="after">
+                    <field name="gold"/>
+                </field>
+                <field name="uom_id" position="attributes">
+                    <attribute name="attrs">{'required': [('gold', '=', True)]}</attribute>
+                </field>
+                <field name="weight" position="attributes">
+                    <attribute name="attrs">{'required': [('gold', '=', True)]}</attribute>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

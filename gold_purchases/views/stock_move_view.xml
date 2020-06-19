@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="gold_purchases_view_move_line_tree_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.stock.move.line.tree.inherit</field>
+            <field name="model">stock.move.line</field>
+            <field name="inherit_id" ref="stock.view_move_line_tree"/>
+            <field name="arch" type="xml">
+                <field name="qty_done" position="before">
+                    <field name="gross_weight"/>
+                    <field name="pure_weight"/>
+                </field>
+            </field>
+        </record>
+        <record id="gold_purchases_view_stock_move_line_operation_tree_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.stock.move.line.tree.inherit</field>
+            <field name="model">stock.move.line</field>
+            <field name="inherit_id" ref="stock.view_stock_move_line_operation_tree"/>
+            <field name="arch" type="xml">
+                <field name="product_uom_id" position="after">
+                    <field name="gross_weight"/>
+                    <field name="pure_weight"/>
+                </field>
+            </field>
+        </record>
+        <record id="gold_purchases_view_move_line_form_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.stock.move.line.form.inherit</field>
+            <field name="model">stock.move.line</field>
+            <field name="inherit_id" ref="stock.view_move_line_form"/>
+            <field name="arch" type="xml">
+                <field name="product_uom_id" position="after">
+                    <field name="gross_weight"/>
+                    <field name="pure_weight"/>
+                </field>
+            </field>
+        </record>
+        <record id="gold_purchases_stock_stock_inventory_line_tree2_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.stock.stock.inventory.line.tree2.inherit</field>
+            <field name="model">stock.inventory.line</field>
+            <field name="inherit_id" ref="stock.stock_inventory_line_tree2"/>
+            <field name="arch" type="xml">
+                <field name="product_uom_id" position="after">
+                    <field name="gross_weight"/>
+                    <field name="pure_weight"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="gold_purchases_stock_view_move_tree_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.stock.view.move.tree.inherit</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_tree"/>
+            <field name="arch" type="xml">
+                <field name="product_uom" position="after">
+                    <field name="gross_weight"/>
+                    <field name="pure_weight"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="gold_purchases_stock_view_picking_form_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.stock.view.picking.form.inherit</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='move_ids_without_package']/tree/field[@name='product_uom']" position="after">
+                    <field name="gross_weight"/>
+                    <field name="pure_weight"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
