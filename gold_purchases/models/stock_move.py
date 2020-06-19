@@ -11,10 +11,8 @@ class StockMove(models.Model):
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
 
-    gross_weight = fields.Float(
-        related='move_id.gross_weight', string='Gross Weight')
-    pure_weight = fields.Float(
-        related='move_id.pure_weight', string='Pure Weight')
+    gross_weight = fields.Float(string='Gross Weight')
+    pure_weight = fields.Float(string='Pure Weight')
 
 
 class StockInventoryLine(models.Model):
