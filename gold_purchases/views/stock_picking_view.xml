@@ -9,12 +9,15 @@
                 <xpath expr="//notebook/page[@name='extra']/group" position="inside">
                     <group string="Period Details">
                         <div class="o_row">
-                            <strong><label for="period_from" string="Period From"/></strong>
+                            <strong>
+                                <label for="period_from" string="Period From"/>
+                            </strong>
                             <field name="period_from" string="Period"/>
                             <div class="o_row">
-                                <strong> To </strong>
+                                <strong>To</strong>
                                 <field name="period_to"/>
-                                <field name="period_uom_id" widget="selection" domain="[('category_id', '!=', False), ('category_id.measure_type', '=', 'working_time')]"/>
+                                <field name="period_uom_id" widget="selection"
+                                       domain="[('category_id', '!=', False), ('category_id.measure_type', '=', 'working_time')]"/>
                             </div>
                         </div>
                     </group>

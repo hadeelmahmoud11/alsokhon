@@ -84,5 +84,11 @@ class PurchaseOrderLine(models.Model):
         res[0].update({
             'gross_weight': self.gross_wt,
             'pure_weight': self.pure_wt,
+            'purity': self.purity_id.purity or 1,
+            'selling_karat_id':
+                self.product_id.product_template_attribute_value_ids and
+                self.product_id.product_template_attribute_value_ids.mapped(
+                    'product_attribute_value_id')[0].id or
+                False
         })
         return res
