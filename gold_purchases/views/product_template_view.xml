@@ -15,6 +15,20 @@
                 <field name="weight" position="attributes">
                     <attribute name="attrs">{'required': [('gold', '=', True)]}</attribute>
                 </field>
+
+            </field>
+        </record>
+        <record id="gold_purchases_product_category_form_view_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.product.category.form.view.inherit</field>
+            <field name="model">product.category</field>
+            <field name="inherit_id" ref="product.product_category_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet" position="inside">
+                    <group string="Gold Accounting" attrs="{'invisible': [('is_gold', '=', False)]}">
+                        <field name="gold_on_hand_account"/>
+                        <field name="gold_journal"/>
+                    </group>
+                </xpath>
             </field>
         </record>
     </data>

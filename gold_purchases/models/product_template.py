@@ -56,3 +56,23 @@ class ProductProduct(models.Model):
                 raise ValidationError(
                     'Product weight must be greater than zero.')
         return res
+
+
+class ProductCategory(models.Model):
+    _inherit = 'product.category'
+
+    @api.model
+    def get_account_assets_type(self):
+        asset_type = self.env.ref('account.data_account_type_current_assets')
+        if asset_type:
+            return [('user_type_id', '=', asset_type.id), ('gold', '=', True)]
+        return []
+
+    gold_journal = fields.Many2one(
+        'account.journal', domain=[('gold', '=', True)],
+        string='Gold Journal')
+    gold_on_hand_account = fields.Many2one('account.account',
+                                           domain=get_account_assets_type,
+                                           string='Stock In Hand - Gold')
+
+

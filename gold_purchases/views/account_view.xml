@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="gold_purchases_view_account_form_view_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.account.account.form.view.inherit</field>
+            <field name="model">account.account</field>
+            <field name="inherit_id" ref="account.view_account_form"/>
+            <field name="arch" type="xml">
+                <field name="deprecated" position="after">
+                    <field name="gold"/>
+                </field>
+            </field>
+        </record>
+        <record id="gold_purchases_view_account_journal_form_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.account.journal.form.view.inherit</field>
+            <field name="model">account.journal</field>
+            <field name="inherit_id" ref="account.view_account_journal_form"/>
+            <field name="arch" type="xml">
+                <field name="type" position="after">
+                    <field name="gold"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>
