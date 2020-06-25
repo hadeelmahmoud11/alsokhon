@@ -9,7 +9,7 @@
     'category': 'Purchase',
     'version': '13.0.0.1',
     'depends': ['purchase_stock', 'stock_account', 'po_gold_form',
-                'purchase_order_type'],
+                'purchase_order_type', 'account_accountant'],
     'data': [
         'security/ir.model.access.csv',
         'data/gold_purity_data.xml',

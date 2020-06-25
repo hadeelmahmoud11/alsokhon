@@ -28,6 +28,7 @@ class StockMove(models.Model):
     gross_weight = fields.Float(string='Gross Weight')
     pure_weight = fields.Float('Pure Weight')
     purity = fields.Float(string="Purity")
+    gold_rate = fields.Float(string='Gold Rate')
     item_category_id = fields.Many2one('item.category', string="Item Category")
     sub_category_id = fields.Many2one('item.category.line',
                                       string="Sub Category")
@@ -38,29 +39,6 @@ class StockMove(models.Model):
     company_currency_id = fields.Many2one('res.currency',
                                           string="Company Currency",
                                           related='company_id.currency_id')
-
-    # product_template_attribute_value_ids = fields.Many2many(
-    #     'product.template.attribute.value',
-    #     'stock_move_product_attribute_value_rel', 'move_id', 'value_id',
-    #     compute='get_attribute_ids')
-    #
-    # def get_attribute_ids(self):
-    #     for rec in self:
-    #         rec.product_template_attribute_value_ids = rec.product_id and rec.product_id.product_template_attribute_value_ids and [
-    #             (6, 0,
-    #              rec.product_id.product_template_attribute_value_ids.ids)] or False
-    # def _prepare_move_line_vals(self, quantity=None, reserved_quant=None):
-    #     res = super(StockMove, self)._prepare_move_line_vals()
-    #     res.update({
-    #         'gross_weight': self.gross_weight,
-    #         'purity': self.purity,
-    #         'pure_weight': self.pure_weight,
-    #         'item_category_id': self.item_category_id.id if self.item_category_id else False,
-    #         'sub_category_id': self.sub_category_id.id if self.sub_category_id else False,
-    #         'selling_making_charge': self.selling_making_charge,
-    #         'selling_karat_id': self.selling_karat_id.id if self.selling_karat_id else False,
-    #     })
-    #     return res
 
 
 class StockMoveLine(models.Model):

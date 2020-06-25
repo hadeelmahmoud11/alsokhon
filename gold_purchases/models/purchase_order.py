@@ -40,7 +40,8 @@ class PurchaseOrderLine(models.Model):
         for rec in self:
             rec.pure_wt = rec.gross_wt * (rec.purity_id and (
                     rec.purity_id.purity / 1000.000) or 1)
-            rec.stock = rec.product_id and rec.product_id.qty_available or 0.00 + rec.pure_wt + rec.purity_diff
+            rec.stock = (rec.product_id and rec.product_id.qty_available or
+                         0.00) + rec.pure_wt + rec.purity_diff
             rec.make_value = rec.gross_wt * rec.make_rate
             rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
             rec.gold_value = rec.gold_rate and (
@@ -51,7 +52,8 @@ class PurchaseOrderLine(models.Model):
                  'order_id', 'order_id.order_type')
     def _compute_amount(self):
         for line in self:
-            if line.order_id and line.order_id.order_type.is_fixed:
+            if line.order_id and line.order_id.order_type.is_fixed and \
+                    line.product_id.gold:
                 taxes = line.taxes_id.compute_all(
                     line.make_value + line.gold_value,
                     line.order_id.currency_id,
@@ -81,10 +83,11 @@ class PurchaseOrderLine(models.Model):
 
     def _prepare_stock_moves(self, picking):
         res = super(PurchaseOrderLine, self)._prepare_stock_moves(picking)
-        res[0].update({
+        res and res[0].update({
             'gross_weight': self.gross_wt,
             'pure_weight': self.pure_wt,
             'purity': self.purity_id.purity or 1,
+            'gold_rate': self.gold_rate,
             'selling_karat_id':
                 self.product_id.product_template_attribute_value_ids and
                 self.product_id.product_template_attribute_value_ids.mapped(

@@ -17,20 +17,21 @@ class ResCompany(models.Model):
         rslt = True
         active_currencies = self.env['res.currency'].search([
             ('is_gold', '=', True)])
-        for (currency_provider, companies) in self._group_by_provider().items():
-            parse_results = None
-            parse_function = getattr(companies,
-                                     'get_gold_rate')
-            parse_results = parse_function(active_currencies)
-            if parse_results and parse_results == False:
-                # We check == False, and don't use bool conversion, as an empty
-                # dict can be returned, if none of the available currencies is supported by the provider
-                _logger.warning(_(
-                    'Unable to connect to the online exchange gold rate '
-                    'platform %s. The web service may be temporary down.') % currency_provider)
-                rslt = False
-            else:
-                companies._generate_gold_rates(parse_results)
+        if active_currencies:
+            for (currency_provider, companies) in self._group_by_provider().items():
+                parse_results = None
+                parse_function = getattr(companies,
+                                         'get_gold_rate')
+                parse_results = parse_function(active_currencies)
+                if parse_results and parse_results == False:
+                    # We check == False, and don't use bool conversion, as an empty
+                    # dict can be returned, if none of the available currencies is supported by the provider
+                    _logger.warning(_(
+                        'Unable to connect to the online exchange gold rate '
+                        'platform %s. The web service may be temporary down.') % currency_provider)
+                    rslt = False
+                else:
+                    companies._generate_gold_rates(parse_results)
         return res
 
     def get_gold_rate(self, available_currencies):
@@ -73,14 +74,6 @@ class ResCompany(models.Model):
         GoldRate = self.env['gold.rates']
         today = fields.Date.today()
         for company in self:
-            rate_info = parsed_data.get(company.currency_id.name, None)
-
-            if not rate_info:
-                raise UserError(_(
-                    "Your main currency (%s) is not supported by this exchange rate provider. Please choose another one.") % company.currency_id.name)
-
-            base_currency_rate = rate_info[0]
-
             for currency, (rate, date_rate) in parsed_data.items():
                 currency_object = Currency.search([
                     ('is_gold', '=', True), ('name', '=', currency)])
