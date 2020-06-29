@@ -1,5 +1,5 @@
 <odoo>
-    <data>
+    <data noupdate="1">
         <record id="XAU" model="res.currency">
             <field name="name">XAU</field>
             <field name="symbol">℥</field>
