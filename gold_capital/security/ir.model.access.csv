@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_gold_capital,access_gold_capital,model_gold_capital,,1,1,0,0
+access_gold_capital_log,access_gold_capital_log,model_gold_capital_logs,,1,0,1,0

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <record id="view_gold_capital_form" model="ir.ui.view">
+            <field name="name">gold.capital.form</field>
+            <field name="model">gold.capital</field>
+            <field name="type">form</field>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <form string="Gold Capital">
+                    <sheet>
+                        <group>
+                            <field name="name" select="1"/>
+                        </group>
+                        <notebook>
+                            <page string="Logs" name="logs">
+                                <field name="log_ids" nolable="1" readonly="1">
+                                    <tree create="0" delete="0">
+                                        <field name="date"/>
+                                        <field name="new_capital"/>
+                                        <field name="old_capital"/>
+                                        <field name="capital_diff"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="activity_ids" widget="mail_activity"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_gold_capital_search" model="ir.ui.view">
+            <field name="name">gold.capital.search</field>
+            <field name="model">gold.capital</field>
+            <field name="type">search</field>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <search string="Gold Capital">
+                    <field name="name" select="True"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_open_gold_capital_view">
+            <field name="name">Gold Capital</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">gold.capital</field>
+            <field name="res_id">1</field>
+            <field name="view_mode">form</field>
+            <field name="search_view_id" ref="view_gold_capital_search"/>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="act_open_gold_capital_view_form">
+            <field name="act_window_id" ref="act_open_gold_capital_view"/>
+            <field name="sequence" eval="20"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_gold_capital_form"/>
+        </record>
+
+        <menuitem id="menu_gold_capital"
+                  parent="account.menu_finance_configuration"
+                  sequence="20"
+                  action="act_open_gold_capital_view"/>
+    </data>
+</odoo>
