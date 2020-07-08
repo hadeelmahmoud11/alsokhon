@@ -40,6 +40,39 @@ class StockMove(models.Model):
                                           string="Company Currency",
                                           related='company_id.currency_id')
 
+    def _create_in_svl(self, forced_quantity=None):
+        """Create a `stock.valuation.layer` from `self`.
+
+        :param forced_quantity: under some circunstances, the quantity to value is different than
+            the initial demand of the move (Default value = None)
+        """
+        svl_vals_list = []
+        for move in self:
+            move = move.with_context(force_company=move.company_id.id)
+            valued_move_lines = move._get_in_move_lines()
+            valued_quantity = 0
+            for valued_move_line in valued_move_lines:
+                valued_quantity += valued_move_line.product_uom_id._compute_quantity(
+                    valued_move_line.qty_done, move.product_id.uom_id)
+            unit_cost = abs(
+                move._get_price_unit())  # May be negative (i.e. decrease an out move).
+            if move.product_id.cost_method == 'standard':
+                unit_cost = move.product_id.standard_price
+            # Check Gold Product and pass gold rate, pure weight instead of
+            # cost, qty
+            if move.product_id.gold:
+                svl_vals = move.product_id._prepare_in_svl_vals(
+                    move.pure_weight, move.gold_rate)
+            else:
+                svl_vals = move.product_id._prepare_in_svl_vals(
+                    forced_quantity or valued_quantity, unit_cost)
+            svl_vals.update(move._prepare_common_svl_vals())
+            if forced_quantity:
+                svl_vals[
+                    'description'] = 'Correction of %s (modification of past move)' % move.picking_id.name or move.name
+            svl_vals_list.append(svl_vals)
+        return self.env['stock.valuation.layer'].sudo().create(svl_vals_list)
+
 
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
@@ -98,3 +131,10 @@ class StockInventoryLine(models.Model):
 
     gross_weight = fields.Float('Gross Weight')
     pure_weight = fields.Float('Pure Weight')
+
+
+class StockValuationLayer(models.Model):
+    _inherit = 'stock.valuation.layer'
+
+    pure_weight = fields.Float('Pure Weight')
+    gold_rate = fields.Float(string='Gold Rate')

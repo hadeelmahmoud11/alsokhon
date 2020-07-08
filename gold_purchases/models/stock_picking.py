@@ -34,16 +34,14 @@ class StockPicking(models.Model):
                 description = '%s-%s' % (description, product_id.display_name)
                 if product_id not in product_dict.keys():
                     product_dict[product_id] = sum(
-                        x.pure_weight * x.gold_rate for x in move_list)
+                        x.pure_weight for x in move_list)
                 else:
                     product_dict[product_id] = product_dict[product_id] + sum(
-                        x.pure_weight * x.gold_rate for x in move_list)
+                        x.pure_weight for x in move_list)
             total_purity = sum(value for key, value in product_dict.items())
             if gold_journal and total_purity > 0.0 and product_dict and \
                     self.partner_id and self.partner_id.gold_account_payable_id:
                 journal_id = gold_journal.id
-                credit_account_id = self.partner_id.gold_account_payable_id
-                move_obj = self.env['stock.move']
                 move_lines = self._prepare_account_move_line(product_dict)
                 if move_lines:
                     AccountMove = self.env['account.move'].with_context(

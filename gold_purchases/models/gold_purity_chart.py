@@ -17,7 +17,7 @@ class GoldPurity(models.Model):
 
     def get_name(self):
         for rec in self:
-            rec.name = '%s-%s/%s' % (rec.karat, rec.parts, rec.out_of_parts)
+            rec.name = rec.karat and int(rec.karat) or 0
 
     @api.constrains('parts')
     def check_parts(self):

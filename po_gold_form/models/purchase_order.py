@@ -8,9 +8,10 @@ class PurchaseOrder(models.Model):
 
     gold_rate = fields.Float(string='Gold Rate', digits=(12, 12))
 
-    @api.onchange('currency_id', 'date_order')
+    @api.onchange('currency_id', 'date_order', 'order_type')
     def get_gold_rate(self):
-        if self.date_order and self.currency_id and self.currency_id.is_gold:
+        if self.date_order and self.currency_id and self.currency_id.is_gold \
+                and self.order_type and self.order_type.gold:
             rates = self.env['gold.rates'].search([
                 ('currency_id', '=', self.currency_id.id),
                 ('name', '=', self.date_order.date()),

@@ -8,6 +8,7 @@
             <field name="arch" type="xml">
                 <field name="type" position="after">
                     <field name="gold"/>
+                    <field name="origin"/>
                 </field>
                 <field name="uom_id" position="attributes">
                     <attribute name="attrs">{'required': [('gold', '=', True)]}</attribute>

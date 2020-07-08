@@ -8,6 +8,8 @@ class PurchaseOrder(models.Model):
     period_from = fields.Float('Period From')
     period_to = fields.Float('Period To')
     period_uom_id = fields.Many2one('uom.uom', 'Period UOM')
+    is_gold_fixed = fields.Boolean(string='Is Gold Fixed',
+                                   compute='check_gold_fixed')
 
     @api.model
     def _prepare_picking(self):
@@ -19,6 +21,13 @@ class PurchaseOrder(models.Model):
         })
         return res
 
+    @api.depends('order_type')
+    def check_gold_fixed(self):
+        for rec in self:
+            rec.is_gold_fixed = rec.order_type and \
+                                rec.order_type.is_fixed and \
+                                rec.order_type.gold and True or False
+
 
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
@@ -27,6 +36,7 @@ class PurchaseOrderLine(models.Model):
     purity_id = fields.Many2one('gold.purity', 'Purity')
     pure_wt = fields.Float('Pure Wt', compute='_get_gold_rate')
     purity_diff = fields.Float('Purity +/-')
+    total_pure_weight = fields.Float('Pure Weight', compute='_get_gold_rate')
     stock = fields.Float('Stock', compute='_get_gold_rate')
     make_rate = fields.Monetary('Make Rate/G')
     make_value = fields.Monetary('Make Value', compute='_get_gold_rate')
@@ -40,16 +50,18 @@ class PurchaseOrderLine(models.Model):
         for rec in self:
             rec.pure_wt = rec.gross_wt * (rec.purity_id and (
                     rec.purity_id.purity / 1000.000) or 1)
+            rec.total_pure_weight = rec.pure_wt + rec.purity_diff
             rec.stock = (rec.product_id and rec.product_id.qty_available or
-                         0.00) + rec.pure_wt + rec.purity_diff
+                         0.00) + rec.total_pure_weight + rec.purity_diff
             rec.make_value = rec.gross_wt * rec.make_rate
             rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
             rec.gold_value = rec.gold_rate and (
-                    rec.pure_wt / rec.gold_rate) or rec.pure_wt
+                    rec.total_pure_weight * rec.gold_rate) or 0
 
     @api.depends('product_qty', 'price_unit', 'taxes_id', 'gross_wt',
                  'purity_id', 'purity_diff', 'make_rate',
-                 'order_id', 'order_id.order_type')
+                 'order_id', 'order_id.order_type',
+                 'order_id.state', 'order_id.order_type.gold')
     def _compute_amount(self):
         for line in self:
             if line.order_id and line.order_id.order_type.is_fixed and \
@@ -85,7 +97,7 @@ class PurchaseOrderLine(models.Model):
         res = super(PurchaseOrderLine, self)._prepare_stock_moves(picking)
         res and res[0].update({
             'gross_weight': self.gross_wt,
-            'pure_weight': self.pure_wt,
+            'pure_weight': self.total_pure_weight,
             'purity': self.purity_id.purity or 1,
             'gold_rate': self.gold_rate,
             'selling_karat_id':
