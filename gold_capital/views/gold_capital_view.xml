@@ -10,9 +10,13 @@
             <field name="arch" type="xml">
                 <form string="Gold Capital">
                     <sheet>
-                        <group>
-                            <field name="name" select="1"/>
-                        </group>
+                        <div class="o_row">
+                            <field name="name" required="1"/>
+                            <div class="o_row">
+                                <label for="parts" string="KG Pure Gold" style="font-weight: bold !important;"/>
+                            </div>
+                        </div>
+
                         <notebook>
                             <page string="Logs" name="logs">
                                 <field name="log_ids" nolable="1" readonly="1">

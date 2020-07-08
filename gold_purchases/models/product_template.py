@@ -7,7 +7,7 @@ class ProductTemplate(models.Model):
     _inherit = "product.template"
 
     gold = fields.Boolean(string='Is Gold')
-    origin = fields.Many2one('res.country', string='Country')
+    origin = fields.Many2one('res.country', string='Origin')
 
     def _compute_weight_uom_name(self):
         for template in self:
