@@ -9,6 +9,7 @@
             <field name="arch" type="xml">
                 <tree string="Gold Purity">
                     <field name="name"/>
+                    <field name="parts_name"/>
                     <field name="purity"/>
                     <field name="gold_percent"/>
                 </tree>
@@ -32,7 +33,7 @@
                             <group>
                                 <div class="o_row">
                                     <strong>
-                                        <label for="parts" string="Parts Gold"/>
+                                        <label for="parts" string="Parts Gold" style="font-weight: bold !important;"/>
                                     </strong>
                                     <field name="parts" required="1"/>
                                     <div class="o_row">

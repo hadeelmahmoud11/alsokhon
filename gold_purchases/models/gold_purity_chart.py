@@ -14,6 +14,11 @@ class GoldPurity(models.Model):
     gold_percent = fields.Float('Gold %', digits='Product Price')
     allow_delete = fields.Boolean(default=True)
     name = fields.Char('Karat', compute='get_name')
+    parts_name = fields.Char('Parts Gold', compute='get_part_name')
+
+    def get_part_name(self):
+        for rec in self:
+            rec.parts_name = '%s / %s' % (rec.parts, rec.out_of_parts)
 
     def get_name(self):
         for rec in self:
