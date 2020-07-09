@@ -41,6 +41,8 @@ class GoldCapital(models.Model):
 
 class GoldCapitalLogs(models.Model):
     _name = 'gold.capital.logs'
+    _order = 'date desc'
+    _description = 'Gold Capital Logs'
 
     date = fields.Datetime('Date')
     new_capital = fields.Float('New Capital')
