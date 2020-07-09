@@ -34,16 +34,20 @@ class PurchaseOrderLine(models.Model):
 
     price_unit = fields.Float(string='Unit Price', required=True,
                               digits='Product Price', copy=False, default=0)
-    gross_wt = fields.Float('Gross Wt')
+    gross_wt = fields.Float('Gross Wt', digits=(16, 3))
     purity_id = fields.Many2one('gold.purity', 'Purity')
-    pure_wt = fields.Float('Pure Wt', compute='_get_gold_rate')
-    purity_diff = fields.Float('Purity +/-')
-    total_pure_weight = fields.Float('Pure Weight', compute='_get_gold_rate')
-    stock = fields.Float('Stock', compute='_get_gold_rate')
-    make_rate = fields.Monetary('Make Rate/G')
-    make_value = fields.Monetary('Make Value', compute='_get_gold_rate')
-    gold_rate = fields.Float('Gold Rate/G', compute='_get_gold_rate')
-    gold_value = fields.Monetary('Gold Value', compute='_get_gold_rate')
+    pure_wt = fields.Float('Pure Wt', compute='_get_gold_rate', digits=(16, 3))
+    purity_diff = fields.Float('Purity +/-', digits=(16, 3))
+    total_pure_weight = fields.Float('Pure Weight', compute='_get_gold_rate',
+                                     digits=(16, 3))
+    stock = fields.Float('Stock', compute='_get_gold_rate', digits=(16, 3))
+    make_rate = fields.Monetary('Make Rate/G', digits=(16, 3))
+    make_value = fields.Monetary('Make Value', compute='_get_gold_rate',
+                                 digits=(16, 3))
+    gold_rate = fields.Float('Gold Rate/G', compute='_get_gold_rate',
+                             digits=(16, 3))
+    gold_value = fields.Monetary('Gold Value', compute='_get_gold_rate',
+                                 digits=(16, 3))
 
     @api.depends('product_id', 'product_qty', 'price_unit', 'gross_wt',
                  'purity_id', 'purity_diff', 'make_rate',

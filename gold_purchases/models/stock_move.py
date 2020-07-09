@@ -25,17 +25,18 @@ class SubCategory(models.Model):
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
-    gross_weight = fields.Float(string='Gross Weight')
-    pure_weight = fields.Float('Pure Weight')
-    purity = fields.Float(string="Purity")
-    gold_rate = fields.Float(string='Gold Rate')
+    gross_weight = fields.Float(string='Gross Weight', digits=(16, 3))
+    pure_weight = fields.Float('Pure Weight', digits=(16, 3))
+    purity = fields.Float(string="Purity", digits=(16, 3))
+    gold_rate = fields.Float(string='Gold Rate', digits=(16, 3))
     item_category_id = fields.Many2one('item.category', string="Item Category")
     sub_category_id = fields.Many2one('item.category.line',
                                       string="Sub Category")
     selling_karat_id = fields.Many2one('product.attribute.value',
                                        string="Selling Karat")
     selling_making_charge = fields.Monetary('Selling Making Charge',
-                                            currency_field='company_currency_id')
+                                            currency_field='company_currency_id',
+                                            digits=(16, 3))
     company_currency_id = fields.Many2one('res.currency',
                                           string="Company Currency",
                                           related='company_id.currency_id')
@@ -83,15 +84,24 @@ class StockMoveLine(models.Model):
                                        string='Gross Weight', store=True)
     purity = fields.Float(related="move_id.purity", string="Purity", store=True)
     pure_weight = fields.Float(compute='get_pure_weight', string="Pure Weight",
-                               store=True)
+                               store=True, digits=(16, 3))
     item_category_id = fields.Many2one('item.category', string="Item Category")
     sub_category_id = fields.Many2one('item.category.line',
                                       string="Sub Category")
     selling_karat_id = fields.Many2one('product.attribute.value',
-                                       string="Selling Karat")
-    selling_making_charge = fields.Monetary('Selling Making Charge')
+                                       string="Selling Karat",
+                                       compute='get_karat')
+    selling_making_charge = fields.Monetary('Selling Making Charge',
+                                            digits=(16, 3))
     currency_id = fields.Many2one('res.currency', string="Company Currency",
                                   related='company_id.currency_id')
+
+    @api.depends('move_id')
+    def get_karat(self):
+        for rec in self:
+            rec.selling_karat_id = rec.move_id and \
+                                   rec.move_id.selling_karat_id and \
+                                   rec.move_id.selling_karat_id.id or False
 
     # @api.constrains('gross_weight')
     # def validate_gross_weight(self):
@@ -129,12 +139,12 @@ class StockMoveLine(models.Model):
 class StockInventoryLine(models.Model):
     _inherit = 'stock.inventory.line'
 
-    gross_weight = fields.Float('Gross Weight')
-    pure_weight = fields.Float('Pure Weight')
+    gross_weight = fields.Float('Gross Weight', digits=(16, 3))
+    pure_weight = fields.Float('Pure Weight', digits=(16, 3))
 
 
 class StockValuationLayer(models.Model):
     _inherit = 'stock.valuation.layer'
 
-    pure_weight = fields.Float('Pure Weight')
-    gold_rate = fields.Float(string='Gold Rate')
+    pure_weight = fields.Float('Pure Weight', digits=(16, 3))
+    gold_rate = fields.Float(string='Gold Rate', digits=(16, 3))

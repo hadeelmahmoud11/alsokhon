@@ -66,7 +66,7 @@
                     <field name="item_category_id"/>
                     <field name="sub_category_id" attrs="{'invisible': [('item_category_id','=', False)]}"
                            domain="[('parent_category_id', '=', item_category_id)]"/>
-                    <field name="selling_karat_id"/>
+                    <field name="selling_karat_id" readonly="1"/>
                     <field name="selling_making_charge"/>
                 </field>
             </field>
@@ -78,14 +78,14 @@
             <field name="inherit_id" ref="stock.view_stock_move_line_operation_tree"/>
             <field name="arch" type="xml">
                 <field name="product_uom_id" position="after">
-                    <field name="gross_weight" readonly="0"/>
+                    <field name="gross_weight" readonly="0" />
                     <field name="pure_weight"/>
                     <field name="purity"/>
-                    <field name="item_category_id"/>
-                    <field name="sub_category_id" attrs="{'invisible': [('item_category_id','=', False)]}"
+                    <field name="item_category_id" readonly="1" force_save="1"/>
+                    <field name="sub_category_id" readonly="1" force_save="1" attrs="{'invisible': [('item_category_id','=', False)]}"
                            domain="[('parent_category_id', '=', item_category_id)]"/>
-                    <field name="selling_karat_id"/>
-                    <field name="selling_making_charge"/>
+                    <field name="selling_karat_id" readonly="1" force_save="1"/>
+                    <field name="selling_making_charge" readonly="1" force_save="1"/>
                 </field>
             </field>
         </record>
@@ -102,7 +102,7 @@
                     <field name="item_category_id"/>
                     <field name="sub_category_id" attrs="{'invisible': [('item_category_id','=', False)]}"
                            domain="[('parent_category_id', '=', item_category_id)]"/>
-                    <field name="selling_karat_id"/>
+                    <field name="selling_karat_id"  readonly="1"/>
                     <field name="selling_making_charge"/>
                 </field>
             </field>
@@ -143,10 +143,10 @@
                     <field name="gross_weight" readonly="0"/>
                     <field name="pure_weight"/>
                     <field name="purity"/>
-                    <field name="item_category_id"/>
-                    <field name="sub_category_id" attrs="{'invisible': [('item_category_id','=', False)]}"
+                    <field name="item_category_id" required="1"/>
+                    <field name="sub_category_id" attrs="{'invisible': [('item_category_id','=', False)], 'required': [('item_category_id', '!=', False)]}"
                            domain="[('parent_category_id', '=', item_category_id)]"/>
-                    <field name="selling_karat_id"/>
+                    <field name="selling_karat_id"  readonly="1"/>
                     <field name="selling_making_charge"/>
                 </xpath>
             </field>
