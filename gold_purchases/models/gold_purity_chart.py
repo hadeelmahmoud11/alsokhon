@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from odoo.osv import expression
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
@@ -63,3 +64,13 @@ class GoldPurity(models.Model):
             raise UserError(_('You are not allowed to delete %s records.' %
                               recs[0].name))
         return super(GoldPurity, self).unlink()
+
+    @api.model
+    def _name_search(self, name, args=None, operator='ilike', limit=100,
+                     name_get_uid=None):
+        if not args:
+            args = []
+        if name:
+            args = expression.AND([args, [('karat', operator, name)]])
+        return super(GoldPurity, self)._name_search(
+            name, args, operator, limit, name_get_uid)

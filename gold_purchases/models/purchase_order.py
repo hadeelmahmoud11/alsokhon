@@ -32,6 +32,8 @@ class PurchaseOrder(models.Model):
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
+    price_unit = fields.Float(string='Unit Price', required=True,
+                              digits='Product Price', copy=False, default=0)
     gross_wt = fields.Float('Gross Wt')
     purity_id = fields.Many2one('gold.purity', 'Purity')
     pure_wt = fields.Float('Pure Wt', compute='_get_gold_rate')
@@ -52,7 +54,7 @@ class PurchaseOrderLine(models.Model):
                     rec.purity_id.purity / 1000.000) or 1)
             rec.total_pure_weight = rec.pure_wt + rec.purity_diff
             rec.stock = (rec.product_id and rec.product_id.qty_available or
-                         0.00) + rec.total_pure_weight + rec.purity_diff
+                         0.00) + rec.pure_wt + rec.purity_diff
             rec.make_value = rec.gross_wt * rec.make_rate
             rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
             rec.gold_value = rec.gold_rate and (
@@ -77,6 +79,7 @@ class PurchaseOrderLine(models.Model):
                         t.get('amount', 0.0) for t in taxes.get('taxes', [])),
                     'price_total': taxes['total_included'],
                     'price_subtotal': taxes['total_excluded'],
+                    'price_unit': 0
                 })
             else:
                 vals = line._prepare_compute_all_values()
