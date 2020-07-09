@@ -8,13 +8,14 @@ class GoldCapital(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Gold Capital'
 
-    name = fields.Float('Capital')
+    name = fields.Char('Name')
+    capital = fields.Float('Capital')
     log_ids = fields.One2many('gold.capital.logs', 'capital_id', 'Logs')
 
     def write(self, vals):
         old_value = 0
         for rec in self:
-            old_value = rec.name
+            old_value = rec.capital
         res = super(GoldCapital, self).write(vals)
         log_obj = self.env['gold.capital.logs']
 
@@ -24,8 +25,8 @@ class GoldCapital(models.Model):
             log = log_obj.create({
                 'date': fields.Datetime.now(),
                 'old_capital': old_value,
-                'new_capital': rec.name,
-                'capital_diff': rec.name - old_value,
+                'new_capital': rec.capital,
+                'capital_diff': rec.capital - old_value,
                 'capital_id': rec.id,
                 'user_id': self.env.user.id,
             })
@@ -47,3 +48,13 @@ class GoldCapitalLogs(models.Model):
     capital_diff = fields.Float('Capital Difference')
     user_id = fields.Many2one('res.users', string='User')
     capital_id = fields.Many2one('gold.capital', string='Capital')
+    new_capital_str = fields.Char('New Capital', compute='get_capital_str')
+    old_capital_str = fields.Char('Old Capital', compute='get_capital_str')
+    capital_diff_str = fields.Char('Capital Diffrence',
+                                   compute='get_capital_str')
+
+    def get_capital_str(self):
+        for rec in self:
+            rec.old_capital_str = '%s %s' % (rec.old_capital, 'KG')
+            rec.new_capital_str = '%s %s' % (rec.new_capital, 'KG')
+            rec.capital_diff_str = '%s %s' % (rec.capital_diff, 'KG')
