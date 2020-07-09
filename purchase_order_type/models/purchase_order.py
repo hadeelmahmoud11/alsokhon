@@ -14,6 +14,12 @@ class PurchaseOrder(models.Model):
                                  string='Type',
                                  ondelete='restrict',
                                  default=_default_order_type)
+    is_fixed = fields.Boolean(string='Fixed', compute='get_is_fixed')
+
+    @api.depends('order_type')
+    def get_is_fixed(self):
+        for rec in self:
+            rec.is_fixed = rec.order_type and rec.order_type.is_fixed and True or False
 
     @api.onchange('partner_id')
     def onchange_partner_id(self):

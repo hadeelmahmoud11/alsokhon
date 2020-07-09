@@ -28,3 +28,5 @@ class PurchaseOrderType(models.Model):
     incoterm_id = fields.Many2one(
         comodel_name='account.incoterms', string='Incoterm')
     sequence = fields.Integer(default=10)
+    is_fixed = fields.Boolean('Is Fixed')
+    gold = fields.Boolean('Gold')

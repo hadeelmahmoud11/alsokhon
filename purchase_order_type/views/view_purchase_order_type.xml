@@ -38,6 +38,8 @@
                     <group>
                         <group>
                             <field name="sequence_id"/>
+                            <field name="is_fixed"/>
+                            <field name="gold"/>
                         </group>
                         <group>
                             <field name="payment_term_id"/>

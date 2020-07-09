@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="view_gold_rates_tree" model="ir.ui.view">
+            <field name="name">gold.rates.tree</field>
+            <field name="model">gold.rates</field>
+            <field name="type">tree</field>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <tree string="Gold Rates">
+                    <field name="name"/>
+                    <field name="uom_id"/>
+                    <field name="rate"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_gold_rates_form" model="ir.ui.view">
+            <field name="name">gold.rates.form</field>
+            <field name="model">gold.rates</field>
+            <field name="type">form</field>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <form string="Gold Rates">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="uom_id"/>
+                            <field name="rate"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="view_gold_rates_search" model="ir.ui.view">
+            <field name="name">gold.rates.search</field>
+            <field name="model">gold.rates</field>
+            <field name="arch" type="xml">
+                <search string="Gold Rates">
+                    <field name="name" string="Currency"/>
+                    <field name="uom_id"/>
+                    <group expand="0" string="Group By">
+                        <filter name="uom_id" string="Unit Of Measure" domain="[]" context="{'group_by': 'uom_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+        <record model="ir.actions.act_window" id="act_open_gold_rates_view">
+            <field name="name">Gold Rates</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">gold.rates</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="view_gold_rates_search"/>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="act_open_gold_rates_view_form">
+            <field name="act_window_id" ref="act_open_gold_rates_view"/>
+            <field name="sequence" eval="20"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_gold_rates_form"/>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="act_open_gold_rates_view_tree">
+            <field name="act_window_id" ref="act_open_gold_rates_view"/>
+            <field name="sequence" eval="10"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_gold_rates_tree"/>
+        </record>
+        <act_window
+                id="act_view_gold_rates"
+                name="Gold Rates"
+                view_mode='tree,form'
+                view_id='view_gold_rates_tree'
+                domain="[('currency_id','=', active_id)]"
+                context="{'default_currency_id': active_id}"
+                res_model="gold.rates"/>
+    </data>
+</odoo>

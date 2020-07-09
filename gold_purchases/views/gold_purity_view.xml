@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="view_gold_purity_tree" model="ir.ui.view">
+            <field name="name">gold.purity.tree</field>
+            <field name="model">gold.purity</field>
+            <field name="type">tree</field>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <tree string="Gold Purity">
+                    <field name="name"/>
+                    <field name="parts_name"/>
+                    <field name="purity"/>
+                    <field name="gold_percent"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_gold_purity_form" model="ir.ui.view">
+            <field name="name">gold.purity.form</field>
+            <field name="model">gold.purity</field>
+            <field name="type">form</field>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <form string="Gold Purity">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="karat" required="1"/>
+                                <field name="purity" required="1"/>
+                                <field name="gold_percent" required="1"/>
+                            </group>
+                            <group>
+                                <div class="o_row">
+                                    <strong>
+                                        <label for="parts" string="Parts Gold" style="font-weight: bold !important;"/>
+                                    </strong>
+                                    <field name="parts" required="1"/>
+                                    <div class="o_row">
+                                        <strong>/</strong>
+                                        <field name="out_of_parts" required="1"/>
+                                    </div>
+                                </div>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_gold_purity_search" model="ir.ui.view">
+            <field name="name">gold.purity.search</field>
+            <field name="model">gold.purity</field>
+            <field name="type">search</field>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <search string="Gold Purity">
+                    <field name="karat"/>
+                    <field name="purity"/>
+                    <field name="gold_percent"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_open_gold_purity_view">
+            <field name="name">Gold Purity Chart</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">gold.purity</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="view_gold_purity_search"/>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="act_open_gold_purity_view_form">
+            <field name="act_window_id" ref="act_open_gold_purity_view"/>
+            <field name="sequence" eval="20"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_gold_purity_form"/>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="act_open_gold_purity_view_tree">
+            <field name="act_window_id" ref="act_open_gold_purity_view"/>
+            <field name="sequence" eval="10"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_gold_purity_tree"/>
+        </record>
+
+        <menuitem id="menu_gold_purity"
+                  parent="purchase.menu_purchase_config"
+                  sequence="2"
+                  action="act_open_gold_purity_view"/>
+    </data>
+</odoo>

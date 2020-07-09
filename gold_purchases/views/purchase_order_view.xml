@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="purchase_order_form_extend_alsokhon_period" model="ir.ui.view">
+            <field name="name">purchase.order.form</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page[@name='purchase_delivery_invoice']/group" position="inside">
+                    <group string="Period Details">
+                        <div class="o_row">
+                            <strong>
+                                <label for="period_from" string="Period From"/>
+                            </strong>
+                            <field name="period_from" string="Period"/>
+                            <div class="o_row">
+                                <strong>To</strong>
+                                <field name="period_to"/>
+                                <field name="period_uom_id" widget="selection"
+                                       domain="[('category_id', '!=', False), ('category_id.measure_type', '=', 'working_time')]"/>
+                            </div>
+                        </div>
+                        <field name="is_gold_fixed" invisible="1"/>
+                    </group>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="attributes">
+                    <attribute name="width">15%</attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/tree/field[@name='name']" position="attributes">
+                    <attribute name="width">7%</attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/tree/field[@name='product_qty']" position="attributes">
+                    <attribute name="width">4%</attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="attributes">
+                    <attribute name="width">4%</attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/tree/field[@name='taxes_id']" position="attributes">
+                    <attribute name="width">5%</attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/tree/field[@name='price_subtotal']" position="attributes">
+                    <attribute name="width">10%</attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="after">
+                    <field name="gross_wt" width="12%"/>
+                    <field name="purity_id" width="10%"/>
+                    <field name="pure_wt" width="10%"/>
+                    <field name="purity_diff" width="10%"/>
+                    <field name="stock" width="10%"/>
+                    <field name="make_rate" width="15%"/>
+                    <field name="make_value" width="12%"/>
+                    <field name="gold_rate" width="12%"/>
+                    <field name="gold_value" width="12%"/>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/form/group/group/field[@name='qty_received']"
+                       position="before">
+                    <field name="gross_wt"/>
+                    <field name="purity_id"/>
+                    <field name="pure_wt"/>
+                    <field name="purity_diff"/>
+                    <field name="stock"/>
+                    <field name="make_rate"/>
+                    <field name="make_value"/>
+                    <field name="gold_rate"/>
+                    <field name="gold_value"/>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/tree/field[@name='price_unit']" position="attributes">
+                    <attribute name="attrs">{'readonly': [('parent.is_gold_fixed', '=', True)]}</attribute>
+                    <attribute name="force_save">1</attribute>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

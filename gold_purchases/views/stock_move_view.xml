@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Item Category Search View-->
+        <record model="ir.ui.view" id="alsokhon_item_category_search_view">
+            <field name="name">alsokhon.item.category.search.view</field>
+            <field name="model">item.category</field>
+            <field name="arch" type="xml">
+                <search string="Item Category">
+                    <field name="name"/>
+                </search>
+            </field>
+        </record>
+
+        <!-- Item Category Form View-->
+        <record model="ir.ui.view" id="alsokhon_item_category_form_view">
+            <field name="name">alsokhon.item.category.form.view</field>
+            <field name="model">item.category</field>
+            <field name="arch" type="xml">
+                <form string="Item Category">
+                    <sheet>
+                        <group>
+                            <field name="name" required="1"/>
+                        </group>
+                        <separator string="Sub Categories"/>
+                        <field name="sub_category_lines" nolabel="1">
+                            <tree editable="bottom">
+                                <field name="name" required="1"/>
+                            </tree>
+                        </field>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Item Category Tree View-->
+        <record model="ir.ui.view" id="alsokhon_item_category_tree_view">
+            <field name="name">alsokhon.item.category.tree.view</field>
+            <field name="model">item.category</field>
+            <field name="arch" type="xml">
+                <tree string="Item Category">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Item Category Action-->
+        <record id="alsokhon_item_category_action" model="ir.actions.act_window">
+            <field name="name">Item Categories</field>
+            <field name="res_model">item.category</field>
+        </record>
+
+        <menuitem action="alsokhon_item_category_action" id="menu_alsokhon_item_category"
+                  parent="stock.menu_stock_config_settings" sequence="16"/>
+
+
+        <record id="gold_purchases_view_move_line_tree_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.stock.move.line.tree.inherit</field>
+            <field name="model">stock.move.line</field>
+            <field name="inherit_id" ref="stock.view_move_line_tree"/>
+            <field name="arch" type="xml">
+                <field name="qty_done" position="before">
+                    <field name="gross_weight" readonly="0"/>
+                    <field name="pure_weight"/>
+                    <field name="purity"/>
+                    <field name="item_category_id"/>
+                    <field name="sub_category_id" attrs="{'invisible': [('item_category_id','=', False)]}"
+                           domain="[('parent_category_id', '=', item_category_id)]"/>
+                    <field name="selling_karat_id" readonly="1"/>
+                    <field name="selling_making_charge"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="gold_purchases_view_stock_move_line_operation_tree_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.stock.move.line.tree.inherit</field>
+            <field name="model">stock.move.line</field>
+            <field name="inherit_id" ref="stock.view_stock_move_line_operation_tree"/>
+            <field name="arch" type="xml">
+                <field name="product_uom_id" position="after">
+                    <field name="gross_weight" readonly="0" />
+                    <field name="pure_weight"/>
+                    <field name="purity"/>
+                    <field name="item_category_id" readonly="1" force_save="1"/>
+                    <field name="sub_category_id" readonly="1" force_save="1" attrs="{'invisible': [('item_category_id','=', False)]}"
+                           domain="[('parent_category_id', '=', item_category_id)]"/>
+                    <field name="selling_karat_id" readonly="1" force_save="1"/>
+                    <field name="selling_making_charge" readonly="1" force_save="1"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="gold_purchases_view_move_line_form_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.stock.move.line.form.inherit</field>
+            <field name="model">stock.move.line</field>
+            <field name="inherit_id" ref="stock.view_move_line_form"/>
+            <field name="arch" type="xml">
+                <field name="product_uom_id" position="after">
+                    <field name="gross_weight" readonly="0"/>
+                    <field name="pure_weight"/>
+                    <field name="purity"/>
+                    <field name="item_category_id"/>
+                    <field name="sub_category_id" attrs="{'invisible': [('item_category_id','=', False)]}"
+                           domain="[('parent_category_id', '=', item_category_id)]"/>
+                    <field name="selling_karat_id"  readonly="1"/>
+                    <field name="selling_making_charge"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="gold_purchases_stock_stock_inventory_line_tree2_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.stock.stock.inventory.line.tree2.inherit</field>
+            <field name="model">stock.inventory.line</field>
+            <field name="inherit_id" ref="stock.stock_inventory_line_tree2"/>
+            <field name="arch" type="xml">
+                <field name="product_uom_id" position="after">
+                    <field name="gross_weight"/>
+                    <field name="pure_weight"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="gold_purchases_stock_view_move_tree_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.stock.view.move.tree.inherit</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_tree"/>
+            <field name="arch" type="xml">
+                <field name="product_uom" position="after">
+                    <field name="gross_weight"/>
+                    <field name="pure_weight"/>
+                    <field name="purity"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="gold_purchases_stock_view_picking_form_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.stock.view.picking.form.inherit</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='move_ids_without_package']/tree/field[@name='product_uom']"
+                       position="after">
+                    <field name="gross_weight" readonly="0"/>
+                    <field name="pure_weight"/>
+                    <field name="purity"/>
+                    <field name="item_category_id" required="1"/>
+                    <field name="sub_category_id" attrs="{'invisible': [('item_category_id','=', False)], 'required': [('item_category_id', '!=', False)]}"
+                           domain="[('parent_category_id', '=', item_category_id)]"/>
+                    <field name="selling_karat_id"  readonly="1"/>
+                    <field name="selling_making_charge"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_stock_move_nosuggest_operations_extend_purchase" model="ir.ui.view">
+            <field name="name">stock.move.operations.nosuggest.form</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_stock_move_nosuggest_operations"/>
+            <field name="priority">1000</field>
+            <field name="arch" type="xml">
+                <field name="move_line_nosuggest_ids" position="replace">
+                    <group>
+                        <group>
+                            <field name="gross_weight" invisible="1"/>
+                            <field name="pure_weight" invisible="1"/>
+                            <field name="purity" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="item_category_id" invisible="1"/>
+                            <field name="sub_category_id" invisible="1"/>
+                            <field name="selling_karat_id" invisible="1"/>
+                            <field name="selling_making_charge" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="move_line_nosuggest_ids"
+                           attrs="{'readonly': ['|', ('state', '=', 'cancel'), '&amp;', ('state', '=', 'done'), ('is_locked', '=', True)]}"
+                           context="{'tree_view_ref': 'stock.view_stock_move_line_operation_tree','default_picking_id': picking_id, 'default_move_id': id, 'default_product_id': product_id, 'default_location_id': location_id, 'default_location_dest_id': location_dest_id, 'default_company_id': company_id, 'default_selling_karat_id': selling_karat_id, 'default_item_category_id': item_category_id, 'default_sub_category_id': sub_category_id, 'default_gross_weight': gross_weight, 'default_pure_weight': pure_weight, 'default_purity': purity, 'default_selling_making_charge': selling_making_charge}"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

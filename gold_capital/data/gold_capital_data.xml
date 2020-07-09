@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+    	<record id="gold_capital_1" model="gold.capital">
+            <field name="name">Gold Capital</field>
+            <field name="capital" eval="0"/>
+        </record>
+    </data>
+</odoo>
