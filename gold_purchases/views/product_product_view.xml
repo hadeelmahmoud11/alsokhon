@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="gold_purchases_product_product_form_view_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.product.product.form.view.inherit</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="stock.product_form_view_procurement_button"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='action_open_quants']" position="after">
+                    <button class="oe_stat_button" icon="fa-cubes">
+                        <div class="o_field_widget o_stat_info">
+                            <span class="o_stat_value">
+                                <field name="available_gold" widget="statinfo" nolabel="1" class="mr4"/>
+                                g
+                            </span>
+                            <span class="o_stat_text">Available Gold</span>
+                        </div>
+                    </button>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

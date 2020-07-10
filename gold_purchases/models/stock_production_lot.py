@@ -7,7 +7,7 @@ class StockProductionLot(models.Model):
 
     gross_weight = fields.Float(string="Gross Weight")
     purity = fields.Float(string="Purity")
-    pure_weight = fields.Float(compute='get_pure_weight',string="Pure Weight")
+    pure_weight = fields.Float(compute='get_pure_weight',string="Pure Weight", store=True, digits=(16, 3))
     item_category_id = fields.Many2one('item.category',string="Item Category")
     sub_category_id = fields.Many2one('item.category.line', string="Sub Category")
     selling_karat_id = fields.Many2one('product.attribute.value', string="Selling Karat")

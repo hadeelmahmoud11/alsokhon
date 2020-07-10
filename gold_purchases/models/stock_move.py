@@ -74,6 +74,11 @@ class StockMove(models.Model):
             svl_vals_list.append(svl_vals)
         return self.env['stock.valuation.layer'].sudo().create(svl_vals_list)
 
+    def _action_done(self, cancel_backorder=False):
+        res = super(StockMove, self)._action_done()
+        self.product_id.compute_available_gold()
+        return res
+
 
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'

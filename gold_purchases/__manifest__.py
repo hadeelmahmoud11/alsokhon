@@ -16,6 +16,7 @@
         'data/account_journal_data.xml',
         'views/res_partner_view.xml',
         'views/account_view.xml',
+        'views/product_product_view.xml',
         'views/product_template_view.xml',
         'views/stock_move_view.xml',
         'views/purchase_order_view.xml',

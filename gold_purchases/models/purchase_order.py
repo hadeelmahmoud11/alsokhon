@@ -56,8 +56,9 @@ class PurchaseOrderLine(models.Model):
         for rec in self:
             rec.pure_wt = rec.gross_wt * (rec.purity_id and (
                     rec.purity_id.purity / 1000.000) or 1)
-            rec.total_pure_weight = rec.pure_wt + rec.purity_diff
-            rec.stock = (rec.product_id and rec.product_id.qty_available or
+            rec.total_pure_weight = rec.pure_wt
+            # NEED TO ADD PURITY DIFF + rec.purity_diff
+            rec.stock = (rec.product_id and rec.product_id.available_gold or
                          0.00) + rec.pure_wt + rec.purity_diff
             rec.make_value = rec.gross_wt * rec.make_rate
             rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
