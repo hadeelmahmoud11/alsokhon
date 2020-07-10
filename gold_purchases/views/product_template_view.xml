@@ -27,7 +27,7 @@
                 <xpath expr="//sheet" position="inside">
                     <group string="Gold Accounting" attrs="{'invisible': [('is_gold', '=', False)]}">
                         <field name="gold_on_hand_account"/>
-                        <field name="gold_journal"/>
+                        <field name="gold_journal" domain="[('gold', '=', True), ('active', '=', False)]"/>
                     </group>
                 </xpath>
             </field>
