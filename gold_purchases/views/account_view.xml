@@ -96,6 +96,16 @@
                     <field name="gold_rate" readonly="1"/>
                     <field name="gold_value" readonly="1"/>
                 </xpath>
+                <xpath expr="//notebook/page[@id='aml_tab']/field[@name='line_ids']/tree/field[@name='product_id']" position="after">
+                    <field name="gross_wt" invisible="1"/>
+                    <field name="purity_id" invisible="1"/>
+                    <field name="pure_wt" invisible="1"/>
+                    <field name="purity_diff" invisible="1"/>
+                    <field name="make_rate" invisible="1"/>
+                    <field name="make_value" invisible="1"/>
+                    <field name="gold_rate" invisible="1"/>
+                    <field name="gold_value" invisible="1"/>
+                </xpath>
             </field>
         </record>
     </data>

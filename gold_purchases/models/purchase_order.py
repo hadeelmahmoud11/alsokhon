@@ -126,6 +126,7 @@ class PurchaseOrderLine(models.Model):
             'purity_id': self.purity_id and self.purity_id.id or False,
             'purity_diff': self.purity_diff,
             'gold_rate': self.gold_rate,
+            'make_rate': self.make_rate,
             'make_value': self.make_value,
             'gold_value': self.gold_value,
         })
