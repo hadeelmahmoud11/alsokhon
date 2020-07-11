@@ -71,5 +71,33 @@
             <field name="view_id" ref="account.view_move_line_tree"/>
             <field name="view_mode">tree,pivot,graph,form,kanban</field>
         </record>
+        <record id="gold_purchases_view_view_move_form_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.account.move.form.view.inherit</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='product_uom_id']" position="after">
+                    <field name="gross_wt" readonly="1"/>
+                    <field name="purity_id" readonly="1"/>
+                    <field name="pure_wt" readonly="1"/>
+                    <field name="purity_diff" readonly="1"/>
+                    <field name="make_rate" readonly="1"/>
+                    <field name="make_value" readonly="1"/>
+                    <field name="gold_rate" readonly="1"/>
+                    <field name="gold_value" readonly="1"/>
+                </xpath>
+                <xpath expr="//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/form/sheet/group/field[@name='product_uom_id']" position="after">
+                    <field name="gross_wt" readonly="1"/>
+                    <field name="purity_id" readonly="1"/>
+                    <field name="pure_wt" readonly="1"/>
+                    <field name="purity_diff" readonly="1"/>
+                    <field name="make_rate" readonly="1"/>
+                    <field name="make_value" readonly="1"/>
+                    <field name="gold_rate" readonly="1"/>
+                    <field name="gold_value" readonly="1"/>
+                </xpath>
+            </field>
+        </record>
     </data>
+
 </odoo>

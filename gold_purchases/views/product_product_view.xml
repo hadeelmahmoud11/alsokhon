@@ -7,7 +7,7 @@
             <field name="inherit_id" ref="stock.product_form_view_procurement_button"/>
             <field name="arch" type="xml">
                 <xpath expr="//button[@name='action_open_quants']" position="after">
-                    <button class="oe_stat_button" icon="fa-cubes">
+                    <button class="oe_stat_button" icon="fa-cubes" attrs="{'invisible': [('gold', '=', False)]}">
                         <div class="o_field_widget o_stat_info">
                             <span class="o_stat_value">
                                 <field name="available_gold" widget="statinfo" nolabel="1" class="mr4"/>

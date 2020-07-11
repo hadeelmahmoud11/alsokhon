@@ -10,6 +10,8 @@ class PurchaseOrder(models.Model):
     period_uom_id = fields.Many2one('uom.uom', 'Period UOM')
     is_gold_fixed = fields.Boolean(string='Is Gold Fixed',
                                    compute='check_gold_fixed')
+    stock_move_id = fields.Many2one('account.move', string='Stock Entry – Gold')
+    bill_move_id = fields.Many2one('account.move', string='Bill Entry - Gold')
 
     @api.model
     def _prepare_picking(self):
@@ -105,7 +107,7 @@ class PurchaseOrderLine(models.Model):
         res = super(PurchaseOrderLine, self)._prepare_stock_moves(picking)
         res and res[0].update({
             'gross_weight': self.gross_wt,
-            'pure_weight': self.total_pure_weight,
+            'pure_weight': self.pure_wt,
             'purity': self.purity_id.purity or 1,
             'gold_rate': self.gold_rate,
             'selling_karat_id':
@@ -113,5 +115,18 @@ class PurchaseOrderLine(models.Model):
                 self.product_id.product_template_attribute_value_ids.mapped(
                     'product_attribute_value_id')[0].id or
                 False
+        })
+        return res
+
+    def _prepare_account_move_line(self, move):
+        res = super(PurchaseOrderLine, self)._prepare_account_move_line(move)
+        res.update({
+            'gross_wt': self.gross_wt,
+            'pure_wt': self.total_pure_weight,
+            'purity_id': self.purity_id and self.purity_id.id or False,
+            'purity_diff': self.purity_diff,
+            'gold_rate': self.gold_rate,
+            'make_value': self.make_value,
+            'gold_value': self.gold_value,
         })
         return res

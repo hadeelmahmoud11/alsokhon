@@ -10,7 +10,7 @@ class ProductProduct(models.Model):
     def compute_available_gold(self):
         stock_move_line_env = self.env['stock.move.line']
         lot_env = self.env['stock.production.lot']
-        for record in self:
+        for record in self.filtered(lambda x: x.type == 'product' and x.gold):
             sml_ids = stock_move_line_env.search(
                 [('product_id', '=', record.id), ('state', '=', 'done')])
             total_qty = 0.0
