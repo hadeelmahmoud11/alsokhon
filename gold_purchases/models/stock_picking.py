@@ -80,7 +80,7 @@ class StockPicking(models.Model):
             'partner_id': self.partner_id.id,
             'debit': 0,
             'credit': sum(x['debit'] for x in debit_lines),
-            'account_id': self.partner_id.gold_account_payable_id.id,
+            'account_id': product_id.categ_id.gold_stock_input_account.id,
         }]
         res = [(0, 0, x) for x in debit_lines + credit_line]
         return res
