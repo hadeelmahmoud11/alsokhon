@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from itertools import groupby
-from odoo.exceptions import UserError
-from odoo import api, fields, models
+from odoo.exceptions import ValidationError
+from odoo import api, fields, models , _
 
 
 class StockPicking(models.Model):
@@ -60,6 +60,8 @@ class StockPicking(models.Model):
     def _prepare_account_move_line(self, product_dict):
         debit_lines = []
         for product_id, value in product_dict.items():
+            if not product_id.categ_id.gold_on_hand_account.id or not product_id.categ_id.gold_stock_input_account.id:
+                raise ValidationError(_('Please fill gold accounts in product Category'))
             debit_lines.append({
                 'name': '%s - %s' % (self.name, product_id.name),
                 'product_id': product_id.id,
