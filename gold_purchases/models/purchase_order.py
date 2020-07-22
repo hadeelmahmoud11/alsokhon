@@ -66,7 +66,7 @@ class PurchaseOrderLine(models.Model):
                                     'product_id': make_value_product.id,
                                     'name': make_value_product.name,
                                     'product_qty': 1,
-                                    'price_unit': 0.00,
+                                    'price_unit': (vals.get('gross_wt') * vals.get('make_rate')),
                                     'product_uom': uom.id,
                                     'order_id': vals.get('order_id'),
                                     'date_planned': datetime.today() ,
@@ -96,7 +96,7 @@ class PurchaseOrderLine(models.Model):
             product_basic_line = self.env['purchase.order.line'].search([('order_id','=',rec.order_id.id),('product_id','!=',make_value_product.id)])
             if rec.product_id.id == make_value_product.id:
                 for line in product_basic_line:
-                    product_make_object.write({'price_subtotal' : line.gross_wt * line.make_rate})
+                    product_make_object.write({'price_subtotal' : line.gross_wt * line.make_rate,'price_unit':line.gross_wt * line.make_rate})
 
             
 
