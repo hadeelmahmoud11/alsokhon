@@ -56,10 +56,6 @@ class AccountMove(models.Model):
             
             if self.line_ids:
                 for rec in self.line_ids:
-                    if not rec.move_id.partner_id.gold_account_payable_id or not rec.product_id.categ_id.gold_expense_account:
-                        raise ValidationError(_('Please fill gold accounts in product Category and partner gold payable'))
-                    if not rec.product_id.categ_id.gold_make_value_account.id:
-                        raise ValidationError(_('Please fill gold make vlaue account in product Category'))
                     if rec.account_id.reconcile:
                         rec.update({'account_id': rec.move_id.partner_id.gold_account_payable_id.id})
                     else:
