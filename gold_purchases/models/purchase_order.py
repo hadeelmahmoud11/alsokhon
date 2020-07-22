@@ -129,5 +129,6 @@ class PurchaseOrderLine(models.Model):
             'make_rate': self.make_rate,
             'make_value': self.make_value,
             'gold_value': self.gold_value,
+            'price_unit': self.gold_value + self.make_value,
         })
         return res

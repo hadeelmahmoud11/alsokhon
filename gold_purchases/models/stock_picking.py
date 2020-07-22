@@ -40,7 +40,7 @@ class StockPicking(models.Model):
                         x.pure_weight for x in move_list)
             total_purity = sum(value for key, value in product_dict.items())
             if gold_journal and total_purity > 0.0 and product_dict and \
-                    self.partner_id and self.partner_id.gold_account_payable_id:
+                    self.partner_id :
                 journal_id = gold_journal.id
                 move_lines = self._prepare_account_move_line(product_dict)
                 if move_lines:

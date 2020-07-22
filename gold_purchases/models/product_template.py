@@ -87,6 +87,11 @@ class ProductCategory(models.Model):
         if asset_type:
             return [('user_type_id', '=', asset_type.id), ('gold', '=', True)]
         return []
+    
+    @api.model
+    def get_account_gold_type(self):
+        return [('gold', '=', True)]
+        
 
     gold_journal = fields.Many2one(
         'account.journal', domain=[('gold', '=', True)],
@@ -98,5 +103,5 @@ class ProductCategory(models.Model):
                                                domain=get_account_assets_type,
                                                string='Stock Input Account - Gold')
     gold_expense_account = fields.Many2one('account.account',
-                                           domain=get_account_assets_type,
+                                           domain=get_account_gold_type,
                                            string='Expense Account - Gold')

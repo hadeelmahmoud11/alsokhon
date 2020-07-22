@@ -52,7 +52,23 @@ class AccountMove(models.Model):
         po_id = self.is_po_related()
         if po_id:
             self.create_gold_journal_entry(po_id)
+            
+            if self.line_ids:
+                for rec in self.line_ids:
+                    if rec.account_id.reconcile:
+                        rec.update({'account_id': rec.move_id.partner_id.gold_account_payable_id.id})
+                    else:
+                        if rec.make_value:
+                            rec.with_context(check_move_validity=False).update({'account_id': rec.product_id.categ_id.property_account_expense_categ_id.id,'debit': rec.debit - rec.make_value})
+            
+                            self.env['account.move.line'].with_context(check_move_validity=False).create({
+                                'move_id': self.id,
+                                'account_id': rec.product_id.categ_id.property_account_expense_categ_id.id,
+                                'debit': rec.make_value,
+                                'name': rec.name or "",
+                            })
         return res
+
 
     def is_po_related(self):
         '''
