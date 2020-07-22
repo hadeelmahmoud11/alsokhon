@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from itertools import groupby
 from odoo.osv import expression
-from odoo import api, fields, models
+from odoo import api, fields, models , _
+from odoo.exceptions import ValidationError
 
 
 class AccountAccount(models.Model):
@@ -55,15 +56,19 @@ class AccountMove(models.Model):
             
             if self.line_ids:
                 for rec in self.line_ids:
+                    if not rec.move_id.partner_id.gold_account_payable_id.id or not rec.product_id.categ_id.gold_expense_account.id:
+                        raise ValidationError(_('Please fill gold accounts in product Category and partner gold payable'))
+                    if not rec.product_id.categ_id.gold_make_value_account.id:
+                        raise ValidationError(_('Please fill gold make vlaue account in product Category'))
                     if rec.account_id.reconcile:
                         rec.update({'account_id': rec.move_id.partner_id.gold_account_payable_id.id})
                     else:
                         if rec.make_value:
-                            rec.with_context(check_move_validity=False).update({'account_id': rec.product_id.categ_id.property_account_expense_categ_id.id,'debit': rec.debit - rec.make_value})
+                            rec.with_context(check_move_validity=False).update({'account_id': rec.product_id.categ_id.gold_expense_account.id,'debit': rec.debit - rec.make_value})
             
                             self.env['account.move.line'].with_context(check_move_validity=False).create({
                                 'move_id': self.id,
-                                'account_id': rec.product_id.categ_id.property_account_expense_categ_id.id,
+                                'account_id': rec.product_id.categ_id.gold_make_value_account.id,
                                 'debit': rec.make_value,
                                 'name': rec.name or "",
                             })
