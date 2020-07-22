@@ -153,6 +153,10 @@ class PurchaseOrderLine(models.Model):
 
     def _prepare_account_move_line(self, move):
         res = super(PurchaseOrderLine, self)._prepare_account_move_line(move)
+        make_value_product = self.env.ref('gold_purchases.make_value_product')
+        price_un = 0.00
+        if res.get('product_id') == make_value_product.id:
+            price_un = res.get('price_unit')
         res.update({
             'gross_wt': self.gross_wt,
             'pure_wt': self.total_pure_weight,
@@ -164,4 +168,8 @@ class PurchaseOrderLine(models.Model):
             'gold_value': self.gold_value,
             'price_unit': self.gold_value ,
         })
+        print ("\n\n\n\n\n ##############33",res)
+        make_value_product = self.env.ref('gold_purchases.make_value_product')
+        if res.get('product_id') == make_value_product.id:
+            res.update({'price_unit': price_un})
         return res
