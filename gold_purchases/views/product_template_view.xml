@@ -26,9 +26,6 @@
             <field name="model">product.category</field>
             <field name="inherit_id" ref="product.product_category_form_view"/>
             <field name="arch" type="xml">
-                <field name="property_account_expense_categ_id" position="after">
-                        <field name="gold_make_value_account" attrs="{'required': [('is_gold', '=', True)]}"/>
-                </field>
                 <xpath expr="//sheet" position="inside">
                     <group string="Gold Accounting" attrs="{'invisible': [('is_gold', '=', False)]}">
                         <field name="gold_on_hand_account" attrs="{'required': [('is_gold', '=', True)]}"/>

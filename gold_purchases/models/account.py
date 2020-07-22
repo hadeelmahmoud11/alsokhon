@@ -58,16 +58,16 @@ class AccountMove(models.Model):
                 for rec in self.line_ids:
                     if rec.account_id.reconcile:
                         rec.update({'account_id': rec.move_id.partner_id.gold_account_payable_id.id})
-                    else:
-                        if rec.make_value:
-                            rec.with_context(check_move_validity=False).update({'account_id': rec.product_id.categ_id.gold_expense_account.id,'debit': rec.debit - rec.make_value})
+                    # else:
+                    #     if rec.make_value:
+                    #         rec.with_context(check_move_validity=False).update({'account_id': rec.product_id.categ_id.gold_expense_account.id,'debit': rec.debit - rec.make_value})
             
-                            self.env['account.move.line'].with_context(check_move_validity=False).create({
-                                'move_id': self.id,
-                                'account_id': rec.product_id.categ_id.gold_make_value_account.id,
-                                'debit': rec.make_value,
-                                'name': rec.name or "",
-                            })
+                    #         self.env['account.move.line'].with_context(check_move_validity=False).create({
+                    #             'move_id': self.id,
+                    #             'account_id': rec.product_id.categ_id.gold_make_value_account.id,
+                    #             'debit': rec.make_value,
+                    #             'name': rec.name or "",
+                    #         })
         return res
 
 

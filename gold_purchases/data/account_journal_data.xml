@@ -9,5 +9,19 @@
             <field name="show_on_dashboard" eval="False"/>
             <field name="active">False</field>
         </record>
+
+        <record id="make_value_charg" model="making.charges">
+            <field name="name">make value</field>
+        </record>
+
+        <record id="make_value_product" model="product.product">
+            <field name="name">make value</field>
+            <field name="list_price">0.0</field>
+            <field name="standard_price">0.0</field>
+            <field name="type">service</field>
+            <field name="default_code">MAKE_VALUE</field>
+            <field name="making_charge_id" ref="make_value_charg"/>
+        </record>
+
     </data>
 </odoo>

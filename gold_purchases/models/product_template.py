@@ -105,6 +105,4 @@ class ProductCategory(models.Model):
     gold_expense_account = fields.Many2one('account.account',
                                            domain=get_account_gold_type,
                                            string='Expense Account - Gold')
-    gold_make_value_account = fields.Many2one('account.account',
-                                           domain=get_account_gold_type,
-                                           string='Expense make value Account - Gold')
+   
