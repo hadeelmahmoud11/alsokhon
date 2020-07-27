@@ -19,7 +19,6 @@ class StockPicking(models.Model):
 
     def create_gold_journal_entry(self):
         self.ensure_one()
-        gold_journal = self.env.ref('gold_purchases.gold_journal')
         moves = self.move_lines.filtered(lambda x: x._is_in() and
                                                    x.product_id and
                                                    x.product_id.gold and
@@ -39,9 +38,12 @@ class StockPicking(models.Model):
                     product_dict[product_id] = product_dict[product_id] + sum(
                         x.pure_weight for x in move_list)
             total_purity = sum(value for key, value in product_dict.items())
-            if gold_journal and total_purity > 0.0 and product_dict and \
+            if total_purity > 0.0 and product_dict and \
                     self.partner_id :
-                journal_id = gold_journal.id
+                if not next(iter(product_dict)).categ_id.gold_journal.id:
+                    raise ValidationError(_('Please fill gold journal in product Category'))
+                journal_id = next(iter(product_dict)).categ_id.gold_journal.id
+
                 move_lines = self._prepare_account_move_line(product_dict)
                 if move_lines:
                     AccountMove = self.env['account.move'].with_context(

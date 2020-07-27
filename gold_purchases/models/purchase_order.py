@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from datetime import date , timedelta , datetime
+from odoo.exceptions import ValidationError
+
 
 
 class PurchaseOrder(models.Model):
@@ -51,6 +53,7 @@ class PurchaseOrderLine(models.Model):
                              digits=(16, 3))
     gold_value = fields.Monetary('Gold Value', compute='_get_gold_rate',
                                  digits=(16, 3))
+    is_make_value = fields.Boolean(string='is_make_value')
     
     
     @api.model
@@ -60,7 +63,11 @@ class PurchaseOrderLine(models.Model):
         if vals.get('product_id'):
             product_object = self.env['product.product'].browse([vals.get('product_id')])
             if product_object.gold:
-                make_value_product = self.env.ref('gold_purchases.make_value_product')
+                if not  product_object.making_charge_id.id :
+                    raise ValidationError(_('Please fill make value product for this product'))
+                
+                make_value_product = product_object.making_charge_id
+
                 uom = self.env.ref('uom.product_uom_unit')
                 make = self.env['purchase.order.line'].create({
                                     'product_id': make_value_product.id,
@@ -70,6 +77,7 @@ class PurchaseOrderLine(models.Model):
                                     'product_uom': uom.id,
                                     'order_id': vals.get('order_id'),
                                     'date_planned': datetime.today() ,
+                                    'is_make_value': True,
                                     'price_subtotal': (vals.get('gross_wt') * vals.get('make_rate')),
                                 })
         return res
@@ -81,8 +89,9 @@ class PurchaseOrderLine(models.Model):
                  'order_id', 'order_id.order_type', 'order_id.currency_id')
     def _get_gold_rate(self):
         for rec in self:
-            make_value_product = self.env.ref('gold_purchases.make_value_product')
-            product_make_object = self.env['purchase.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
+            if rec.product_id.making_charge_id.id:
+                make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
+                product_make_object = self.env['purchase.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
             rec.pure_wt = rec.gross_wt * (rec.purity_id and (
                     rec.purity_id.purity / 1000.000) or 1)
             rec.total_pure_weight = rec.pure_wt
@@ -93,12 +102,14 @@ class PurchaseOrderLine(models.Model):
             rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
             rec.gold_value = rec.gold_rate and (
                     rec.total_pure_weight * rec.gold_rate) or 0
-            product_basic_line = self.env['purchase.order.line'].search([('order_id','=',rec.order_id.id),('product_id','!=',make_value_product.id)])
-            if rec.product_id.id == make_value_product.id:
-                for line in product_basic_line:
-                    product_make_object.write({'price_subtotal' : line.gross_wt * line.make_rate,'price_unit':line.gross_wt * line.make_rate})
-
             
+            
+            make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
+            product_basic_line = self.env['purchase.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
+            for line in product_basic_line:
+                product_make_object.write({'gold_rate' : 0.00 ,'price_subtotal' : rec.make_value ,'price_unit':rec.make_value})
+
+        
 
     @api.depends('product_qty', 'price_unit', 'taxes_id', 'gross_wt',
                  'purity_id', 'purity_diff', 'make_rate',
@@ -153,10 +164,13 @@ class PurchaseOrderLine(models.Model):
 
     def _prepare_account_move_line(self, move):
         res = super(PurchaseOrderLine, self)._prepare_account_move_line(move)
-        make_value_product = self.env.ref('gold_purchases.make_value_product')
+        #make_value_product = self.env.ref('gold_purchases.make_value_product')
+        product_object = self.env['product.product'].browse([res.get('product_id')])
+        
         price_un = 0.00
-        if res.get('product_id') == make_value_product.id:
+        if product_object.is_making_charges:
             price_un = res.get('price_unit')
+        
         res.update({
             'gross_wt': self.gross_wt,
             'pure_wt': self.total_pure_weight,
@@ -168,8 +182,8 @@ class PurchaseOrderLine(models.Model):
             'gold_value': self.gold_value,
             'price_unit': self.gold_value ,
         })
-        print ("\n\n\n\n\n ##############33",res)
-        make_value_product = self.env.ref('gold_purchases.make_value_product')
-        if res.get('product_id') == make_value_product.id:
-            res.update({'price_unit': price_un})
+        product_object = self.env['product.product'].browse([res.get('product_id')])
+        make_value_product = product_object.making_charge_id
+        if product_object.is_making_charges:
+            res.update({'price_unit': price_un, 'quantity': 1.00,'gold_rate':0.00})
         return res

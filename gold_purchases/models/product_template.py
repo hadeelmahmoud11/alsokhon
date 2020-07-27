@@ -17,29 +17,29 @@ class ProductTemplate(models.Model):
     gold = fields.Boolean(string='Gold')
     origin = fields.Many2one('res.country', string='Origin')
     is_making_charges = fields.Boolean('Gold Making Charges')
-    making_charge_id = fields.Many2one('making.charges', 'Making Charges')
+    making_charge_id = fields.Many2one('product.product', 'Making Charges product')
 
-    @api.onchange('type')
-    def onchange_type_gold(self):
-        if self.type != 'product':
-            self.gold = False
-        if self.type != 'service':
-            self.is_making_charges = False
-            self.making_charge_id = False
-        if self.type == 'consu':
-            self.gold = False
-            self.is_making_charges = False
-            self.making_charge_id = False
+    # @api.onchange('type')
+    # def onchange_type_gold(self):
+    #     if self.type != 'product':
+    #         self.gold = False
+    #     if self.type != 'service':
+    #         self.is_making_charges = False
+    #         self.making_charge_id = False
+    #     if self.type == 'consu':
+    #         self.gold = False
+    #         self.is_making_charges = False
+    #         self.making_charge_id = False
 
-    @api.onchange('gold')
-    def onchange_gold(self):
-        if self.gold:
-            self.is_making_charges = False
+    # @api.onchange('gold')
+    # def onchange_gold(self):
+    #     if self.gold:
+    #         self.is_making_charges = False
 
-    @api.onchange('is_making_charges')
-    def onchange_is_making_charges(self):
-        if self.is_making_charges:
-            self.gold = False
+    # @api.onchange('is_making_charges')
+    # def onchange_is_making_charges(self):
+    #     if self.is_making_charges:
+    #         self.gold = False
 
     def _compute_weight_uom_name(self):
         for template in self:
@@ -55,27 +55,27 @@ class ProductTemplate(models.Model):
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
-    @api.onchange('type')
-    def onchange_type_gold(self):
-        if self.type != 'product':
-            self.gold = False
-        if self.type != 'service':
-            self.is_making_charges = False
-            self.making_charge_id = False
-        if self.type == 'consu':
-            self.gold = False
-            self.is_making_charges = False
-            self.making_charge_id = False
+    # @api.onchange('type')
+    # def onchange_type_gold(self):
+    #     if self.type != 'product':
+    #         self.gold = False
+    #     if self.type != 'service':
+    #         self.is_making_charges = False
+    #         self.making_charge_id = False
+    #     if self.type == 'consu':
+    #         self.gold = False
+    #         self.is_making_charges = False
+    #         self.making_charge_id = False
 
-    @api.onchange('gold')
-    def onchange_gold(self):
-        if self.gold:
-            self.is_making_charges = False
+    # @api.onchange('gold')
+    # def onchange_gold(self):
+    #     if self.gold:
+    #         self.is_making_charges = False
 
-    @api.onchange('is_making_charges')
-    def onchange_is_making_charges(self):
-        if self.is_making_charges:
-            self.gold = False
+    # @api.onchange('is_making_charges')
+    # def onchange_is_making_charges(self):
+    #     if self.is_making_charges:
+    #         self.gold = False
 
 
 class ProductCategory(models.Model):
@@ -96,6 +96,9 @@ class ProductCategory(models.Model):
     gold_journal = fields.Many2one(
         'account.journal', domain=[('gold', '=', True)],
         string='Gold Journal')
+    gold_purchase_journal = fields.Many2one(
+        'account.journal', domain=[('gold', '=', True)],
+        string='Gold purchase Journal')
     gold_on_hand_account = fields.Many2one('account.account',
                                            domain=get_account_assets_type,
                                            string='Stock In Hand - Gold')
