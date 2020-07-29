@@ -16,6 +16,52 @@ class PurchaseOrder(models.Model):
     stock_move_id = fields.Many2one('account.move', string='Stock Entry – Gold')
     bill_move_id = fields.Many2one('account.move', string='Bill Entry - Gold')
 
+    def action_view_invoice(self):
+        '''
+        This function returns an action that display existing vendor bills of given purchase order ids.
+        When only one found, show the vendor bill immediately.
+        '''
+        action = self.env.ref('account.action_move_in_invoice_type')
+        result = action.read()[0]
+        create_bill = self.env.context.get('create_bill', False)
+        # override the context to get rid of the default filtering
+        if self.order_type.is_fixed:
+            result['context'] = {
+                'default_type': 'in_invoice',
+                'default_company_id': self.company_id.id,
+                'default_purchase_id': self.id,
+                'default_purchase_type': "fixed",
+            }
+        elif  self.order_type.gold:
+            result['context'] = {
+                'default_type': 'in_invoice',
+                'default_company_id': self.company_id.id,
+                'default_purchase_id': self.id,
+                'default_purchase_type': "unfixed",
+            }
+        else:
+            result['context'] = {
+                'default_type': 'in_invoice',
+                'default_company_id': self.company_id.id,
+                'default_purchase_id': self.id,
+            }
+        # choose the view_mode accordingly
+        if len(self.invoice_ids) > 1 and not create_bill:
+            result['domain'] = "[('id', 'in', " + str(self.invoice_ids.ids) + ")]"
+        else:
+            res = self.env.ref('account.view_move_form', False)
+            form_view = [(res and res.id or False, 'form')]
+            if 'views' in result:
+                result['views'] = form_view + [(state,view) for state,view in action['views'] if view != 'form']
+            else:
+                result['views'] = form_view
+            # Do not set an invoice_id if we want to create a new bill.
+            if not create_bill:
+                result['res_id'] = self.invoice_ids.id or False
+        result['context']['default_invoice_origin'] = self.name
+        result['context']['default_ref'] = self.partner_ref
+        return result
+
     @api.model
     def _prepare_picking(self):
         res = super(PurchaseOrder, self)._prepare_picking()
@@ -67,18 +113,17 @@ class PurchaseOrderLine(models.Model):
                     raise ValidationError(_('Please fill make value product for this product'))
                 
                 make_value_product = product_object.making_charge_id
-
                 uom = self.env.ref('uom.product_uom_unit')
                 make = self.env['purchase.order.line'].create({
                                     'product_id': make_value_product.id,
                                     'name': make_value_product.name,
                                     'product_qty': 1,
-                                    'price_unit': (vals.get('gross_wt') * vals.get('make_rate')),
+                                    'price_unit': 0.00,
                                     'product_uom': uom.id,
                                     'order_id': vals.get('order_id'),
                                     'date_planned': datetime.today() ,
                                     'is_make_value': True,
-                                    'price_subtotal': (vals.get('gross_wt') * vals.get('make_rate')),
+                                    'price_subtotal': 0.00,
                                 })
         return res
 
@@ -117,7 +162,7 @@ class PurchaseOrderLine(models.Model):
                  'order_id.state', 'order_id.order_type.gold')
     def _compute_amount(self):
         for line in self:
-            if line.order_id and line.order_id.order_type.is_fixed and \
+            if line.order_id and (line.order_id.order_type.is_fixed or line.order_id.order_type.gold) and \
                     line.product_id.gold:
                 taxes = line.taxes_id.compute_all(
                     line.gold_value,

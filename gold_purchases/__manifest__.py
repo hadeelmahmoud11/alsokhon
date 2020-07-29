@@ -9,12 +9,13 @@
     'category': 'Purchase',
     'version': '13.0.0.1',
     'depends': ['purchase_stock', 'stock_account', 'po_gold_form',
-                'purchase_order_type', 'account_accountant','account_reports'],
+                'purchase_order_type', 'account_accountant','stock','account_reports'],
     'data': [
         'security/ir.model.access.csv',
         'data/gold_purity_data.xml',
         'data/account_journal_data.xml',
         'views/res_partner_view.xml',
+        'wizard/gold_payment_view.xml',
         'views/account_view.xml',
         'views/product_product_view.xml',
         'views/product_template_view.xml',
@@ -23,6 +24,7 @@
         'views/stock_picking_view.xml',
         'views/stock_production_lot_view.xml',
         'views/gold_purity_view.xml'
+        
     ],
 
 }

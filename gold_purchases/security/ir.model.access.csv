@@ -3,4 +3,4 @@ access_gold_purity,access_gold_purity,model_gold_purity,,1,1,1,1
 access_item_category,access_item_category,model_item_category,,1,1,1,1
 access_item_category_line,access_item_category_line,model_item_category_line,,1,1,1,1
 access_making_charges,access_making_charges,model_making_charges,,1,1,1,1
-
+access_unfixed_wizard,access_unfixed_wizard_sstock,model_stock_move_gold,,1,1,1,1

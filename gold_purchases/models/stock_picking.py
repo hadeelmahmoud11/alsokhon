@@ -19,6 +19,7 @@ class StockPicking(models.Model):
 
     def create_gold_journal_entry(self):
         self.ensure_one()
+        purchase_obj = self.env['purchase.order'].search([('name','=',self.group_id.name)])
         moves = self.move_lines.filtered(lambda x: x._is_in() and
                                                    x.product_id and
                                                    x.product_id.gold and
@@ -58,6 +59,8 @@ class StockPicking(models.Model):
                         'type': 'entry',
                     })
                     new_account_move.post()
+                    if purchase_obj:
+                        purchase_obj.write({'stock_move_id': new_account_move.id})
 
     def _prepare_account_move_line(self, product_dict):
         debit_lines = []
