@@ -108,9 +108,9 @@
                 </xpath>
                 <field name="ref" position="after">
                     <field name="purchase_type" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
-                    <field name="make_value_move" />
-                    <field name="pure_wt_value"  />
-                    <field name="gold_rate_value"  />
+                    <field name="make_value_move"  invisible="1"/>
+                    <field name="pure_wt_value"  invisible="1"/>
+                    <field name="gold_rate_value" invisible="1" />
 
                 </field>
 
