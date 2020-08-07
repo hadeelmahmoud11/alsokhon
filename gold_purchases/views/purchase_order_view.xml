@@ -113,7 +113,7 @@
                     <attribute name="force_save">1</attribute>
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='price_unit']" position="attributes">
-                    <attribute name="attrs">{'readonly': [('is_make_value', '=', True)]}</attribute>
+                    <attribute name="attrs">{'readonly': True}</attribute>
                     <attribute name="force_save">1</attribute>
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='gold_rate']" position="attributes">
