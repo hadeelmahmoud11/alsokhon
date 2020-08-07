@@ -8,7 +8,7 @@
     'URL': "https://system.white-code.co.uk/web#id=1667&action=395&model=project.task&view_type=form&menu_id=263",
     'category': 'Purchase',
     'version': '13.0.0.1',
-    'depends': ['purchase_stock', 'stock_account', 'po_gold_form',
+    'depends': ['purchase_stock', 'stock_account','account','po_gold_form',
                 'purchase_order_type', 'account_accountant','stock','account_reports'],
     'data': [
         'security/ir.model.access.csv',

@@ -38,8 +38,9 @@
                     <group>
                         <group>
                             <field name="sequence_id"/>
-                            <field name="is_fixed" attrs="{'invisible': [('gold', '=', True)]}"/>
-                            <field name="gold" attrs="{'invisible': [('is_fixed', '=', True)]}"/>
+                            <field name="is_fixed" attrs="{'invisible': [('is_unfixed', '=', True)]}"/>
+                            <field name="is_unfixed" attrs="{'invisible': [('is_fixed', '=', True)]}"/>
+                            <field name="gold" />
                         </group>
                         <group>
                             <field name="payment_term_id"/>

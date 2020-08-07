@@ -7,6 +7,15 @@ from odoo.tools import float_is_zero, float_compare, safe_eval, date_utils, emai
 from odoo.tools.misc import formatLang, format_date, get_lang
 from datetime import date, timedelta
 
+MAP_INVOICE_TYPE_PARTNER_TYPE = {
+    'out_invoice': 'customer',
+    'out_refund': 'customer',
+    'out_receipt': 'customer',
+    'in_invoice': 'supplier',
+    'in_refund': 'supplier',
+    'in_receipt': 'supplier',
+}
+
 class AccountAccount(models.Model):
     _inherit = 'account.account'
 
@@ -64,6 +73,116 @@ class AccountMove(models.Model):
     make_value_move = fields.Float( string='make value move',compute="_compute_make_value_move",store=True)
     pure_wt_value = fields.Float( string='pure value',compute="_compute_make_value_move",store=True)
     gold_rate_value = fields.Float( string='rate value',compute="_compute_make_value_move",store=True)
+    unfixed_move_id = fields.Many2one('account.move')
+
+    @api.depends(
+        'line_ids.debit',
+        'line_ids.credit',
+        'line_ids.currency_id',
+        'line_ids.amount_currency',
+        'line_ids.amount_residual',
+        'line_ids.amount_residual_currency',
+        'make_value_move',
+        'pure_wt_value',
+        'line_ids.payment_id.state')
+    def _compute_amount(self):
+        invoice_ids = [move.id for move in self if move.id and move.is_invoice(include_receipts=True)]
+        self.env['account.payment'].flush(['state'])
+        if invoice_ids:
+            self._cr.execute(
+                '''
+                    SELECT move.id
+                    FROM account_move move
+                    JOIN account_move_line line ON line.move_id = move.id
+                    JOIN account_partial_reconcile part ON part.debit_move_id = line.id OR part.credit_move_id = line.id
+                    JOIN account_move_line rec_line ON
+                        (rec_line.id = part.credit_move_id AND line.id = part.debit_move_id)
+                        OR
+                        (rec_line.id = part.debit_move_id AND line.id = part.credit_move_id)
+                    JOIN account_payment payment ON payment.id = rec_line.payment_id
+                    JOIN account_journal journal ON journal.id = rec_line.journal_id
+                    WHERE payment.state IN ('posted', 'sent')
+                    AND journal.post_at = 'bank_rec'
+                    AND move.id IN %s
+                ''', [tuple(invoice_ids)]
+            )
+            in_payment_set = set(res[0] for res in self._cr.fetchall())
+        else:
+            in_payment_set = {}
+
+        for move in self:
+            total_untaxed = 0.0
+            total_untaxed_currency = 0.0
+            total_tax = 0.0
+            total_tax_currency = 0.0
+            total_residual = 0.0
+            total_residual_currency = 0.0
+            total = 0.0
+            total_currency = 0.0
+            currencies = set()
+
+            for line in move.line_ids:
+                if line.currency_id:
+                    currencies.add(line.currency_id)
+
+                if move.is_invoice(include_receipts=True):
+                    # === Invoices ===
+
+                    if not line.exclude_from_invoice_tab:
+                        # Untaxed amount.
+                        total_untaxed += line.balance
+                        total_untaxed_currency += line.amount_currency
+                        total += line.balance
+                        total_currency += line.amount_currency
+                    elif line.tax_line_id:
+                        # Tax amount.
+                        total_tax += line.balance
+                        total_tax_currency += line.amount_currency
+                        total += line.balance
+                        total_currency += line.amount_currency
+                    elif line.account_id.user_type_id.type in ('receivable', 'payable'):
+                        # Residual amount.
+                        total_residual += line.amount_residual
+                        total_residual_currency += line.amount_residual_currency
+                else:
+                    # === Miscellaneous journal entry ===
+                    if line.debit:
+                        total += line.balance
+                        total_currency += line.amount_currency
+
+            if move.type == 'entry' or move.is_outbound():
+                sign = 1
+            else:
+                sign = -1
+            move.amount_untaxed = sign * (total_untaxed_currency if len(currencies) == 1 else total_untaxed)
+            move.amount_tax = sign * (total_tax_currency if len(currencies) == 1 else total_tax)
+            move.amount_total = sign * (total_currency if len(currencies) == 1 else total)
+            if move.purchase_type == "unfixed":
+                if  move.make_value_move == 0.00 and move.pure_wt_value == 0.00:
+                    move.amount_residual = 0.00
+                else: 
+                    move.amount_residual = -sign * (total_residual_currency if len(currencies) == 1 else total_residual)
+            else:
+                move.amount_residual = -sign * (total_residual_currency if len(currencies) == 1 else total_residual)
+            
+            move.amount_untaxed_signed = -total_untaxed
+            move.amount_tax_signed = -total_tax
+            move.amount_total_signed = abs(total) if move.type == 'entry' else -total
+            move.amount_residual_signed = total_residual
+
+            currency = len(currencies) == 1 and currencies.pop() or move.company_id.currency_id
+            is_paid = currency and currency.is_zero(move.amount_residual) or not move.amount_residual
+
+            # Compute 'invoice_payment_state'.
+            if move.type == 'entry':
+                move.invoice_payment_state = False
+            elif move.state == 'posted' and is_paid:
+                if move.id in in_payment_set:
+                    move.invoice_payment_state = 'in_payment'
+                else:
+                    move.invoice_payment_state = 'paid'
+            else:
+                move.invoice_payment_state = 'not_paid'
 
     
 
@@ -83,8 +202,11 @@ class AccountMove(models.Model):
 
                 rec.pure_wt_value = pure
                 rec.gold_rate_value = rate
-                rec.make_value_move = make_value + (rec.pure_wt_value * rate)
-
+                
+                if rec.amount_by_group:
+                    rec.make_value_move = make_value + rec.amount_by_group[0][1]
+                else:
+                    rec.make_value_move = make_value 
 
     def button_draft(self):
         res = super(AccountMove, self).button_draft()
@@ -199,7 +321,7 @@ class AccountMove(models.Model):
         '''
         po_id = self.env['purchase.order'].search(
             [('invoice_ids', '=', self.id)])
-        if po_id and po_id.order_type.is_fixed:
+        if po_id and po_id.order_type.is_fixed or po_id.order_type.is_unfixed: 
             return po_id
         return False
 
@@ -275,8 +397,79 @@ class AccountMove(models.Model):
         res = [(0, 0, x) for x in debit_lines + credit_line]
         return res 
 
+
+
 class Account_Payment_Inherit(models.Model):
     _inherit = 'account.payment'
+
+    is_unfixed_wizard = fields.Boolean('is_unfixed')
+    unfixed_option = fields.Selection([('make_tax', 'make value + tax'), ('pay_gold_value', 'pay gold value')],
+        string='unfixed option')
+    
+    @api.onchange('unfixed_option')
+    def _onchange_unfixed_option(self):
+        active_ids = self._context.get('active_ids') or self._context.get('active_id')
+        account_move = self.env['account.move'].browse(active_ids)
+        if self.unfixed_option:
+           if self.unfixed_option == "make_tax" :
+               self.write({'amount': account_move.make_value_move})
+           elif account_move.pure_wt_value > 0.00  :
+               self.write({'amount': account_move.pure_wt_value * account_move.gold_rate_value })
+
+
+    @api.model
+    def default_get(self, default_fields):
+        rec = super(Account_Payment_Inherit, self).default_get(default_fields)
+        active_ids = self._context.get('active_ids') or self._context.get('active_id')
+        active_model = self._context.get('active_model')
+
+        # Check for selected invoices ids
+        if not active_ids or active_model != 'account.move':
+            return rec
+
+        invoices = self.env['account.move'].browse(active_ids).filtered(lambda move: move.is_invoice(include_receipts=True))
+
+        # Check all invoices are open
+        if not invoices or any(invoice.state != 'posted' for invoice in invoices):
+            raise UserError(_("You can only register payments for open invoices"))
+        # Check if, in batch payments, there are not negative invoices and positive invoices
+        dtype = invoices[0].type
+        for inv in invoices[1:]:
+            if inv.type != dtype:
+                if ((dtype == 'in_refund' and inv.type == 'in_invoice') or
+                        (dtype == 'in_invoice' and inv.type == 'in_refund')):
+                    raise UserError(_("You cannot register payments for vendor bills and supplier refunds at the same time."))
+                if ((dtype == 'out_refund' and inv.type == 'out_invoice') or
+                        (dtype == 'out_invoice' and inv.type == 'out_refund')):
+                    raise UserError(_("You cannot register payments for customer invoices and credit notes at the same time."))
+
+        amount = self._compute_payment_amount(invoices, invoices[0].currency_id, invoices[0].journal_id, rec.get('payment_date') or fields.Date.today())
+        if invoices:
+            if invoices.purchase_type == "unfixed":
+                rec.update({
+                            'currency_id': invoices[0].currency_id.id,
+                            'amount': abs(invoices.make_value_move),
+                            'is_unfixed_wizard': True,
+                            'payment_type': 'inbound' if amount > 0 else 'outbound',
+                            'partner_id': invoices[0].commercial_partner_id.id,
+                            'partner_type': MAP_INVOICE_TYPE_PARTNER_TYPE[invoices[0].type],
+                            'communication': invoices[0].invoice_payment_ref or invoices[0].ref or invoices[0].name,
+                            'invoice_ids': [(6, 0, invoices.ids)],
+                            })
+            else:
+                rec.update({
+                    'currency_id': invoices[0].currency_id.id,
+                    'amount': abs(amount),
+                    'payment_type': 'inbound' if amount > 0 else 'outbound',
+                    'partner_id': invoices[0].commercial_partner_id.id,
+                    'partner_type': MAP_INVOICE_TYPE_PARTNER_TYPE[invoices[0].type],
+                    'communication': invoices[0].invoice_payment_ref or invoices[0].ref or invoices[0].name,
+                    'invoice_ids': [(6, 0, invoices.ids)],
+                })
+        
+        return rec
+
+    
 
     def post(self):
         """ Create the journal items for the payment and update the payment's state to 'posted'.
@@ -289,13 +482,15 @@ class Account_Payment_Inherit(models.Model):
         for rec in self:
             if rec.invoice_ids:
                 if rec.invoice_ids.purchase_type == 'unfixed':
-                    if rec.amount > rec.invoice_ids.make_value_move:
-                        raise UserError(_("unfixed bill you can pay " + "" + str(rec.invoice_ids.make_value_move)))
+                    if rec.amount > rec.invoice_ids.make_value_move and rec.unfixed_option != "pay_gold_value":
+                        raise UserError(_("unfixed bill you can pay" + "" + str(rec.invoice_ids.make_value_move)))
+                    if rec.unfixed_option != "pay_gold_value" and rec.invoice_ids.make_value_move == 0.00:
+                        raise UserError(_("make value and tax paid !!"))
+                    if rec.invoice_ids.pure_wt_value == 0.00 and rec.invoice_ids.make_value_move == 0.00:
+                        rec.invoice_ids.write({'invoice_payment_state': "paid"}) 
                     else:
                         rec.invoice_ids.write({'make_value_move':rec.invoice_ids.make_value_move - rec.amount }) 
 
-            print ("\n\n\n\n\n\n\n\n\n\n ########## post",rec)
-            print ("\n\n\n\n\n\n\n\n\n\n ########## invoice_ids", rec.invoice_ids)
             if rec.state != 'draft':
                 raise UserError(_("Only a draft payment can be posted."))
 

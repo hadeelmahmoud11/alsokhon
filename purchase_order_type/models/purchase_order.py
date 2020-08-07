@@ -15,6 +15,7 @@ class PurchaseOrder(models.Model):
                                  ondelete='restrict',
                                  default=_default_order_type)
     is_fixed = fields.Boolean(string='Fixed', compute='get_is_fixed')
+    is_unfixed = fields.Boolean(string='unFixed', compute='get_is_unfixed')
     gold = fields.Boolean(string='gold', compute='get_is_gold')
 
     @api.depends('order_type')
@@ -22,6 +23,11 @@ class PurchaseOrder(models.Model):
         for rec in self:
             rec.is_fixed = rec.order_type and rec.order_type.is_fixed and True or False
     
+    @api.depends('order_type')
+    def get_is_unfixed(self):
+        for rec in self:
+            rec.is_unfixed = rec.order_type and rec.order_type.is_unfixed and True or False
+
     @api.depends('order_type')
     def get_is_gold(self):
         for rec in self:

@@ -12,25 +12,20 @@
                     <group>
                         <span colspan="4" nolabel="1">This wizard will generate stock move.</span>
                     </group>
-                   
+                    
                         <separator string="moves" colspan="4"/>
+                        <group>
+                        <field name="pure_weight" readonly="1"/>
+                        <field name="pure_remainning" readonly="1"/>
+                        </group>
+
                         <newline/>
-                        <field name="move_ids" nolabel="1" domain="[('state', '=', 'done')]">
+                        <field name="move_ids" nolabel="1" >
                         <tree editable="bottom">
+                            <field name="name" readonly="1"/>
                             <field name="product_id" readonly="1"/>
-                            <field name="date" invisible="1"/>
-                            <field name="date_expected" invisible="1"/>
-                            <field name="company_id" invisible="1"/>
-                            <field name="picking_type_id" invisible="1"/>
-                            <field name="has_tracking" invisible="1"/>
-                            <field name="location_id" readonly="1"/>
-                            <field name="warehouse_id" invisible="1"/>
-                            <field name="location_dest_id" readonly="1"/>
                             <field name="pure_weight" readonly="1"/>
-                            <field name="gross_weight" invisible="1"/>
-                            <field name="purity" invisible="1"/>
-                            <field name="state" invisible="1" force_save="1"/>
-                            <field name="quantity_done" string="quantity" invisible="1"/>
+                            <field name="product_qty" string="quantity" />
                         </tree>
                         </field>
                     
@@ -43,6 +38,7 @@
             <field name="res_model">stock.move.gold</field>
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_moves_show"/>
+            <field name="context">{'default_pure_weight': context.get('pure_weight', False),}</field>
             <field name="target">new</field>
         </record>
 

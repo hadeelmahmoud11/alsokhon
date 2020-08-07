@@ -29,4 +29,5 @@ class PurchaseOrderType(models.Model):
         comodel_name='account.incoterms', string='Incoterm')
     sequence = fields.Integer(default=10)
     is_fixed = fields.Boolean('Is Fixed')
+    is_unfixed = fields.Boolean('Is Unfixed')
     gold = fields.Boolean('Gold')

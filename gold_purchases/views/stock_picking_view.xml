@@ -18,6 +18,7 @@
                                 <field name="period_to"/>
                                 <field name="period_uom_id" widget="selection"
                                        domain="[('category_id', '!=', False), ('category_id.measure_type', '=', 'working_time')]"/>
+                                <field name="bill_unfixed"/>
                             </div>
                         </div>
                     </group>

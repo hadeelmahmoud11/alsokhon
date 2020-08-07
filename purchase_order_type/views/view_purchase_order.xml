@@ -8,6 +8,7 @@
             <field name="partner_id" position="after">
                 <field name="order_type" required="True"/>
                 <field name="is_fixed" invisible="1"/>
+                <field name="is_unfixed" invisible="1"/>
                 <field name="gold" invisible="1"/>
             </field>
         </field>
