@@ -10,6 +10,7 @@ class GoldCapital(models.Model):
 
     name = fields.Char('Name')
     capital = fields.Float('Capital')
+    uom = fields.Many2one('uom.uom', string="uom", domain="[('category_id.measure_type','=','weight')]")
     log_ids = fields.One2many('gold.capital.logs', 'capital_id', 'Logs')
 
     def write(self, vals):
@@ -22,14 +23,48 @@ class GoldCapital(models.Model):
         lang_id = self.env['res.lang'].sudo().search([
             ('code', '=', self.env.user.lang)])
         for rec in self:
-            log = log_obj.create({
-                'date': fields.Datetime.now(),
-                'old_capital': old_value,
-                'new_capital': rec.capital,
-                'capital_diff': rec.capital - old_value,
-                'capital_id': rec.id,
-                'user_id': self.env.user.id,
-            })
+            if rec.uom:
+                if rec.uom.uom_type == "smaller":
+                    new_value = rec.capital / rec.uom.factor
+
+                    log = log_obj.create({
+                        'date': fields.Datetime.now(),
+                        'old_capital': old_value,
+                        'new_capital': new_value,
+                        'capital_diff': new_value - old_value,
+                        'capital_id': rec.id,
+                        'user_id': self.env.user.id,
+                    })
+                elif rec.uom.uom_type == "bigger":
+                    new_value = rec.capital * rec.uom.factor_inv
+
+                    log = log_obj.create({
+                        'date': fields.Datetime.now(),
+                        'old_capital': old_value,
+                        'new_capital': new_value,
+                        'capital_diff': new_value - old_value,
+                        'capital_id': rec.id,
+                        'user_id': self.env.user.id,
+                    })
+
+                else:
+                    log = log_obj.create({
+                        'date': fields.Datetime.now(),
+                        'old_capital': old_value,
+                        'new_capital': rec.capital,
+                        'capital_diff': rec.capital - old_value,
+                        'capital_id': rec.id,
+                        'user_id': self.env.user.id,
+                    })
+            else:
+                log = log_obj.create({
+                    'date': fields.Datetime.now(),
+                    'old_capital': old_value,
+                    'new_capital': rec.capital,
+                    'capital_diff': rec.capital - old_value,
+                    'capital_id': rec.id,
+                    'user_id': self.env.user.id,
+                })
             content = '%s | %s | %s | %s' % (datetime.strftime(
                 log.date,
                 '%s %s' % (

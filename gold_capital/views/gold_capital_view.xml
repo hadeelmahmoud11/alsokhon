@@ -28,10 +28,17 @@
                         <div class="o_row">
                             <field name="capital" required="1"/>
                             <div class="o_row">
-                                <label for="parts" string="KG Pure Gold" style="font-weight: bold !important;"/>
+                                <label for="parts" string="Pure Gold" style="font-weight: bold !important;"/>
                             </div>
                         </div>
-                        <field name="name" invisible="1"/>
+                        <group>
+                            <group>
+                                <field name="uom" />
+                                <field name="name" invisible="1"/>
+                            </group>
+                        <group>
+                        </group>
+                        </group>
                         <notebook>
                             <page string="Logs" name="logs">
                                 <field name="log_ids" nolable="1" readonly="1" context="{'form_view_ref': 'gold_capital.view_gold_capital_logs_form'}">
