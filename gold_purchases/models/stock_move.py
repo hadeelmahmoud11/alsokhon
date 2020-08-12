@@ -72,7 +72,10 @@ class StockMove(models.Model):
                 svl_vals[
                     'description'] = 'Correction of %s (modification of past move)' % move.picking_id.name or move.name
             svl_vals_list.append(svl_vals)
-        return self.env['stock.valuation.layer'].sudo().create(svl_vals_list)
+        stock_val_layer = self.env['stock.valuation.layer'].sudo().create(svl_vals_list)
+        print("\n\n\n\n\n\n\n\n @@@@@@@@@@@@@@2 stock_val_layer",stock_val_layer)
+        stock_val_layer.write({'value': stock_val_layer.value +  stock_val_layer.stock_move_id.purchase_line_id.make_value })
+        return stock_val_layer
 
     def _action_done(self, cancel_backorder=False):
         res = super(StockMove, self)._action_done()
