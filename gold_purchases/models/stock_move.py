@@ -74,6 +74,7 @@ class StockMove(models.Model):
             svl_vals_list.append(svl_vals)
         stock_val_layer = self.env['stock.valuation.layer'].sudo().create(svl_vals_list)  
         stock_val_layer.write({'value': stock_val_layer.value +  stock_val_layer.stock_move_id.purchase_line_id.make_value })
+        stock_val_layer.stock_move_id.purchase_line_id.received_gross_wt = stock_val_layer.stock_move_id.gross_weight
         return stock_val_layer
 
     def _action_done(self, cancel_backorder=False):
