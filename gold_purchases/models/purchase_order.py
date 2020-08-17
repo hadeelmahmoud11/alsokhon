@@ -89,6 +89,7 @@ class PurchaseOrderLine(models.Model):
     received_gross_wt = fields.Float('received Gross Wt', digits=(16, 3))
     purity_id = fields.Many2one('gold.purity', 'Purity')
     pure_wt = fields.Float('Pure Wt', compute='_get_gold_rate', digits=(16, 3))
+    purity_hall = fields.Float('Purity H', digits=(16, 3))
     purity_diff = fields.Float('Purity +/-', digits=(16, 3))
     total_pure_weight = fields.Float('Pure Weight', compute='_get_gold_rate',
                                      digits=(16, 3))
@@ -103,6 +104,14 @@ class PurchaseOrderLine(models.Model):
     is_make_value = fields.Boolean(string='is_make_value')
     
     
+    @api.onchange('purity_hall','product_qty')
+    def onchange_purity_hall(self):
+        for rec in self:
+            if rec.purity_hall > 1000 or rec.purity_hall < 0.00 :
+                raise ValidationError(_('purity hallmark between 1 - 1000')) 
+                
+            rec.purity_diff = ( rec.product_qty * (rec.purity_hall - rec.purity_id.purity)) / 100
+
     @api.model
     def create(self, vals):
         res = super(PurchaseOrderLine, self).create(vals)

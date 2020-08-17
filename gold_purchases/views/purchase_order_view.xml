@@ -59,6 +59,7 @@
                     <field name="received_gross_wt" width="10%" readonly="1"/>
                     <field name="purity_id" width="10%"/>
                     <field name="pure_wt" width="10%"/>
+                    <field name="purity_hall" width="10%"/>
                     <field name="purity_diff" width="10%"/>
                     <field name="stock" width="10%"/>
                     <field name="make_rate" width="15%"/>
@@ -73,6 +74,7 @@
                     <field name="received_gross_wt" readonly="1"/>
                     <field name="purity_id"/>
                     <field name="pure_wt"/>
+                    <field name="purity_hall" />
                     <field name="purity_diff"/>
                     <field name="stock"/>
                     <field name="make_rate"/>
@@ -106,8 +108,12 @@
                     <attribute name="attrs">{'readonly': ['|',('is_make_value', '=', True),('state', 'in', ['purchase','done','cancel'])]}</attribute>
                     <attribute name="force_save">1</attribute>
                 </xpath>
-                <xpath expr="//field[@name='order_line']/tree/field[@name='purity_diff']" position="attributes">
+                <xpath expr="//field[@name='order_line']/tree/field[@name='purity_hall']" position="attributes">
                     <attribute name="attrs">{'readonly': ['|',('is_make_value', '=', True),('state', 'in', ['purchase','done','cancel'])]}</attribute>
+                    <attribute name="force_save">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/tree/field[@name='purity_diff']" position="attributes">
+                    <attribute name="attrs">{'readonly': True}</attribute>
                     <attribute name="force_save">1</attribute>
                 </xpath>
                  <xpath expr="//field[@name='order_line']/tree/field[@name='make_rate']" position="attributes">
