@@ -139,7 +139,7 @@ class PurchaseOrderLine(models.Model):
                 make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
                 product_make_object = self.env['purchase.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
             
-            rec.pure_wt = rec.gross_wt * (rec.purity_id and (
+            rec.pure_wt = rec.product_qty * rec.gross_wt * (rec.purity_id and (
                     rec.purity_id.purity / 1000.000) or 1)
             rec.total_pure_weight = rec.pure_wt
             # NEED TO ADD PURITY DIFF + rec.purity_diff
@@ -147,7 +147,7 @@ class PurchaseOrderLine(models.Model):
             rec.stock = (rec.product_id and rec.product_id.available_gold or
                          0.00) + new_pure_wt 
 
-            rec.make_value = rec.gross_wt * rec.make_rate
+            rec.make_value = rec.product_qty * rec.gross_wt * rec.make_rate
             rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
             rec.gold_value = rec.gold_rate and (
                     rec.total_pure_weight * rec.gold_rate) or 0

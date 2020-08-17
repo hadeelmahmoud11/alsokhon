@@ -141,6 +141,12 @@ class StockMoveLine(models.Model):
                             move_line.selling_making_charge else False
                     lot_rec.selling_karat_id = move_line.selling_karat_id.id if \
                         move_line.selling_karat_id else False
+
+        if vals.get('gross_weight', False):
+            for move_line_gross in self:
+                move_line_gross.move_id.write({'gross_weight':  vals.get('gross_weight')})
+        
+
         return res
 
 
