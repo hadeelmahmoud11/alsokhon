@@ -20,9 +20,9 @@
         'views/product_product_view.xml',
         'views/product_template_view.xml',
         'views/stock_move_view.xml',
+        'views/stock_production_lot_view.xml',
         'views/purchase_order_view.xml',
         'views/stock_picking_view.xml',
-        'views/stock_production_lot_view.xml',
         'views/gold_purity_view.xml'
         
     ],

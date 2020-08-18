@@ -71,7 +71,7 @@ class AccountMove(models.Model):
     purchase_type = fields.Selection([('fixed', 'Fixed'),
                                         ('unfixed', 'Unfixed')], string='purchase type')
     make_value_move = fields.Float( string='make value move',compute="_compute_make_value_move",store=True)
-    pure_wt_value = fields.Float( string='pure value',compute="_compute_make_value_move",store=True)
+    pure_wt_value = fields.Float( string='pure value',compute="_compute_make_value_move",store=True, digits=(16, 3))
     gold_rate_value = fields.Float( string='rate value',compute="_compute_make_value_move",store=True)
     unfixed_move_id = fields.Many2one('account.move')
 
@@ -486,9 +486,9 @@ class Account_Payment_Inherit(models.Model):
                         raise UserError(_("unfixed bill you can pay" + "" + str(rec.invoice_ids.make_value_move)))
                     if rec.unfixed_option != "pay_gold_value" and rec.invoice_ids.make_value_move == 0.00:
                         raise UserError(_("make value and tax paid !!"))
-                    if rec.invoice_ids.pure_wt_value == 0.00 and rec.invoice_ids.make_value_move == 0.00:
+                    if rec.invoice_ids.pure_wt_value <= 0.00 and rec.invoice_ids.make_value_move == 0.00:
                         rec.invoice_ids.write({'invoice_payment_state': "paid"}) 
-                    else:
+                    if rec.unfixed_option == "make_tax":
                         rec.invoice_ids.write({'make_value_move':rec.invoice_ids.make_value_move - rec.amount }) 
 
             if rec.state != 'draft':

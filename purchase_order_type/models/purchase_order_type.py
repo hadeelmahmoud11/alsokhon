@@ -1,5 +1,5 @@
-from odoo import api, fields, models
-
+from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 class PurchaseOrderType(models.Model):
     _name = 'purchase.order.type'
@@ -31,3 +31,12 @@ class PurchaseOrderType(models.Model):
     is_fixed = fields.Boolean('Is Fixed')
     is_unfixed = fields.Boolean('Is Unfixed')
     gold = fields.Boolean('Gold')
+    stock_picking_type_id = fields.Many2one(
+        comodel_name='stock.picking.type', string='picking type',required=True)
+    
+
+    @api.constrains('stock_picking_type_id') 
+    def _check_stock_picking_type_id(self):
+        for check in self:
+            if not check.stock_picking_type_id.default_location_src_id or not  check.stock_picking_type_id.default_location_dest_id:
+                raise ValidationError(_('please fill source and destination locations for picking type.'))

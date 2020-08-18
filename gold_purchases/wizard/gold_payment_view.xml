@@ -20,11 +20,14 @@
                         </group>
 
                         <newline/>
-                        <field name="move_ids" nolabel="1" >
-                        <tree editable="bottom">
-                            <field name="name" readonly="1"/>
+                        <field name="move_ids" nolabel="1" domain="[('is_scrap', '=', True)]" >
+                        <tree editable="bottom" >
+                            <field name="name" readonly="1"/> 
                             <field name="product_id" readonly="1"/>
+                            <field name="pure_weight_unfixed" readonly="1" />
                             <field name="pure_weight" readonly="1"/>
+                            <field name="gross_weight_unfixed" />
+                            <field name="gross_weight" readonly="1" />
                             <field name="product_qty" string="quantity" />
                         </tree>
                         </field>
