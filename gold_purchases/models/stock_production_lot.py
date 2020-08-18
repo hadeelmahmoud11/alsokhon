@@ -23,11 +23,11 @@ class StockProductionLot(models.Model):
             rec. pure_weight = rec.gross_weight * rec.purity / 1000
     
 
-    # @api.onchange('gross_weight_unfixed')
-    # def onchange_gross_weight(self):
-    #     for rec in self:
-    #         rec.gross_weight = rec.gross_weight - rec.gross_weight_unfixed 
-    #         rec.purity = rec.gross_weight_unfixed  *  (rec.purity / 1000)
+    @api.onchange('gross_weight_unfixed')
+    def onchange_gross_weight(self):
+        for rec in self:
+            rec.gross_weight = rec.gross_weight - rec.gross_weight_unfixed 
+            rec.pure_weight_unfixed = rec.gross_weight_unfixed  *  (rec.purity / 1000)
     
     def write(self, vals):
         res = super(StockProductionLot, self).write(vals)
