@@ -146,9 +146,17 @@ class StockMoveLine(models.Model):
             for move_line_gross in self:
                 move_line_gross.move_id.write({'gross_weight':  vals.get('gross_weight')})
         
-
         return res
 
+    @api.model
+    def create(self, vals):
+        res = super(StockMoveLine, self).create(vals)
+        if vals.get('gross_weight', False): 
+            if vals.get('move_id'):
+                stock_move = self.env['stock.move'].browse([vals.get('move_id')])
+                stock_move.write({'gross_weight':  vals.get('gross_weight')})
+
+        return res
 
 class StockInventoryLine(models.Model):
     _inherit = 'stock.inventory.line'

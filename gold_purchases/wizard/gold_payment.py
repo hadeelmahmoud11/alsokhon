@@ -26,7 +26,6 @@ class stockGoldMove(models.TransientModel):
             raise UserError(_("You must select move(s) to generate payment(s)."))
 
         active_id = self.env.context.get('active_id')
-        gold_picking_type = self.env.ref('gold_purchases.gold_picking_type')
 
         if active_id:
             account_move = self.env['account.move'].search([('id' ,'=', active_id)])
@@ -42,11 +41,7 @@ class stockGoldMove(models.TransientModel):
             product_id = move.product_id
             
             
-        # if pure > account_move.pure_wt_value:
-        #     print("\n\n\n\n\n\n #########",pure)
-        #     print("\n\n\n\n\n\n #########",account_move.pure_wt_value)
-        #     raise UserError(_("you can pay in gold" + "" + str(account_move.pure_wt_value)))
-        # else:
+        
         account_move.write({'pure_wt_value': account_move.pure_wt_value - pure }) 
         # pure_money = account_move.pure_wt_value * account_move.gold_rate_value
         # account_move.write({'make_value_move': account_move.make_value_move - pure_money }) 
