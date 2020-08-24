@@ -94,10 +94,6 @@
                     <attribute name="attrs">{'readonly': ['|',('is_make_value', '=', True),('state', 'in', ['purchase','done','cancel'])]}</attribute>
                     <attribute name="force_save">1</attribute>
                 </xpath>
-                <xpath expr="//field[@name='order_line']/tree/field[@name='product_template_id']" position="attributes">
-                    <attribute name="attrs">{'readonly': ['|',('is_make_value', '=', True),('state', 'in', ['purchase','done','to approve','cancel'])]}</attribute>
-                    <attribute name="force_save">1</attribute>
-                </xpath>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='name']" position="attributes">  
                     <attribute name="attrs">{'readonly': ['|',('is_make_value', '=', True),('state', 'in', ['purchase','done','cancel'])]}</attribute>
                     <attribute name="force_save">1</attribute>
