@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+        
+        <!-- <record id="view_name_filter" model="ir.ui.view">
+         <field name="name">xxx</field> 
+         <field name="model">model name</field>
+         <field name="arch" type="xml"> 
+                <search string="xxx"> 
+                <field name="name" string="xxx"/> 
+                <field name="department_id"/> 
+                <group expand="0" string="Group By..."> 
+                <filter string="Division" icon="terp-personal" domain="[]" context="{'group_by':'division_id'}"/> 
+                </group> 
+                </search> 
+          </field>
+        </record> -->
 
         <record id="view_moves_show" model="ir.ui.view">
             <field name="name">stock_move_gold</field>
@@ -7,7 +21,7 @@
             <field name="arch" type="xml">
                 <form string="moves">
                     <header> 
-                        <button icon="fa-cogs" string="Generate" name="compute_sheet" type="object" class="oe_highlight"  />
+                        
                     </header>
                     <group>
                         <span colspan="4" nolabel="1">This wizard will generate stock move.</span>
@@ -20,19 +34,21 @@
                         </group>
 
                         <newline/>
-                        <field name="move_ids" nolabel="1" domain="[('is_scrap', '=', True)]" >
+                        <field name="move_ids" nolabel="1"  context="{'group_by':'product_id'}"  domain="[('is_scrap', '=', True),('state', '=', 'done'),('picking_id.picking_type_id.code', '=', 'incoming')]" >
                         <tree editable="bottom" >
-                            <field name="name" readonly="1"/> 
                             <field name="product_id" readonly="1"/>
-                            <field name="pure_weight_unfixed" readonly="1" />
-                            <field name="pure_weight" readonly="1"/>
-                            <field name="gross_weight_unfixed" />
+                            <field name="lot_id" readonly="1"/> 
+                            <field name="qty_done" string="quantity" readonly="1"/>
                             <field name="gross_weight" readonly="1" />
-                            <field name="product_qty" string="quantity" />
+                            <field name="purity" readonly="1" />
+                            <field name="pure_weight" readonly="1"/>
+                            <field name="paid_gross"/>
+                            <field name="paid_pure" />
                         </tree>
                         </field>
                     
                </form>
+               <button icon="fa-cogs" string="Generate" name="compute_sheet" type="object" class="oe_highlight"  />
             </field>
         </record>
 

@@ -18,11 +18,14 @@
                                 <field name="period_to"/>
                                 <field name="period_uom_id" widget="selection"
                                        domain="[('category_id', '!=', False), ('category_id.measure_type', '=', 'working_time')]"/>
-                                <field name="bill_unfixed"/>
                             </div>
                         </div>
                     </group>
                 </xpath>
+                <field name="origin" position="after">
+                    <field name="bill_unfixed" readonly="1"/>
+                </field>
+
             </field>
         </record>
     </data>

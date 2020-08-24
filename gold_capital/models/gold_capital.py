@@ -37,9 +37,9 @@ class GoldCapital(models.Model):
                     if str(old_value).find("KG"):
                         log = log_obj.create({
                             'date': fields.Datetime.now(),
-                            'old_capital': old_value ,
+                            'old_capital': old_value * rec.uom.factor ,
                             'new_capital': new_value,
-                            'capital_diff': new_value_one - new_old,
+                            'capital_diff': new_value - (old_value * rec.uom.factor),
                             'capital_id': rec.id,
                             'uom_id': rec.uom.id,
                             'user_id': self.env.user.id,
@@ -61,9 +61,19 @@ class GoldCapital(models.Model):
                     if str(old_value).find("KG"):
                         log = log_obj.create({
                             'date': fields.Datetime.now(),
-                            'old_capital': old_value ,
+                            'old_capital': old_value / rec.uom.factor_inv ,
                             'new_capital': new_value,
-                            'capital_diff': new_value_one - new_old,
+                            'capital_diff': new_value - (old_value / rec.uom.factor_inv),
+                            'capital_id': rec.id,
+                            'uom_id': rec.uom.id,
+                            'user_id': self.env.user.id,
+                        })
+                    elif str(old_value).find("G"):
+                        log = log_obj.create({
+                            'date': fields.Datetime.now(),
+                            'old_capital': old_value / rec.uom.factor_inv ,
+                            'new_capital': new_value,
+                            'capital_diff': (new_value - (old_value / rec.uom.factor_inv )) / rec.uom.factor_inv,
                             'capital_id': rec.id,
                             'uom_id': rec.uom.id,
                             'user_id': self.env.user.id,
@@ -73,7 +83,7 @@ class GoldCapital(models.Model):
                             'date': fields.Datetime.now(),
                             'old_capital': old_value * rec.uom.factor_inv,
                             'new_capital': new_value,
-                            'capital_diff': new_value_one - old_value,
+                            'capital_diff': new_value - (old_value / rec.uom.factor_inv),
                             'capital_id': rec.id,
                             'uom_id': rec.uom.id,
                             'user_id': self.env.user.id,
@@ -126,9 +136,9 @@ class GoldCapitalLogs(models.Model):
     def get_capital_str(self):
         for rec in self:
             if rec.uom_id:
-                rec.old_capital_str = '%s %s' % (rec.old_capital, 'KG')
-                rec.new_capital_str = '%s %s' % (rec.new_capital, rec.uom_id.name.upper() or 'KG')
-                rec.capital_diff_str = '%s %s' % (rec.capital_diff, 'KG')
+                rec.old_capital_str = '%s %s' % (rec.old_capital, rec.uom_id.name.upper())
+                rec.new_capital_str = '%s %s' % (rec.new_capital, rec.uom_id.name.upper() )
+                rec.capital_diff_str = '%s %s' % (rec.capital_diff, rec.uom_id.name.upper())
             else:
                 rec.old_capital_str = '%s %s' % (rec.old_capital,  'KG')
                 rec.new_capital_str = '%s %s' % (rec.new_capital,  'KG')

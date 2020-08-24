@@ -114,6 +114,11 @@
 
                 </field>
 
+                <xpath expr="//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='price_unit']" position="attributes">
+                    <attribute name="attrs">{'readonly': ['|',('parent.purchase_type', '=', "unfixed"),('parent.purchase_type', '=', "fixed")]}</attribute>
+                    <attribute name="force_save">1</attribute> 
+                </xpath>
+
             </field>
         </record>
 
@@ -136,6 +141,7 @@
                     <xpath expr="//field[@name='fiscal_position_id']" position="after">
                 
                     <field name="unfixed_move_id"  readonly="1" /> 
+                    <field name="unfixed_stock_picking" string="Stock Operation" readonly="1" /> 
                     
                     </xpath>
 

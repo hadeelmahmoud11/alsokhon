@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
+from odoo.tools import float_compare, float_round, float_is_zero
+
 
 
 class ItemCategory(models.Model):
@@ -40,6 +42,7 @@ class StockMove(models.Model):
     company_currency_id = fields.Many2one('res.currency',
                                           string="Company Currency",
                                           related='company_id.currency_id')
+    
 
     def _create_in_svl(self, forced_quantity=None):
         """Create a `stock.valuation.layer` from `self`.
@@ -72,10 +75,43 @@ class StockMove(models.Model):
                 svl_vals[
                     'description'] = 'Correction of %s (modification of past move)' % move.picking_id.name or move.name
             svl_vals_list.append(svl_vals)
-        stock_val_layer = self.env['stock.valuation.layer'].sudo().create(svl_vals_list)  
-        stock_val_layer.write({'value': stock_val_layer.value +  stock_val_layer.stock_move_id.purchase_line_id.make_value })
+
+        stock_val_layer = self.env['stock.valuation.layer'].sudo().create(svl_vals_list)
+        if not stock_val_layer.stock_move_id.picking_id.backorder_id: 
+            stock_val_layer.write({'value': stock_val_layer.value +  stock_val_layer.stock_move_id.purchase_line_id.make_value })
         stock_val_layer.stock_move_id.purchase_line_id.received_gross_wt = stock_val_layer.stock_move_id.gross_weight
         return stock_val_layer
+    
+
+    def _create_out_svl(self, forced_quantity=None):
+        """Create a `stock.valuation.layer` from `self`.
+
+        :param forced_quantity: under some circunstances, the quantity to value is different than
+            the initial demand of the move (Default value = None)
+        """
+        svl_vals_list = []
+        for move in self:
+            move = move.with_context(force_company=move.company_id.id)
+            valued_move_lines = move._get_out_move_lines()
+            valued_quantity = 0
+            for valued_move_line in valued_move_lines:
+                valued_quantity += valued_move_line.product_uom_id._compute_quantity(valued_move_line.qty_done, move.product_id.uom_id)
+            if float_is_zero(forced_quantity or valued_quantity, precision_rounding=move.product_id.uom_id.rounding):
+                continue
+             # Check Gold Product and pass gold rate, pure weight instead of
+            # cost, qty
+            if move.product_id.gold:
+                svl_vals = move.product_id._prepare_out_svl_vals(move.pure_weight, move.company_id)
+            else:
+                svl_vals = move.product_id._prepare_out_svl_vals(forced_quantity or valued_quantity, move.company_id)
+            svl_vals.update(move._prepare_common_svl_vals())
+            if forced_quantity:
+                svl_vals['description'] = 'Correction of %s (modification of past move)' % move.picking_id.name or move.name
+            svl_vals['unit_cost'] = move.gold_rate
+            svl_vals['value'] = - move.gold_rate * move.pure_weight 
+            svl_vals_list.append(svl_vals)
+        return self.env['stock.valuation.layer'].sudo().create(svl_vals_list)
+
 
     def _action_done(self, cancel_backorder=False):
         res = super(StockMove, self)._action_done()
@@ -103,6 +139,17 @@ class StockMoveLine(models.Model):
                                             digits=(16, 3))
     currency_id = fields.Many2one('res.currency', string="Company Currency",
                                   related='company_id.currency_id')
+    is_scrap = fields.Boolean(related="product_id.categ_id.is_scrap" , string="scrap", store=True)
+
+    paid_pure = fields.Float(string="Paid Pure") 
+    paid_gross = fields.Float(string="Paid Gross") 
+
+    @api.onchange('paid_gross')
+    def onchange_paid_gross(self):
+        for rec in self:
+            rec.write({'paid_pure': rec.paid_gross  *  (rec.purity / 1000)}) 
+    
+    
 
     @api.depends('move_id')
     def get_karat(self):
@@ -121,6 +168,7 @@ class StockMoveLine(models.Model):
     def get_pure_weight(self):
         for rec in self:
             rec.pure_weight = rec.gross_weight * (rec.purity / 1000.000)
+            
 
     def write(self, vals):
         res = super(StockMoveLine, self).write(vals)
@@ -145,7 +193,8 @@ class StockMoveLine(models.Model):
         if vals.get('gross_weight', False):
             for move_line_gross in self:
                 move_line_gross.move_id.write({'gross_weight':  vals.get('gross_weight')})
-        
+                move_line_gross.move_id.write({'pure_weight':  vals.get('gross_weight') * (self.purity / 1000.000) })
+
         return res
 
     @api.model
@@ -155,6 +204,7 @@ class StockMoveLine(models.Model):
             if vals.get('move_id'):
                 stock_move = self.env['stock.move'].browse([vals.get('move_id')])
                 stock_move.write({'gross_weight':  vals.get('gross_weight')})
+                stock_move.write({'pure_weight':  vals.get('gross_weight') * (stock_move.purity / 1000.000) })
 
         return res
 
@@ -170,3 +220,4 @@ class StockValuationLayer(models.Model):
 
     pure_weight = fields.Float('Pure Weight', digits=(16, 3))
     gold_rate = fields.Float(string='Gold Rate', digits=(16, 3))
+

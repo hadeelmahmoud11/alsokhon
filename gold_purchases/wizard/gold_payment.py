@@ -9,7 +9,7 @@ class stockGoldMove(models.TransientModel):
     _name = 'stock.move.gold'
     _description = 'Generate move for all selected moves'
 
-    move_ids = fields.Many2many('stock.production.lot', 'move_stock_group_rel', 'stock_gold', 'move_id',  'moves', readonly=False)
+    move_ids = fields.Many2many('stock.move.line', 'move_line_stock_group_rel', 'stock_gold_id', 'stock_move_line_id',  'moves', readonly=False)
     pure_weight = fields.Float('pure weight')
     pure_remainning = fields.Float('pure remainning',compute="get_pure_weight_remain")
 
@@ -17,7 +17,7 @@ class stockGoldMove(models.TransientModel):
     def get_pure_weight_remain(self):
         pure = 0.00
         for rec in self.move_ids:
-            pure = pure + rec.pure_weight_unfixed
+            pure = pure + rec.paid_pure
         self.pure_remainning = self.pure_weight 
 
     def compute_sheet(self):
@@ -34,9 +34,9 @@ class stockGoldMove(models.TransientModel):
         pure = 0.00
         gross_weight = 0.00
         purity = 0.00
-        for move in self.env['stock.production.lot'].browse(data['move_ids']):
-            pure = pure + move.pure_weight_unfixed
-            gross_weight = gross_weight + move.gross_weight
+        for move in self.env['stock.move.line'].browse(data['move_ids']):
+            pure = pure + move.paid_pure
+            gross_weight = gross_weight + move.paid_gross
             purity = purity + move.purity
             product_id = move.product_id
             
@@ -51,6 +51,10 @@ class stockGoldMove(models.TransientModel):
 
         if not purchase_order.order_type.stock_picking_type_id :
             raise UserError(_("fill picking type field in po purhcase type"))
+        rate = 0.00
+        for line in purchase_order.order_line:
+            if line.gold_rate > 0.00:
+                rate = line.gold_rate
 
         if pure > 0.00:
             picking = self.env['stock.picking'].create({
@@ -67,9 +71,11 @@ class stockGoldMove(models.TransientModel):
                                 'product_uom': product_id.uom_id.id,
                                 'picking_type_id':  purchase_order.order_type.stock_picking_type_id.id,
                                 'product_uom_qty': 1,
+                                'gold_rate' : rate ,
                                 'pure_weight': pure,
-                                'gross_weight': gross_weight,
+                                'gross_weight': gross_weight ,
                                 'purity': purity,})]
                     })
+            account_move.write({'unfixed_stock_picking' : picking.id})
                             
         return {'type': 'ir.actions.act_window_close'}

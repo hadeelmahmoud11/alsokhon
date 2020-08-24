@@ -177,6 +177,31 @@ class StockPicking(models.Model):
         return res
     
 
+    def _check_backorder(self):
+        """ This method will loop over all the move lines of self and
+        check if creating a backorder is necessary. This method is
+        called during button_validate if the user has already processed
+        some quantities and in the immediate transfer wizard that is
+        displayed if the user has not processed any quantities.
+
+        :return: True if a backorder is necessary else False
+        """
+        quantity_todo = {}
+        quantity_done = {}
+        for move in self.mapped('move_lines'):
+            quantity_todo.setdefault(move.product_id.id, 0)
+            quantity_done.setdefault(move.product_id.id, 0)
+            quantity_todo[move.product_id.id] += move.product_uom_qty
+            quantity_done[move.product_id.id] += move.quantity_done
+        for ops in self.mapped('move_line_ids').filtered(lambda x: x.package_id and not x.product_id and not x.move_id):
+            for quant in ops.package_id.quant_ids:
+                quantity_done.setdefault(quant.product_id.id, 0)
+                quantity_done[quant.product_id.id] += quant.qty
+        for pack in self.mapped('move_line_ids').filtered(lambda x: x.product_id and not x.move_id):
+            quantity_done.setdefault(pack.product_id.id, 0)
+            quantity_done[pack.product_id.id] += pack.product_uom_id._compute_quantity(pack.qty_done, pack.product_id.uom_id)
+        return any(quantity_done[x] < quantity_todo.get(x, 0) for x in quantity_done)
+
 
     def _create_backorder(self):
 
@@ -187,8 +212,10 @@ class StockPicking(models.Model):
         purchase_order = self.env['purchase.order'].search([('name','=',self.group_id.name)])
         if purchase_order:
             gross_wt = 0.00
+            pure_wt = 0.00
             for rec in purchase_order.order_line:
                 gross_wt = (gross_wt + rec.gross_wt) * (rec.product_qty)
+                pure_wt =  rec.pure_wt
 
         for picking in self:
             moves_to_backorder = picking.move_lines.filtered(lambda x: x.state not in ('done', 'cancel'))
@@ -205,7 +232,8 @@ class StockPicking(models.Model):
                 moves_to_backorder.write({'picking_id': backorder_picking.id})
                 moves_to_backorder.mapped('package_level_id').write({'picking_id':backorder_picking.id})
                 moves_to_backorder.mapped('move_line_ids').write({'picking_id': backorder_picking.id})
-                backorder_picking.move_lines.write({'gross_weight': gross_wt - backorder_picking.move_lines.gross_weight})
+                backorder_picking.move_lines.write({'gross_weight': abs(gross_wt - backorder_picking.move_lines.gross_weight)})
+                backorder_picking.move_lines.write({'pure_weight': abs(pure_wt - backorder_picking.move_lines.pure_weight)})
                 backorder_picking.action_assign()
                 backorders |= backorder_picking
         return backorders

@@ -69,6 +69,23 @@
                     <field name="selling_karat_id" readonly="1"/>
                     <field name="selling_making_charge"/>
                 </field>
+                 <xpath expr="//field[@name='date']" position="attributes">
+                    <attribute name="attrs">{'column_invisible': True}</attribute>
+                    <attribute name="force_save">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='reference']" position="attributes">
+                    <attribute name="attrs">{'column_invisible': True}</attribute>
+                    <attribute name="force_save">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='location_id']" position="attributes">
+                    <attribute name="attrs">{'column_invisible': True}</attribute>
+                    <attribute name="force_save">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='location_dest_id']" position="attributes">
+                    <attribute name="attrs">{'column_invisible': True}</attribute>
+                    <attribute name="force_save">1</attribute>
+                </xpath>
+                
             </field>
         </record>
 
@@ -86,6 +103,7 @@
                            domain="[('parent_category_id', '=', item_category_id)]"/>
                     <field name="selling_karat_id" readonly="1" force_save="1"/>
                     <field name="selling_making_charge" readonly="1" force_save="1"/>
+                    <field name="is_scrap" readonly="1"/>
                 </field>
                 <xpath expr="//field[@name='product_uom_id']" position="attributes">
                     <attribute name="attrs">{'readonly': True}</attribute>
@@ -103,6 +121,7 @@
                     <field name="gross_weight" readonly="0"/>
                     <field name="pure_weight" readonly="1"/>
                     <field name="purity" readonly="1"/>
+                    <field name="is_scrap" readonly="1"/>
                     <field name="item_category_id"/>
                     <field name="sub_category_id" attrs="{'invisible': [('item_category_id','=', False)]}"
                            domain="[('parent_category_id', '=', item_category_id)]"/>

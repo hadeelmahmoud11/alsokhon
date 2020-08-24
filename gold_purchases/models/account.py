@@ -74,6 +74,7 @@ class AccountMove(models.Model):
     pure_wt_value = fields.Float( string='pure value',compute="_compute_make_value_move",store=True, digits=(16, 3))
     gold_rate_value = fields.Float( string='rate value',compute="_compute_make_value_move",store=True)
     unfixed_move_id = fields.Many2one('account.move')
+    unfixed_stock_picking = fields.Many2one('stock.picking')
 
     @api.depends(
         'line_ids.debit',
@@ -404,7 +405,7 @@ class Account_Payment_Inherit(models.Model):
 
     is_unfixed_wizard = fields.Boolean('is_unfixed')
     unfixed_option = fields.Selection([('make_tax', 'make value + tax'), ('pay_gold_value', 'pay gold value')],
-        string='unfixed option')
+        string='Unfixed Option')
     
     @api.onchange('unfixed_option')
     def _onchange_unfixed_option(self):

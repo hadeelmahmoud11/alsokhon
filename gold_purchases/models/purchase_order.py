@@ -86,6 +86,7 @@ class PurchaseOrderLine(models.Model):
     price_unit = fields.Float(string='Unit Price', required=True,
                               digits='Product Price', copy=False, default=0)
     gross_wt = fields.Float('Gross Wt', digits=(16, 3))
+    total_gross_wt = fields.Float('Total Gross', compute='_get_gold_rate' ,digits=(16, 3))
     received_gross_wt = fields.Float('received Gross Wt', digits=(16, 3))
     purity_id = fields.Many2one('gold.purity', 'Purity')
     pure_wt = fields.Float('Pure Wt', compute='_get_gold_rate', digits=(16, 3))
@@ -112,6 +113,26 @@ class PurchaseOrderLine(models.Model):
                 
             rec.purity_diff = ( rec.product_qty * (rec.purity_hall - rec.purity_id.purity)) / 100
 
+    def write(self, vals):
+        res = super(PurchaseOrderLine, self).write(vals)
+        if vals.get('make_rate'):
+            if vals.get('make_rate') > 0.00 and len(self.order_id.order_line) == 1 :
+                product_object = self.env['product.product'].browse([self.product_id.id])
+                make_value_product = product_object.making_charge_id
+                uom = self.env.ref('uom.product_uom_unit')
+                make = self.env['purchase.order.line'].create({
+                                        'product_id': make_value_product.id,
+                                        'name': make_value_product.name,
+                                        'product_qty': 1,
+                                        'price_unit': 0.00,
+                                        'product_uom': uom.id,
+                                        'order_id':self.order_id.id,
+                                        'date_planned': datetime.today() ,
+                                        'is_make_value': True,
+                                        'price_subtotal': 0.00,
+                                    })
+        return res
+
     @api.model
     def create(self, vals):
         res = super(PurchaseOrderLine, self).create(vals)
@@ -124,17 +145,18 @@ class PurchaseOrderLine(models.Model):
                 
                 make_value_product = product_object.making_charge_id
                 uom = self.env.ref('uom.product_uom_unit')
-                make = self.env['purchase.order.line'].create({
-                                    'product_id': make_value_product.id,
-                                    'name': make_value_product.name,
-                                    'product_qty': 1,
-                                    'price_unit': 0.00,
-                                    'product_uom': uom.id,
-                                    'order_id': vals.get('order_id'),
-                                    'date_planned': datetime.today() ,
-                                    'is_make_value': True,
-                                    'price_subtotal': 0.00,
-                                })
+                if vals.get('make_rate') > 0.00:
+                    make = self.env['purchase.order.line'].create({
+                                        'product_id': make_value_product.id,
+                                        'name': make_value_product.name,
+                                        'product_qty': 1,
+                                        'price_unit': 0.00,
+                                        'product_uom': uom.id,
+                                        'order_id': vals.get('order_id'),
+                                        'date_planned': datetime.today() ,
+                                        'is_make_value': True,
+                                        'price_subtotal': 0.00,
+                                    })
         return res
 
                 
@@ -150,16 +172,17 @@ class PurchaseOrderLine(models.Model):
             
             rec.pure_wt = rec.product_qty * rec.gross_wt * (rec.purity_id and (
                     rec.purity_id.purity / 1000.000) or 1)
-            rec.total_pure_weight = rec.pure_wt
+            rec.total_pure_weight = rec.pure_wt + rec.purity_diff
             # NEED TO ADD PURITY DIFF + rec.purity_diff
-            new_pure_wt = (rec.pure_wt + (rec.purity_diff * rec.product_qty ))
+            new_pure_wt = rec.pure_wt + rec.purity_diff  
             rec.stock = (rec.product_id and rec.product_id.available_gold or
                          0.00) + new_pure_wt 
-
+            
             rec.make_value = rec.product_qty * rec.gross_wt * rec.make_rate
             rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
             rec.gold_value = rec.gold_rate and (
                     rec.total_pure_weight * rec.gold_rate) or 0
+            rec.total_gross_wt = rec.gross_wt * rec.product_qty
             
             
             make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
@@ -208,7 +231,7 @@ class PurchaseOrderLine(models.Model):
     def _prepare_stock_moves(self, picking):
         res = super(PurchaseOrderLine, self)._prepare_stock_moves(picking)
         res and res[0].update({
-            'gross_weight': self.gross_wt,
+            'gross_weight': self.gross_wt * self.product_qty,
             'pure_weight': self.pure_wt,
             'purity': self.purity_id.purity or 1,
             'gold_rate': self.gold_rate,
@@ -226,37 +249,66 @@ class PurchaseOrderLine(models.Model):
         product_object = self.env['product.product'].browse([res.get('product_id')])
         
         price_un = 0.00
+        diff_gross = 0.00
         if product_object.is_making_charges:
             price_un = res.get('price_unit')
         if product_object.gold:
             if product_object.purchase_method == "receive":
-                total_pure_weight = self.received_gross_wt * (self.purity_id and (
-                    self.purity_id.purity / 1000.000) or 1)
-                res.update({
-                    'gross_wt': self.received_gross_wt ,
-                    'pure_wt': self.total_pure_weight,
-                    'purity_id': self.purity_id and self.purity_id.id or False,
-                    'purity_diff': self.purity_diff,
-                    'gold_rate': self.gold_rate,
-                    'make_rate': self.make_rate,
-                    'make_value': self.make_value,
-                    'gold_value': self.gold_rate and (total_pure_weight * self.gold_rate) or 0,
-                    'price_unit': self.gold_rate and (total_pure_weight * self.gold_rate) or 0 ,
-                })
+                if self.received_gross_wt < (self.gross_wt * self.product_qty):
+                    total_pure_weight = self.received_gross_wt * (self.purity_id and (
+                        self.purity_id.purity / 1000.000) or 1)
+                    diff_gross =  (self.gross_wt * self.product_qty) / self.received_gross_wt
+                    res.update({
+                        'gross_wt': self.received_gross_wt ,
+                        'pure_wt': self.total_pure_weight,
+                        'purity_id': self.purity_id and self.purity_id.id or False,
+                        'purity_diff': self.purity_diff,
+                        'gold_rate': self.gold_rate,
+                        'make_rate': self.make_rate,
+                        'make_value': self.make_value / diff_gross ,
+                        'gold_value': self.gold_rate and (total_pure_weight * self.gold_rate) or 0,
+                        'price_unit': self.gold_rate and (total_pure_weight * self.gold_rate) or 0 ,
+                    })
+                else:
+                    res.update({
+                        'gross_wt': self.gross_wt,
+                        'pure_wt': self.pure_wt,
+                        'purity_id': self.purity_id and self.purity_id.id or False,
+                        'purity_diff': self.purity_diff,
+                        'gold_rate': self.gold_rate,
+                        'make_rate': self.make_rate,
+                        'make_value': self.make_value,
+                        'gold_value': self.gold_value,
+                        'price_unit': self.gold_value / self.product_qty   ,
+                    })
             else:
                 res.update({
                     'gross_wt': self.gross_wt,
-                    'pure_wt': self.total_pure_weight,
+                    'pure_wt': self.pure_wt,
                     'purity_id': self.purity_id and self.purity_id.id or False,
                     'purity_diff': self.purity_diff,
                     'gold_rate': self.gold_rate,
                     'make_rate': self.make_rate,
                     'make_value': self.make_value,
                     'gold_value': self.gold_value,
-                    'price_unit': self.gold_value ,
+                    'price_unit': self.gold_value / self.product_qty ,
                 })
         product_object = self.env['product.product'].browse([res.get('product_id')])
         make_value_product = product_object.making_charge_id
         if product_object.is_making_charges:
-            res.update({'price_unit': price_un, 'quantity': 1.00,'gold_rate':0.00})
+            purchase_order = self.env['purchase.order'].browse([self.order_id.id])
+            new_gross_wt = 0.00
+            new_product_qty = 0.00
+            new_received_gross_wt =0.00
+            for line in purchase_order.order_line:
+                if line.gross_wt > 0.00 and line.received_gross_wt > 0.00:
+                    new_gross_wt = line.gross_wt
+                    new_product_qty = line.product_qty
+                    new_received_gross_wt = line.received_gross_wt
+            diff_gross =  (new_gross_wt * new_product_qty) / new_received_gross_wt
+            if diff_gross > 0.00:
+                res.update({'price_unit': price_un / diff_gross , 'quantity': 1.00,'gold_rate':0.00})
+            else:
+                res.update({'price_unit': price_un, 'quantity': 1.00,'gold_rate':0.00})
+        
         return res
