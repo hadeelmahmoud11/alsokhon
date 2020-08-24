@@ -43,7 +43,7 @@
                             <field name="purity" readonly="1" />
                             <field name="pure_weight" readonly="1"/>
                             <field name="paid_gross"/>
-                            <field name="paid_pure" />
+                            <field name="paid_pure" readonly="1" force_save = "1" />
                         </tree>
                         </field>
                     
