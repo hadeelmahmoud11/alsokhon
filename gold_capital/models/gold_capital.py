@@ -21,6 +21,8 @@ class GoldCapital(models.Model):
                     old_value = rec.capital / rec.uom.factor
                 elif rec.uom.uom_type == "bigger":
                     old_value = rec.capital * rec.uom.factor_inv
+                elif rec.uom.uom_type == "reference": 
+                    old_value = rec.capital 
             else:
                 old_value = rec.capital
         res = super(GoldCapital, self).write(vals)
@@ -59,6 +61,7 @@ class GoldCapital(models.Model):
                     new_old = old_value / rec.uom.factor
                     new_value = rec.capital 
                     if str(old_value).find("KG"):
+                        print("\n\n\n\n\n ############# KG",old_value / rec.uom.factor_inv)
                         log = log_obj.create({
                             'date': fields.Datetime.now(),
                             'old_capital': old_value / rec.uom.factor_inv ,
@@ -79,6 +82,7 @@ class GoldCapital(models.Model):
                             'user_id': self.env.user.id,
                         })
                     else:
+                        print("\n\n\n\n\n ############# else0",old_value)
                         log = log_obj.create({
                             'date': fields.Datetime.now(),
                             'old_capital': old_value * rec.uom.factor_inv,
@@ -90,6 +94,7 @@ class GoldCapital(models.Model):
                         })
 
                 else:
+                    print("\n\n\n\n\n ############# else1",old_value)
                     log = log_obj.create({
                         'date': fields.Datetime.now(),
                         'old_capital': old_value,
@@ -99,6 +104,7 @@ class GoldCapital(models.Model):
                         'user_id': self.env.user.id,
                     })
             else:
+                print("\n\n\n\n\n ############# else2",old_value)
                 log = log_obj.create({
                     'date': fields.Datetime.now(),
                     'old_capital': old_value,

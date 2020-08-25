@@ -76,7 +76,7 @@ class PurchaseOrder(models.Model):
     def check_gold_fixed(self):
         for rec in self:
             rec.is_gold_fixed = rec.order_type and \
-                                rec.order_type.is_fixed and \
+                                rec.order_type.is_fixed or rec.order_type.is_unfixed and \
                                 rec.order_type.gold and True or False
 
 
@@ -171,7 +171,7 @@ class PurchaseOrderLine(models.Model):
                 product_make_object = self.env['purchase.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
             
             rec.pure_wt = rec.product_qty * rec.gross_wt * (rec.purity_id and (
-                    rec.purity_id.purity / 1000.000) or 1)
+                    rec.purity_id.purity / 1000.000) or 0)
             rec.total_pure_weight = rec.pure_wt + rec.purity_diff
             # NEED TO ADD PURITY DIFF + rec.purity_diff
             new_pure_wt = rec.pure_wt + rec.purity_diff  

@@ -123,11 +123,11 @@
                     <attribute name="force_save">1</attribute>
                 </xpath>
                  <xpath expr="//field[@name='order_line']/tree/field[@name='qty_received']" position="attributes">
-                    <attribute name="attrs">{'readonly': [('is_make_value', '=', True)]}</attribute>
+                    <attribute name="attrs">{'readonly': ['|',('is_make_value', '=', True),('parent.is_gold_fixed', '=', True)]}</attribute>
                     <attribute name="force_save">1</attribute>
                 </xpath>
                  <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="attributes">
-                    <attribute name="attrs">{'readonly': [('is_make_value', '=', True)]}</attribute>
+                    <attribute name="attrs">{'readonly': ['|',('is_make_value', '=', True),('parent.is_gold_fixed', '=', True)]}</attribute>
                     <attribute name="force_save">1</attribute>
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='taxes_id']" position="attributes">
