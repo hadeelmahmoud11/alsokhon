@@ -636,7 +636,10 @@ class Account_report_inherit(models.AbstractModel):
         if expanded_account:
             accounts = expanded_account
         elif groupby_accounts:
-            accounts = self.env['account.account'].search([('id', 'in', list(groupby_accounts.keys())), ('gold', '=', False)])
+            if self.env.context.get('gold'):
+                accounts = self.env['account.account'].search([('id', 'in', list(groupby_accounts.keys())),('gold','=',True)])
+            else:
+                accounts = self.env['account.account'].search([('id', 'in', list(groupby_accounts.keys())),('gold','=',False)])
         else:
             accounts = []
         accounts_results = [(account, groupby_accounts[account.id]) for account in accounts]

@@ -27,7 +27,7 @@
         <record id="action_account_report_gold_fixed_general_ledger" model="ir.actions.client">
             <field name="name">Gold Fixing Position</field>
             <field name="tag">account_report</field>
-            <field name="context" eval="{'model': 'account.general.ledger'}" />
+            <field name="context" eval="{'model': 'account.general.ledger','gold': 'gold_fixed_position'}" />
         </record>
         
         <menuitem id="menu_action_account_report_gold_fixed_general_ledger"
