@@ -22,6 +22,23 @@
             </field>
         </record>
 
+        <!-- GL report inherit for gold fixed position -->
+
+        <record id="action_account_report_gold_fixed_general_ledger" model="ir.actions.client">
+            <field name="name">Gold Fixing Position</field>
+            <field name="tag">account_report</field>
+            <field name="context" eval="{'model': 'account.general.ledger'}" />
+        </record>
+        
+        <menuitem id="menu_action_account_report_gold_fixed_general_ledger"
+            action="action_account_report_gold_fixed_general_ledger"
+            name="Gold Fixing Position"
+            parent="account.account_reports_management_menu"
+            groups="account.group_account_user"
+            sequence="3"/>
+
+
+
         <record id="action_gold_move_journal_line" model="ir.actions.act_window">
             <field name="name">GOLD Journal Entries</field>
             <field name="res_model">account.move</field>
