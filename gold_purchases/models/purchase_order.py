@@ -258,16 +258,18 @@ class PurchaseOrderLine(models.Model):
                     total_pure_weight = self.received_gross_wt * (self.purity_id and (
                         self.purity_id.purity / 1000.000) or 1)
                     diff_gross =  (self.gross_wt * self.product_qty) / self.received_gross_wt
+                    new_pure = self.total_pure_weight / self.product_qty
+                    new_purity_diff =  self.purity_diff / self.product_qty
                     res.update({
                         'gross_wt': self.received_gross_wt ,
-                        'pure_wt': self.total_pure_weight,
+                        'pure_wt': new_pure - new_purity_diff ,
                         'purity_id': self.purity_id and self.purity_id.id or False,
-                        'purity_diff': self.purity_diff,
+                        'purity_diff': new_purity_diff,
                         'gold_rate': self.gold_rate,
                         'make_rate': self.make_rate,
                         'make_value': self.make_value / diff_gross ,
-                        'gold_value': self.gold_rate and (total_pure_weight * self.gold_rate) or 0,
-                        'price_unit': self.gold_rate and (total_pure_weight * self.gold_rate) or 0 ,
+                        'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
+                        'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0 ,
                     })
                 else:
                     res.update({
@@ -282,17 +284,35 @@ class PurchaseOrderLine(models.Model):
                         'price_unit': self.gold_value / self.product_qty   ,
                     })
             else:
-                res.update({
-                    'gross_wt': self.gross_wt,
-                    'pure_wt': self.pure_wt,
-                    'purity_id': self.purity_id and self.purity_id.id or False,
-                    'purity_diff': self.purity_diff,
-                    'gold_rate': self.gold_rate,
-                    'make_rate': self.make_rate,
-                    'make_value': self.make_value,
-                    'gold_value': self.gold_value,
-                    'price_unit': self.gold_value / self.product_qty ,
-                })
+                if self.received_gross_wt < (self.gross_wt * self.product_qty):
+                    total_pure_weight = self.received_gross_wt * (self.purity_id and (
+                        self.purity_id.purity / 1000.000) or 1)
+                    diff_gross =  (self.gross_wt * self.product_qty) / self.received_gross_wt
+                    new_pure = self.total_pure_weight / self.product_qty
+                    new_purity_diff =  self.purity_diff / self.product_qty
+                    res.update({
+                        'gross_wt': self.received_gross_wt ,
+                        'pure_wt': new_pure - new_purity_diff ,
+                        'purity_id': self.purity_id and self.purity_id.id or False,
+                        'purity_diff': new_purity_diff,
+                        'gold_rate': self.gold_rate,
+                        'make_rate': self.make_rate,
+                        'make_value': self.make_value / diff_gross ,
+                        'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
+                        'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0 ,
+                    })
+                else:
+                    res.update({
+                        'gross_wt': self.gross_wt,
+                        'pure_wt': self.pure_wt,
+                        'purity_id': self.purity_id and self.purity_id.id or False,
+                        'purity_diff': self.purity_diff,
+                        'gold_rate': self.gold_rate,
+                        'make_rate': self.make_rate,
+                        'make_value': self.make_value,
+                        'gold_value': self.gold_value,
+                        'price_unit': self.gold_value / self.product_qty   ,
+                    })
         product_object = self.env['product.product'].browse([res.get('product_id')])
         make_value_product = product_object.making_charge_id
         if product_object.is_making_charges:
