@@ -9,7 +9,7 @@ class stockGoldMove(models.TransientModel):
     _name = 'stock.move.gold'
     _description = 'Generate move for all selected moves'
 
-    move_ids = fields.Many2many('stock.move.line', 'move_line_stock_group_rel', 'stock_gold_id', 'stock_move_line_id',  'moves', readonly=False)
+    move_ids = fields.Many2many('stock.valuation.layer', 'move_line_stock_valuation_rel', 'stock_gold_id', 'stock_valuation_id',  'moves', readonly=False)
     pure_weight = fields.Float('pure weight')
     pure_remainning = fields.Float('pure remainning',compute="get_pure_weight_remain")
 
@@ -34,12 +34,17 @@ class stockGoldMove(models.TransientModel):
         pure = 0.00
         gross_weight = 0.00
         purity = 0.00
-        for move in self.env['stock.move.line'].browse(data['move_ids']):
+        for move in self.env['stock.valuation.layer'].browse(data['move_ids']):
             pure = pure + move.paid_pure
             gross_weight = gross_weight + move.paid_gross
             purity = purity + move.purity
             product_id = move.product_id
-            
+            if  move.paid_gross > move.gross_weight :
+                raise UserError(_("paid gross grater than gross weight "))
+            move.write({'gross_weight': move.gross_weight -  move.paid_gross ,'quantity': move.quantity - pure , 'value' : (move.quantity - pure) * move.gold_rate  })
+            move.write({'paid_gross': 0.00 ,'paid_pure' : 0.00})
+            if move.gross_weight == 0.00:
+                move.write({'is_full_paid': True })
             
         
         account_move.write({'pure_wt_value': account_move.pure_wt_value - pure }) 

@@ -34,14 +34,13 @@
                         </group>
 
                         <newline/>
-                        <field name="move_ids" nolabel="1"  context="{'group_by':'product_id'}"  domain="[('is_scrap', '=', True),('state', '=', 'done'),('picking_id.picking_type_id.code', '=', 'incoming')]" >
+                        <field name="move_ids" nolabel="1"  context="{'group_by':'product_id'}" domain="[('is_scrap', '=', True),('is_full_paid', '=', False),('picking_id.picking_type_id.code', '=', 'incoming')]" >
                         <tree editable="bottom" >
                             <field name="product_id" readonly="1"/>
-                            <field name="lot_id" readonly="1"/> 
                             <field name="qty_done" string="quantity" readonly="1"/>
                             <field name="gross_weight" readonly="1" />
                             <field name="purity" readonly="1" />
-                            <field name="pure_weight" readonly="1"/>
+                            <field name="quantity" readonly="1"/>
                             <field name="paid_gross"/>
                             <field name="paid_pure" readonly="1" force_save = "1" />
                         </tree>

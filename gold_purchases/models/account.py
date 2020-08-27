@@ -159,7 +159,7 @@ class AccountMove(models.Model):
             move.amount_tax = sign * (total_tax_currency if len(currencies) == 1 else total_tax)
             move.amount_total = sign * (total_currency if len(currencies) == 1 else total)
             if move.purchase_type == "unfixed":
-                if  move.make_value_move == 0.00 and move.pure_wt_value == 0.00:
+                if  move.make_value_move == 0.00 and move.pure_wt_value <= 0.00:
                     move.amount_residual = 0.00
                 else: 
                     move.amount_residual = -sign * (total_residual_currency if len(currencies) == 1 else total_residual)
@@ -198,7 +198,7 @@ class AccountMove(models.Model):
                     if line.pure_wt == 0.00 and line.make_value == 0.00:
                         make_value = line.price_unit 
                     else:
-                        pure = line.pure_wt
+                        pure = line.pure_wt + line.purity_diff 
                         rate = line.gold_rate
 
                 rec.pure_wt_value = pure
@@ -487,8 +487,16 @@ class Account_Payment_Inherit(models.Model):
                         raise UserError(_("unfixed bill you can pay" + "" + str(rec.invoice_ids.make_value_move)))
                     if rec.unfixed_option != "pay_gold_value" and rec.invoice_ids.make_value_move == 0.00:
                         raise UserError(_("make value and tax paid !!"))
+
+                    if rec.invoice_ids.make_value_move <= 0.00 and rec.unfixed_option == "pay_gold_value":
+                        if rec.invoice_ids.pure_wt_value <= (rec.amount / rec.invoice_ids.gold_rate_value ):
+                            rec.invoice_ids.write({'pure_wt_value': 0.00})
+
                     if rec.invoice_ids.pure_wt_value <= 0.00 and rec.invoice_ids.make_value_move == 0.00:
-                        rec.invoice_ids.write({'invoice_payment_state': "paid"}) 
+                        rec.invoice_ids.write({'invoice_payment_state': "paid"})
+                    
+                            
+
                     if rec.unfixed_option == "make_tax":
                         rec.invoice_ids.write({'make_value_move':rec.invoice_ids.make_value_move - rec.amount }) 
 
