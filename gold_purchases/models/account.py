@@ -75,6 +75,8 @@ class AccountMove(models.Model):
     gold_rate_value = fields.Float( string='rate value',compute="_compute_make_value_move",store=True)
     unfixed_move_id = fields.Many2one('account.move')
     unfixed_stock_picking = fields.Many2one('stock.picking')
+    unfixed_move_id_two = fields.Many2one('account.move')
+    unfixed_stock_picking_two= fields.Many2one('stock.picking') 
 
     @api.depends(
         'line_ids.debit',

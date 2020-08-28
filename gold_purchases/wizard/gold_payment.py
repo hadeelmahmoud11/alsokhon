@@ -41,7 +41,7 @@ class stockGoldMove(models.TransientModel):
             product_id = move.product_id
             if  move.paid_gross > move.gross_weight :
                 raise UserError(_("paid gross grater than gross weight "))
-            move.write({'gross_weight': move.gross_weight -  move.paid_gross ,'quantity': move.quantity - pure , 'value' : (move.quantity - pure) * move.gold_rate  })
+            move.write({'gross_weight': move.gross_weight -  move.paid_gross ,'quantity': move.quantity - pure , 'value' : (move.quantity - pure) * move.unit_cost  })
             move.write({'paid_gross': 0.00 ,'paid_pure' : 0.00})
             if move.gross_weight == 0.00:
                 move.write({'is_full_paid': True })
@@ -81,6 +81,11 @@ class stockGoldMove(models.TransientModel):
                                 'gross_weight': gross_weight ,
                                 'purity': purity,})]
                     })
-            account_move.write({'unfixed_stock_picking' : picking.id})
+            if account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two:
+                account_move.write({'unfixed_stock_picking_two': picking.id})
+            if not account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two:
+                account_move.write({'unfixed_stock_picking': picking.id})
+                
+            #account_move.write({'unfixed_stock_picking' : picking.id})
                             
         return {'type': 'ir.actions.act_window_close'}

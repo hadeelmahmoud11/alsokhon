@@ -143,7 +143,11 @@ class StockPicking(models.Model):
                     })
                     new_account_move.post()
                     if account_move_obj:
-                        account_move_obj.write({'unfixed_move_id': new_account_move.id})
+                        if account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two:
+                            account_move_obj.write({'unfixed_move_id_two': new_account_move.id})
+                        if not account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two:
+                            account_move_obj.write({'unfixed_move_id': new_account_move.id})
+                          
 
     def _prepare_account_move_line_unfixed(self, product_dict):
         debit_lines = []
