@@ -74,9 +74,11 @@ class AccountMove(models.Model):
     pure_wt_value = fields.Float( string='pure value',compute="_compute_make_value_move",store=True, digits=(16, 3))
     gold_rate_value = fields.Float( string='rate value',compute="_compute_make_value_move",store=True)
     unfixed_move_id = fields.Many2one('account.move')
-    unfixed_stock_picking = fields.Many2one('stock.picking')
     unfixed_move_id_two = fields.Many2one('account.move')
+    unfixed_move_id_three = fields.Many2one('account.move')
+    unfixed_stock_picking = fields.Many2one('stock.picking')
     unfixed_stock_picking_two= fields.Many2one('stock.picking') 
+    unfixed_stock_picking_three= fields.Many2one('stock.picking') 
 
     @api.depends(
         'line_ids.debit',

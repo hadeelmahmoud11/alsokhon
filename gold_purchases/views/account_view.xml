@@ -156,13 +156,17 @@
                     </xpath>
 
                     <xpath expr="//field[@name='fiscal_position_id']" position="after">
-                
-                    <field name="unfixed_move_id"  string="unfixed move" readonly="1" />  
-                    <field name="unfixed_stock_picking" string="Stock Operation" readonly="1" /> 
                     
-                    <field name="unfixed_move_id_two"  string="unfixed move two" attrs="{'invisible': [('unfixed_move_id_two', '=', False)],'readonly': True}" /> 
-                    <field name="unfixed_stock_picking_two" string="Stock Operation two" attrs="{'invisible': [('unfixed_stock_picking_two', '=', False)],'readonly': True}"/> 
-
+                    
+                    <field name="unfixed_move_id"  string="unfixed move" readonly="1" /> 
+                    <field name="unfixed_move_id_two" nolabel="1"  string="unfixed move two" attrs="{'invisible': [('unfixed_move_id_two', '=', False)],'readonly': True}" />
+                    <field name="unfixed_move_id_three" nolabel="1"  string="unfixed move three" attrs="{'invisible': [('unfixed_move_id_three', '=', False)],'readonly': True}" />
+                   
+                    <field name="unfixed_stock_picking" string="Stock Operation" readonly="1" /> 
+                    <field name="unfixed_stock_picking_two" nolabel="1"  attrs="{'invisible': [('unfixed_stock_picking_two', '=', False)],'readonly': True}"/>
+                    <field name="unfixed_stock_picking_three" nolabel="1"  attrs="{'invisible': [('unfixed_stock_picking_three', '=', False)],'readonly': True}"/>  
+                    
+                    
                     </xpath>
 
             </field>

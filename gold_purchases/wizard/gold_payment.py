@@ -81,9 +81,11 @@ class stockGoldMove(models.TransientModel):
                                 'gross_weight': gross_weight ,
                                 'purity': purity,})]
                     })
-            if account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two:
+            if account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
+                account_move.write({'unfixed_stock_picking_three': picking.id})
+            if account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
                 account_move.write({'unfixed_stock_picking_two': picking.id})
-            if not account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two:
+            if not account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
                 account_move.write({'unfixed_stock_picking': picking.id})
                 
             #account_move.write({'unfixed_stock_picking' : picking.id})

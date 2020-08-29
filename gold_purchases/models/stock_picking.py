@@ -143,9 +143,11 @@ class StockPicking(models.Model):
                     })
                     new_account_move.post()
                     if account_move_obj:
-                        if account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two:
+                        if account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
+                            account_move_obj.write({'unfixed_move_id_three': new_account_move.id})
+                        if account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
                             account_move_obj.write({'unfixed_move_id_two': new_account_move.id})
-                        if not account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two:
+                        if not account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
                             account_move_obj.write({'unfixed_move_id': new_account_move.id})
                           
 
