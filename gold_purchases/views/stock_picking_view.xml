@@ -22,6 +22,10 @@
                         </div>
                     </group>
                 </xpath>
+                <field name="origin" position="after">
+                    <field name="bill_unfixed" readonly="1"/>
+                </field>
+
             </field>
         </record>
     </data>

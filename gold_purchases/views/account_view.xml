@@ -22,6 +22,23 @@
             </field>
         </record>
 
+        <!-- GL report inherit for gold fixed position -->
+
+        <record id="action_account_report_gold_fixed_general_ledger" model="ir.actions.client">
+            <field name="name">Gold Fixing Position</field>
+            <field name="tag">account_report</field>
+            <field name="context" eval="{'model': 'account.general.ledger','gold': 'gold_fixed_position'}" />
+        </record>
+        
+        <menuitem id="menu_action_account_report_gold_fixed_general_ledger"
+            action="action_account_report_gold_fixed_general_ledger"
+            name="Gold Fixing Position"
+            parent="account.account_reports_management_menu"
+            groups="account.group_account_user"
+            sequence="3"/>
+
+
+
         <record id="action_gold_move_journal_line" model="ir.actions.act_window">
             <field name="name">GOLD Journal Entries</field>
             <field name="res_model">account.move</field>
@@ -45,5 +62,129 @@
             parent="account.menu_finance_entries_accounting_miscellaneous"
             groups="account.group_account_user"
             sequence="2"/>
+
+        <record id="account.action_move_journal_line" model="ir.actions.act_window">
+            <field name="name">Journal Entries</field>
+            <field name="res_model">account.move</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="domain">[('journal_id.gold', '=', False)]</field>
+            <field name="view_id" ref="account.view_move_tree"/>
+            <field name="search_view_id" ref="account.view_account_move_filter"/>
+            <field name="context">{'default_type': 'entry', 'search_default_misc_filter':1, 'view_no_maturity': True}</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                Create a journal entry
+              </p><p>
+                A journal entry consists of several journal items, each of
+                which is either a debit or a credit transaction.
+              </p>
+            </field>
+        </record>
+        <record id="account.action_account_moves_all" model="ir.actions.act_window">
+            <field name="context">{'journal_type':'general', 'search_default_posted':1}</field>
+            <field name="name">Journal Items</field>
+            <field name="res_model">account.move.line</field>
+            <field name="domain">[('journal_id.gold', '=', False), ('display_type', 'not in', ('line_section', 'line_note')), ('move_id.state', '!=', 'cancel')]</field>
+            <field name="view_id" ref="account.view_move_line_tree"/>
+            <field name="view_mode">tree,pivot,graph,form,kanban</field>
+        </record>
+        <record id="gold_purchases_view_view_move_form_inherited" model="ir.ui.view">
+            <field name="name">gold.purchases.account.move.form.view.inherit</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='product_uom_id']" position="after">
+                    <field name="gross_wt" readonly="1"/>
+                    <field name="purity_id" readonly="1"/>
+                    <field name="pure_wt" readonly="1"/>
+                    <field name="purity_diff" readonly="1"/>
+                    <field name="make_rate" readonly="1"/>
+                    <field name="make_value" readonly="1"/>
+                    <field name="gold_rate" readonly="1"/>
+                    <field name="gold_value" readonly="1"/>
+                </xpath>
+                <xpath expr="//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/form/sheet/group/field[@name='product_uom_id']" position="after">
+                    <field name="gross_wt" readonly="1"/>
+                    <field name="purity_id" readonly="1"/>
+                    <field name="pure_wt" readonly="1"/>
+                    <field name="purity_diff" readonly="1"/>
+                    <field name="make_rate" readonly="1"/>
+                    <field name="make_value" readonly="1"/>
+                    <field name="gold_rate" readonly="1"/>
+                    <field name="gold_value" readonly="1"/>
+                </xpath>
+                <xpath expr="//notebook/page[@id='aml_tab']/field[@name='line_ids']/tree/field[@name='product_id']" position="after">
+                    <field name="gross_wt" invisible="1"/>
+                    <field name="purity_id" invisible="1"/>
+                    <field name="pure_wt" invisible="1"/>
+                    <field name="purity_diff" invisible="1"/>
+                    <field name="make_rate" invisible="1"/>
+                    <field name="make_value" invisible="1"/>
+                    <field name="gold_rate" invisible="1"/>
+                    <field name="gold_value" invisible="1"/>
+                </xpath>
+                <field name="ref" position="after">
+                    <field name="purchase_type" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
+                    <field name="make_value_move" invisible="1" />
+                    <field name="pure_wt_value"  invisible="1" />
+                    <field name="gold_rate_value"  invisible="1" />
+
+                </field>
+
+                <xpath expr="//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='price_unit']" position="attributes">
+                    <attribute name="attrs">{'readonly': ['|',('parent.purchase_type', '=', "unfixed"),('parent.purchase_type', '=', "fixed")]}</attribute>
+                    <attribute name="force_save">1</attribute> 
+                </xpath>
+
+            </field>
+        </record>
+
+
+
+         <record id="account_move_inherit_form" model="ir.ui.view">
+            <field name="name">account.move.inherit.form</field>
+            <field name="model">account.move</field>
+            <field name="type">form</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                    <xpath expr="//header" position="inside">
+                        <button  name="%(action_stock_moves)d" 
+                        type="action" context="{'pure_weight': pure_wt_value}"  
+                        groups="account.group_account_invoice"
+                        attrs="{'invisible': ['|', '|','|',('state', '!=', 'posted'),('invoice_payment_state', '!=', 'not_paid'),('purchase_type', '!=', 'unfixed'),('type', 'not in', ('in_invoice'))]}"  string="register gold" class="oe_highlight"/>
+                    
+                    </xpath>
+
+                    <xpath expr="//field[@name='fiscal_position_id']" position="after">
+                    
+                    
+                    <field name="unfixed_move_id"  string="unfixed move" readonly="1" /> 
+                    <field name="unfixed_move_id_two" nolabel="1"  string="unfixed move two" attrs="{'invisible': [('unfixed_move_id_two', '=', False)],'readonly': True}" />
+                    <field name="unfixed_move_id_three" nolabel="1"  string="unfixed move three" attrs="{'invisible': [('unfixed_move_id_three', '=', False)],'readonly': True}" />
+                   
+                    <field name="unfixed_stock_picking" string="Stock Operation" readonly="1" /> 
+                    <field name="unfixed_stock_picking_two" nolabel="1"  attrs="{'invisible': [('unfixed_stock_picking_two', '=', False)],'readonly': True}"/>
+                    <field name="unfixed_stock_picking_three" nolabel="1"  attrs="{'invisible': [('unfixed_stock_picking_three', '=', False)],'readonly': True}"/>  
+                    
+                    
+                    </xpath>
+
+            </field>
+        </record>
+
+        <record id="view_account_payment_register_invoice_form_unfixed" model="ir.ui.view">
+            <field name="name">account.payment.invoice.form.register.unfixed</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_invoice_form"/>
+            <field name="arch" type="xml">
+            <xpath expr="//field[@name='journal_id']" position="after">
+               <field name="is_unfixed_wizard" invisible="1" /> 
+               <field name="unfixed_option" attrs="{'invisible': [('is_unfixed_wizard', '=', False)],'required': [('is_unfixed_wizard', '=', True)]}"/>
+            </xpath>
+            </field>
+        </record>
+
+
     </data>
+
 </odoo>

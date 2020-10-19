@@ -8,6 +8,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='parent_id']" position="after">
                     <field name="is_gold"/>
+                    <field name="is_scrap"/>
                 </xpath>
             </field>
         </record>

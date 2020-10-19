@@ -92,9 +92,9 @@
         <record id="gold_purity_12" model="gold.purity">
             <field name="karat" eval="24"/>
             <field name="parts" eval="24"/>
-            <field name="out_of_parts" eval="24"/>
-            <field name="purity" eval="999"/>
-            <field name="gold_percent" eval="99.9"/>
+            <field name="out_of_parts" eval="24"/> 
+            <field name="purity" eval="1000"/>
+            <field name="gold_percent" eval="100"/>
             <field name="allow_delete" eval="False"/>
         </record>
     </data>

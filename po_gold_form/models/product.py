@@ -6,3 +6,4 @@ class ProductCategory(models.Model):
     _inherit = 'product.category'
 
     is_gold = fields.Boolean('Is Gold')
+    is_scrap = fields.Boolean(string='Scrap')

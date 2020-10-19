@@ -17,5 +17,24 @@
                 </field>
             </field>
         </record>
+
+        <record id="stock_view_production_lot_tree_extend_alsokhon_period" model="ir.ui.view">
+            <field name="name">stock.production.lot.tree</field>
+            <field name="model">stock.production.lot</field>
+            <field name="inherit_id" ref="stock.view_production_lot_tree"/>
+            <field name="arch" type="xml">
+                <field name="product_id" position="after">
+                    <field name="gross_weight" invisible="1"/>
+                    <field name="purity" invisible ="1"/>
+                    <field name="is_scrap" invisible ="1"/>
+                    <field name="pure_weight"/>
+                    <field name="item_category_id" invisible ="1"/>
+                    <field name="sub_category_id" invisible ="1"/>
+                    <field name="selling_karat_id" invisible ="1"/>
+                    <field name="selling_making_charge" widget="monetary" invisible ="1"/>
+                </field>
+            </field>
+        </record>
+
     </data>
 </odoo>
