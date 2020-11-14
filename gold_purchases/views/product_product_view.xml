@@ -1,6 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
+        <record id="view_stock_valuation_layer_tree" model="ir.ui.view">
+            <field name="name">stock.valuation.layer.tree</field>
+            <field name="model">stock.valuation.layer</field>
+            <field name="type">tree</field>
+            <field name="inherit_id" ref="stock_account.stock_valuation_layer_tree" />
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='quantity']" position="after">
+                    <field name="pure_weight"/>
+                    <field name = "gold_rate" />
+                    <field name= "gross_weight" />
+                    <field name="purity" />
+                </xpath>
+            </field>
+        </record>
         <!-- <record id="gold_purchases_product_product_form_view_inherited" model="ir.ui.view">
             <field name="name">gold.purchases.product.product.form.view.inherit</field>
             <field name="model">product.product</field>
