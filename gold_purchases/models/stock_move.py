@@ -124,6 +124,7 @@ class StockMove(models.Model):
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
 
+    image = fields.Binary()
     gross_weight = fields.Float(related='actual_gross_weight',
                                 string='Gross Weight', store=True)
     actual_gross_weight = fields.Float(related='move_id.gross_weight',
