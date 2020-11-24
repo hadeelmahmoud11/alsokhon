@@ -550,6 +550,10 @@ class GoldFixingRegister(models.AbstractModel):
                         NULL                                    AS max_date,
                         %s                                      AS period_number,
                         0.0                                     AS amount_currency,
+                        0.0                                     AS pure_wt_in,
+                        0.0                                     AS pure_wt_out,
+                        0.0                                     AS gold_rate,
+                        0.0                                     AS gold_value,
                         0.0                                     AS debit,
                         0.0                                     AS credit,
                         SUM(ROUND(account_move_line.balance * currency_table.rate, currency_table.precision)) AS balance
@@ -564,6 +568,10 @@ class GoldFixingRegister(models.AbstractModel):
                         NULL                                    AS max_date,
                         %s                                      AS period_number,
                         0.0                                     AS amount_currency,
+                        0.0                                     AS pure_wt_in,
+                        0.0                                     AS pure_wt_out,
+                        0.0                                     AS gold_rate,
+                        0.0                                     AS gold_value,
                         0.0                                     AS debit,
                         0.0                                     AS credit,
                         SUM(ROUND(account_move_line.balance * currency_table.rate, currency_table.precision)) AS balance
