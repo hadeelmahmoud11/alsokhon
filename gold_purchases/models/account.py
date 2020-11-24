@@ -45,15 +45,41 @@ class AccountReport(models.AbstractModel):
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
+    @api.depends('pure_wt', 'purchase_line_id')
+    def _compute_pure_wt_in(self):
+        """
+        Compute pure_wt_in
+        """
+        for rec in self:
+            pure_wt_in = 0
+            if rec.pure_wt and rec.purchase_line_id:
+                pure_wt_in = rec.pure_wt
+            rec.pure_wt_in = pure_wt_in
+
+    @api.depends('pure_wt', 'sale_line_ids')
+    def _compute_pure_wt_out(self):
+        """
+        Compute pure_wt_out
+        """
+        for rec in self:
+            pure_wt_out = 0
+            if rec.pure_wt and rec.sale_line_ids:
+                pure_wt_out = rec.pure_wt
+            rec.pure_wt_out = pure_wt_out
+
     gross_wt = fields.Float('Gross Wt', digits=(16, 3))
     purity_id = fields.Many2one('gold.purity', 'Purity')
     pure_wt = fields.Float('Pure Wt', digits=(16, 3))
+    pure_wt_in = fields.Float(compute=_compute_pure_wt_in, store=True)
+    pure_wt_out = fields.Float(compute=_compute_pure_wt_out, store=True)
     purity_diff = fields.Float('Purity +/-', digits=(16, 3))
     total_pure_weight = fields.Float('Pure Weight', digits=(16, 3))
     make_rate = fields.Monetary('Make Rate/G', digits=(16, 3))
     make_value = fields.Monetary('Make Value', digits=(16, 3))
     gold_rate = fields.Float('Gold Rate/G', digits=(16, 3))
     gold_value = fields.Monetary('Gold Value', digits=(16, 3))
+    gold = fields.Boolean(related="account_id.gold", store=True)
+
 
 
 class GoldPayment(models.Model):
