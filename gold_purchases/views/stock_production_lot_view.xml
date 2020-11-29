@@ -10,6 +10,7 @@
                     <field name="gross_weight"/>
                     <field name="purity"/>
                     <field name="pure_weight"/>
+                    <field name="remaining_weight" />
                     <field name="item_category_id"/>
                     <field name="sub_category_id"/>
                     <field name="selling_karat_id"/>
