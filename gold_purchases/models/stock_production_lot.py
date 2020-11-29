@@ -23,8 +23,8 @@ class StockProductionLot(models.Model):
     
     @api.depends('gross_weight', 'purity')
     def get_remain_weight(self):
-        prev_weight_out = self.env["stock.move.line"].search([('lot_id','=',self.id),('location_id','=',8)])
-        prev_weight_in = self.env["stock.move.line"].search([('lot_id','=',self.id),('location_dest_id','=',8)])
+        prev_weight_out = self.env["stock.move.line"].search([('lot_id','in',self.id),('location_id','=',8)])
+        prev_weight_in = self.env["stock.move.line"].search([('lot_id','in',self.id),('location_dest_id','=',8)])
         tot_prev_out = 0
         tot_prev_in = 0
         for i in prev_weight_out:
