@@ -77,7 +77,7 @@ class stockGoldMove(models.TransientModel):
                                 'product_uom': product_id.uom_id.id,
                                 'picking_type_id':  purchase_order.order_type.stock_picking_type_id.id,
                                 
-                                'product_uom_qty': gross_weight/34,
+                                'product_uom_qty': 0,
                                 
                                 'gold_rate' : rate ,
                                 'pure_weight': pure,
