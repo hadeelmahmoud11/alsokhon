@@ -222,7 +222,7 @@ class StockValuationLayer(models.Model):
     is_full_paid = fields.Boolean(string="full paid")
     paid_pure = fields.Float(string="Paid Pure") 
     paid_gross = fields.Float(string="Paid Gross")
-    quantity = fields.Float('Pure Weight', digits=0, help='Quantity', readonly=True)
+    quantity = fields.Float('Pure Weight', digits=0, help='Pure Weight', readonly=True)
 
     @api.onchange('paid_gross')
     def onchange_paid_gross(self):
