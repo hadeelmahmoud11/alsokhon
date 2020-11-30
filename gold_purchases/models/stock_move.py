@@ -226,6 +226,6 @@ class StockValuationLayer(models.Model):
     @api.onchange('paid_gross')
     def onchange_paid_gross(self):
         for rec in self:
-            rec.write({'paid_pure': rec.paid_gross  *  (rec.stock_move_id.purity / 1000)})
+            rec.write({'paid_pure': rec.paid_gross  *  (rec.stock_move_id.purity / 1000),'qty_done':(rec.paid_gross/rec.gross_weight)})
 
 
