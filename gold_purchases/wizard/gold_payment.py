@@ -18,7 +18,8 @@ class stockGoldMove(models.TransientModel):
         pure = 0.00
         for rec in self.move_ids:
             pure = pure + rec.paid_pure
-        self.pure_remainning = self.pure_weight 
+        self.pure_remainning = self.pure_weight
+        
 
     def compute_sheet(self):
         [data] = self.read()
@@ -75,7 +76,9 @@ class stockGoldMove(models.TransientModel):
                                 'product_id': product_id.id,
                                 'product_uom': product_id.uom_id.id,
                                 'picking_type_id':  purchase_order.order_type.stock_picking_type_id.id,
-                                'product_uom_qty': 1,
+                                
+                                'product_uom_qty': gross_weight/34,
+                                
                                 'gold_rate' : rate ,
                                 'pure_weight': pure,
                                 'gross_weight': gross_weight ,

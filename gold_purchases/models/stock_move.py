@@ -221,7 +221,7 @@ class StockValuationLayer(models.Model):
     picking_id = fields.Many2one('stock.picking',related="stock_move_id.picking_id" , string="picking_id", store=True)
     is_full_paid = fields.Boolean(string="full paid")
     paid_pure = fields.Float(string="Paid Pure") 
-    paid_gross = fields.Float(string="Paid Gross")  
+    paid_gross = fields.Float(string="Paid Gross")
 
     @api.onchange('paid_gross')
     def onchange_paid_gross(self):
