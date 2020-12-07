@@ -40,6 +40,9 @@ class stockGoldMove(models.TransientModel):
             gross_weight = gross_weight + move.paid_gross
             purity = purity + move.purity
             product_id = move.product_id
+            
+            remain = move.gross_weight - move.paid_gross
+            
             if  move.paid_gross > move.gross_weight :
                 raise UserError(_("paid gross grater than gross weight "))
             move.write({'gross_weight': move.gross_weight -  move.paid_gross ,'quantity': move.quantity - pure , 'value' : (move.quantity - pure) * move.unit_cost  })
@@ -47,7 +50,7 @@ class stockGoldMove(models.TransientModel):
             if move.gross_weight == 0.00:
                 move.write({'is_full_paid': True })
             
-        
+            
         account_move.write({'pure_wt_value': account_move.pure_wt_value - pure }) 
         # pure_money = account_move.pure_wt_value * account_move.gold_rate_value
         # account_move.write({'make_value_move': account_move.make_value_move - pure_money }) 
@@ -63,7 +66,9 @@ class stockGoldMove(models.TransientModel):
                 rate = line.gold_rate
 
         if pure > 0.00:
-            picking = self.env['stock.picking'].create({
+            if remain == 0:
+                raise UserError(_("remain : I will create a pickinig now "))
+                picking = self.env['stock.picking'].create({
                         'location_id': purchase_order.order_type.stock_picking_type_id.default_location_src_id.id,
                         'location_dest_id': purchase_order.order_type.stock_picking_type_id.default_location_dest_id.id,
                         'picking_type_id': purchase_order.order_type.stock_picking_type_id.id,
@@ -77,13 +82,16 @@ class stockGoldMove(models.TransientModel):
                                 'product_uom': product_id.uom_id.id,
                                 'picking_type_id':  purchase_order.order_type.stock_picking_type_id.id,
                                 
-                                'product_uom_qty': 0,
+                                'product_uom_qty': 1,
                                 
                                 'gold_rate' : rate ,
                                 'pure_weight': pure,
                                 'gross_weight': gross_weight ,
                                 'purity': purity,})]
-                    })
+                        })
+            elif remain < 0:
+                raise UserError(_("Sorry please review your inputs , you are trying to deliver quant more than you have "))
+            
             if account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
                 account_move.write({'unfixed_stock_picking_three': picking.id})
             if account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
