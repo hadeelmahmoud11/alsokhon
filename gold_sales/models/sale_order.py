@@ -80,6 +80,11 @@ class SaleOrderLine(models.Model):
     def _get_making(self):
         if self.lot_id and self.product_id:
             self.make_rate = self.lot_id.selling_making_charge
+            self.price_unit = 0
+            print(self.lot_id.gross_weight)
+            print(self.lot_id.pure_weight)
+            self.gross_wt = self.lot_id.gross_weight
+            self.pure_wt = self.lot_id.pure_weight
            # stock_move_line = self.env['stock.move.line'].search([('lot_id','=',self.lot_id.id),('product_id','=',self.product_id.id)])
            # if stock_move_line:
            #     if stock_move_line.picking_id:
@@ -89,6 +94,14 @@ class SaleOrderLine(models.Model):
            #                 if line.product_id == self.product_id:
            #                     self.make_rate = line.make_rate
            #                     self.make_value = line.make_value
+    def _get_gold_stock(self):
+        if self.product_id:
+            location = self.env['stock.location'].search([('usage','=','internal')])
+            quants = self.env['stock.quant'].search([('product_id','=',self.product_id.id),('location_id','=',location[0].id)])
+            total = 0.0
+            for quant in quants:
+                total = total + quant.inventory_quantity
+            self.stock = total
 
 
     price_unit = fields.Float(string='Unit Price', required=True,
@@ -103,7 +116,7 @@ class SaleOrderLine(models.Model):
     purity_diff = fields.Float('Purity +/-', digits=(16, 3))
     total_pure_weight = fields.Float('Pure Weight', compute='_get_gold_rate',
                                      digits=(16, 3))
-    stock = fields.Float('Stock', compute='_get_gold_rate', digits=(16, 3))
+    stock = fields.Float('Stock', compute='_get_gold_stock', digits=(16, 3))
     make_rate = fields.Monetary('Make Rate/G', digits=(16, 3))
     make_value = fields.Monetary('Make Value', compute='_get_gold_rate',
                                  digits=(16, 3))
@@ -184,8 +197,8 @@ class SaleOrderLine(models.Model):
             rec.total_pure_weight = rec.pure_wt + rec.purity_diff
             # NEED TO ADD PURITY DIFF + rec.purity_diff
             new_pure_wt = rec.pure_wt + rec.purity_diff
-            rec.stock = (rec.product_id and rec.product_id.available_gold or
-                         0.00) + new_pure_wt
+            # rec.stock = (rec.product_id and rec.product_id.available_gold or
+            #              0.00) + new_pure_wt
 
             rec.make_value = rec.product_uom_qty * rec.gross_wt * rec.make_rate
             rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000

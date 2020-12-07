@@ -22,329 +22,329 @@ class StockPicking(models.Model):
 
     invoice_unfixed = fields.Many2one('account.move')
 
-    def action_done(self):
-        res = super(StockPicking, self).action_done()
-        # for rec in self.filtered(lambda x: x.state == 'done'):
-        #     if 'S0' in rec.origin:
-        #         rec.create_gold_journal_entry()
-        #         if rec.bill_unfixed or rec.invoice_unfixed :
-        #             rec.create_unfixed_journal_entry()
-        return res
-
-    def create_gold_journal_entry(self):
-        self.ensure_one()
-        if 'P0' in self.group_id.name:
-            purchase_obj = self.env['purchase.order'].search([('name','=',self.group_id.name)])
-            moves = self.move_lines.filtered(lambda x: x._is_in() and
-                                                       x.product_id and
-                                                       x.product_id.gold and
-                                                       x.product_id.categ_id and
-                                                       x.product_id.categ_id.is_gold and
-                                                       x.product_id.categ_id.gold_on_hand_account)
-            if moves:
-                total_purity = 0
-                product_dict = {}
-                description = '%s' % self.name
-                for product_id, move_list in groupby(moves, lambda x: x.product_id):
-                    description = '%s-%s' % (description, product_id.display_name)
-                    if product_id not in product_dict.keys():
-                        product_dict[product_id] = sum(
-                            x.pure_weight for x in move_list)
-                    else:
-                        product_dict[product_id] = product_dict[product_id] + sum(
-                            x.pure_weight for x in move_list)
-                total_purity = sum(value for key, value in product_dict.items())
-                if total_purity > 0.0 and product_dict and \
-                        self.partner_id :
-                    if not next(iter(product_dict)).categ_id.gold_journal.id:
-                        raise ValidationError(_('Please fill gold journal in product Category'))
-                    journal_id = next(iter(product_dict)).categ_id.gold_journal.id
-
-                    move_lines = self._prepare_account_move_line(product_dict)
-                    if move_lines:
-                        AccountMove = self.env['account.move'].with_context(
-                            default_journal_id=journal_id)
-                        date = self._context.get('force_period_date',
-                                                 fields.Date.context_today(self))
-                        new_account_move = AccountMove.sudo().create({
-                            'journal_id': journal_id,
-                            'line_ids': move_lines,
-                            'date': date,
-                            'ref': description,
-                            'type': 'entry',
-                        })
-                        new_account_move.post()
-                        if purchase_obj:
-                            purchase_obj.write({'stock_move_id': new_account_move.id})
-        elif 'S0' in self.origin:
-            sale_obj = self.env['sale.order'].search([('name','=',self.origin)])
-            moves = self.move_lines.filtered(lambda x: x._is_out() and
-                                                       x.product_id and
-                                                       x.product_id.gold and
-                                                       x.product_id.categ_id and
-                                                       x.product_id.categ_id.is_gold and
-                                                       x.product_id.categ_id.gold_on_hand_account)
-            if moves:
-                total_purity = 0
-                product_dict = {}
-                description = '%s' % self.name
-                for product_id, move_list in groupby(moves, lambda x: x.product_id):
-                    description = '%s-%s' % (description, product_id.display_name)
-                    if product_id not in product_dict.keys():
-                        product_dict[product_id] = sum(
-                            x.pure_weight for x in move_list)
-                    else:
-                        product_dict[product_id] = product_dict[product_id] + sum(
-                            x.pure_weight for x in move_list)
-                total_purity = sum(value for key, value in product_dict.items())
-                if total_purity > 0.0 and product_dict and \
-                        self.partner_id :
-                    if not next(iter(product_dict)).categ_id.gold_journal.id:
-                        raise ValidationError(_('Please fill gold journal in product Category'))
-                    journal_id = next(iter(product_dict)).categ_id.gold_journal.id
-
-                    move_lines = self._prepare_account_move_line(product_dict)
-                    if move_lines:
-                        AccountMove = self.env['account.move'].with_context(
-                            default_journal_id=journal_id)
-                        date = self._context.get('force_period_date',
-                                                 fields.Date.context_today(self))
-                        new_account_move = AccountMove.sudo().create({
-                            'journal_id': journal_id,
-                            'line_ids': move_lines,
-                            'date': date,
-                            'ref': description,
-                            'type': 'entry',
-                        })
-                        new_account_move.post()
-                        if sale_obj:
-                            sale_obj.write({'stock_move_id': new_account_move.id})
-
-    def _prepare_account_move_line(self, product_dict):
-        if 'P0' in self.group_id.name:
-            debit_lines = []
-            for product_id, value in product_dict.items():
-                if not product_id.categ_id.gold_on_hand_account.id or not product_id.categ_id.gold_stock_input_account.id:
-                    raise ValidationError(_('Please fill gold accounts in product Category'))
-                debit_lines.append({
-                    'name': '%s - %s' % (self.name, product_id.name),
-                    'product_id': product_id.id,
-                    'quantity': 1,
-                    'product_uom_id': product_id.uom_id.id,
-                    'ref': '%s - %s' % (self.name, product_id.name),
-                    'partner_id': self.partner_id.id,
-                    'debit': round(value, 3),
-                    'credit': 0,
-                    'account_id': product_id.categ_id.gold_on_hand_account.id,
-                })
-            credit_line = [{
-                'name': '%s - %s' % (self.name, product_id.name),
-                'product_id': product_id.id,
-                'quantity': 1,
-                'product_uom_id': product_id.uom_id.id,
-                'ref': '%s - %s' % (self.name, product_id.name),
-                'partner_id': self.partner_id.id,
-                'debit': 0,
-                'credit': sum(x['debit'] for x in debit_lines),
-                'account_id': product_id.categ_id.gold_stock_input_account.id,
-            }]
-            res = [(0, 0, x) for x in debit_lines + credit_line]
-            return res
-        elif 'S0' in self.origin:
-            credit_lines = []
-            for product_id, value in product_dict.items():
-                if not product_id.categ_id.gold_on_hand_account.id or not product_id.categ_id.gold_stock_output_account.id:
-                    raise ValidationError(_('Please fill gold accounts in product Category'))
-                credit_lines.append({
-                    'name': '%s - %s' % (self.name, product_id.name),
-                    'product_id': product_id.id,
-                    'quantity': 1,
-                    'product_uom_id': product_id.uom_id.id,
-                    'ref': '%s - %s' % (self.name, product_id.name),
-                    'partner_id': self.partner_id.id,
-                    'debit': 0,
-                    'credit': round(value, 3),
-                    'account_id': product_id.categ_id.gold_on_hand_account.id,
-                })
-            debit_line = [{
-                'name': '%s - %s' % (self.name, product_id.name),
-                'product_id': product_id.id,
-                'quantity': 1,
-                'product_uom_id': product_id.uom_id.id,
-                'ref': '%s - %s' % (self.name, product_id.name),
-                'partner_id': self.partner_id.id,
-                'debit': sum(x['credit'] for x in credit_lines),
-                'credit': 0,
-                'account_id': product_id.categ_id.gold_stock_output_account.id,
-            }]
-            res = [(0, 0, x) for x in credit_lines + debit_line]
-            return res
-
-
-
-
-
-    def create_unfixed_journal_entry(self):
-        self.ensure_one()
-        if 'P0' in self.group_id.name:
-            account_move_obj = self.env['account.move'].search([('id','=',self.bill_unfixed.id)])
-            moves = self.move_lines.filtered(lambda x:
-                                                       x.product_id and
-                                                       x.product_id.gold and
-                                                       x.product_id.categ_id and
-                                                       x.product_id.categ_id.is_gold and
-                                                       x.product_id.categ_id.gold_on_hand_account)
-            if moves:
-                total_purity = 0
-                product_dict = {}
-                description = account_move_obj.name
-                for product_id, move_list in groupby(moves, lambda x: x.product_id):
-                    if product_id not in product_dict.keys():
-                        product_dict[product_id] = sum(
-                            x.pure_weight for x in move_list)
-                    else:
-                        product_dict[product_id] = product_dict[product_id] + sum(
-                            x.pure_weight for x in move_list)
-                total_purity = sum(value for key, value in product_dict.items())
-                if not  account_move_obj.partner_id.gold_account_payable_id:
-                        raise ValidationError(_('Please fill gold payable account for the partner'))
-                if total_purity > 0.0 and product_dict and \
-                        account_move_obj.partner_id and account_move_obj.partner_id.gold_account_payable_id:
-                    if not next(iter(product_dict)).categ_id.gold_purchase_journal.id:
-                        raise ValidationError(_('Please fill gold purchase journal in product Category'))
-                    journal_id = next(iter(product_dict)).categ_id.gold_purchase_journal.id
-                    move_lines = self._prepare_account_move_line_unfixed(product_dict)
-                    if move_lines:
-                        AccountMove = self.env['account.move'].with_context(default_type='entry',
-                            default_journal_id=journal_id)
-                        date = self._context.get('force_period_date',
-                                                 fields.Date.context_today(self))
-                        new_account_move = AccountMove.sudo().create({
-                            'journal_id': journal_id,
-                            'line_ids': move_lines,
-                            'date': date,
-                            'ref': description,
-                            'type': 'entry'
-                        })
-                        new_account_move.post()
-                        if account_move_obj:
-                            if account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
-                                account_move_obj.write({'unfixed_move_id_three': new_account_move.id})
-                            if account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
-                                account_move_obj.write({'unfixed_move_id_two': new_account_move.id})
-                            if not account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
-                                account_move_obj.write({'unfixed_move_id': new_account_move.id})
-        elif 'S0' in self.origin:
-            account_move_obj = self.env['account.move'].search([('id','=',self.invoice_unfixed.id)])
-            moves = self.move_lines.filtered(lambda x:
-                                                       x.product_id and
-                                                       x.product_id.gold and
-                                                       x.product_id.categ_id and
-                                                       x.product_id.categ_id.is_gold and
-                                                       x.product_id.categ_id.gold_on_hand_account)
-            if moves:
-                total_purity = 0
-                product_dict = {}
-                description = account_move_obj.name
-                for product_id, move_list in groupby(moves, lambda x: x.product_id):
-                    if product_id not in product_dict.keys():
-                        product_dict[product_id] = sum(
-                            x.pure_weight for x in move_list)
-                    else:
-                        product_dict[product_id] = product_dict[product_id] + sum(
-                            x.pure_weight for x in move_list)
-                total_purity = sum(value for key, value in product_dict.items())
-                if not  account_move_obj.partner_id.gold_account_receivable_id:
-                        raise ValidationError(_('Please fill gold receivable account for the partner'))
-                if total_purity > 0.0 and product_dict and \
-                        account_move_obj.partner_id and account_move_obj.partner_id.gold_account_receivable_id:
-                    if not next(iter(product_dict)).categ_id.gold_sale_journal.id:
-                        raise ValidationError(_('Please fill gold sale journal in product Category'))
-                    journal_id = next(iter(product_dict)).categ_id.gold_sale_journal.id
-                    move_lines = self._prepare_account_move_line_unfixed(product_dict)
-                    if move_lines:
-                        AccountMove = self.env['account.move'].with_context(default_type='entry',
-                            default_journal_id=journal_id)
-                        date = self._context.get('force_period_date',
-                                                 fields.Date.context_today(self))
-                        new_account_move = AccountMove.sudo().create({
-                            'journal_id': journal_id,
-                            'line_ids': move_lines,
-                            'date': date,
-                            'ref': description,
-                            'type': 'entry'
-                        })
-                        new_account_move.post()
-                        if account_move_obj:
-                            if account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
-                                account_move_obj.write({'unfixed_move_id_three': new_account_move.id})
-                            if account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
-                                account_move_obj.write({'unfixed_move_id_two': new_account_move.id})
-                            if not account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
-                                account_move_obj.write({'unfixed_move_id': new_account_move.id})
-
-
-    def _prepare_account_move_line_unfixed(self, product_dict):
-        if 'P0' in self.group_id.name:
-            debit_lines = []
-            account_move_obj = self.env['account.move'].search([('id','=',self.bill_unfixed.id)])
-            for product_id, value in product_dict.items():
-                if not product_id.categ_id.gold_on_hand_account.id :
-                    raise ValidationError(_('Please fill gold accounts in product Category'))
-                debit_lines.append({
-                    'name': '%s - %s' % (self.name, product_id.name),
-                    'product_id': product_id.id,
-                    'quantity': 1,
-                    'product_uom_id': product_id.uom_id.id,
-                    'ref': '%s - %s' % (self.name, product_id.name),
-                    'partner_id': account_move_obj.partner_id.id,
-                    'debit': round(value, 3),
-                    'credit': 0,
-                    'account_id': account_move_obj.partner_id.gold_account_payable_id.id ,
-                })
-            credit_line = [{
-                'name': '%s - %s' % (self.name, product_id.name),
-                'product_id': product_id.id,
-                'quantity': 1,
-                'product_uom_id': product_id.uom_id.id,
-                'ref': '%s - %s' % (self.name, product_id.name),
-                'partner_id': False,
-                'debit': 0,
-                'credit': sum(x['debit'] for x in debit_lines),
-                'account_id': product_id.categ_id.gold_on_hand_account.id,
-            }]
-            res = [(0, 0, x) for x in debit_lines + credit_line]
-            return res
-        elif 'S0' in self.origin:
-            credit_lines = []
-            account_move_obj = self.env['account.move'].search([('id','=',self.invoice_unfixed.id)])
-            for product_id, value in product_dict.items():
-                if not product_id.categ_id.gold_on_hand_account.id :
-                    raise ValidationError(_('Please fill gold accounts in product Category'))
-                credit_lines.append({
-                    'name': '%s - %s' % (self.name, product_id.name),
-                    'product_id': product_id.id,
-                    'quantity': 1,
-                    'product_uom_id': product_id.uom_id.id,
-                    'ref': '%s - %s' % (self.name, product_id.name),
-                    'partner_id': account_move_obj.partner_id.id,
-                    'debit': 0,
-                    'credit': round(value, 3),
-                    'account_id': product_id.categ_id.gold_on_hand_account.id,
-                })
-            debit_line = [{
-                'name': '%s - %s' % (self.name, product_id.name),
-                'product_id': product_id.id,
-                'quantity': 1,
-                'product_uom_id': product_id.uom_id.id,
-                'ref': '%s - %s' % (self.name, product_id.name),
-                'partner_id': False,
-                'debit': sum(x['credit'] for x in credit_lines),
-                'credit': 0,
-                'account_id': account_move_obj.partner_id.gold_account_receivable_id.id ,
-            }]
-            res = [(0, 0, x) for x in credit_lines + debit_line]
-            return res
+    # def action_done(self):
+    #     res = super(StockPicking, self).action_done()
+    #     # for rec in self.filtered(lambda x: x.state == 'done'):
+    #     #     if 'S0' in rec.origin:
+    #     #         rec.create_gold_journal_entry()
+    #     #         if rec.bill_unfixed or rec.invoice_unfixed :
+    #     #             rec.create_unfixed_journal_entry()
+    #     return res
+    #
+    # def create_gold_journal_entry(self):
+    #     self.ensure_one()
+    #     if 'P0' in self.group_id.name:
+    #         purchase_obj = self.env['purchase.order'].search([('name','=',self.group_id.name)])
+    #         moves = self.move_lines.filtered(lambda x: x._is_in() and
+    #                                                    x.product_id and
+    #                                                    x.product_id.gold and
+    #                                                    x.product_id.categ_id and
+    #                                                    x.product_id.categ_id.is_gold and
+    #                                                    x.product_id.categ_id.gold_on_hand_account)
+    #         if moves:
+    #             total_purity = 0
+    #             product_dict = {}
+    #             description = '%s' % self.name
+    #             for product_id, move_list in groupby(moves, lambda x: x.product_id):
+    #                 description = '%s-%s' % (description, product_id.display_name)
+    #                 if product_id not in product_dict.keys():
+    #                     product_dict[product_id] = sum(
+    #                         x.pure_weight for x in move_list)
+    #                 else:
+    #                     product_dict[product_id] = product_dict[product_id] + sum(
+    #                         x.pure_weight for x in move_list)
+    #             total_purity = sum(value for key, value in product_dict.items())
+    #             if total_purity > 0.0 and product_dict and \
+    #                     self.partner_id :
+    #                 if not next(iter(product_dict)).categ_id.gold_journal.id:
+    #                     raise ValidationError(_('Please fill gold journal in product Category'))
+    #                 journal_id = next(iter(product_dict)).categ_id.gold_journal.id
+    #
+    #                 move_lines = self._prepare_account_move_line(product_dict)
+    #                 if move_lines:
+    #                     AccountMove = self.env['account.move'].with_context(
+    #                         default_journal_id=journal_id)
+    #                     date = self._context.get('force_period_date',
+    #                                              fields.Date.context_today(self))
+    #                     new_account_move = AccountMove.sudo().create({
+    #                         'journal_id': journal_id,
+    #                         'line_ids': move_lines,
+    #                         'date': date,
+    #                         'ref': description,
+    #                         'type': 'entry',
+    #                     })
+    #                     new_account_move.post()
+    #                     if purchase_obj:
+    #                         purchase_obj.write({'stock_move_id': new_account_move.id})
+    #     elif 'S0' in self.origin:
+    #         sale_obj = self.env['sale.order'].search([('name','=',self.origin)])
+    #         moves = self.move_lines.filtered(lambda x: x._is_out() and
+    #                                                    x.product_id and
+    #                                                    x.product_id.gold and
+    #                                                    x.product_id.categ_id and
+    #                                                    x.product_id.categ_id.is_gold and
+    #                                                    x.product_id.categ_id.gold_on_hand_account)
+    #         if moves:
+    #             total_purity = 0
+    #             product_dict = {}
+    #             description = '%s' % self.name
+    #             for product_id, move_list in groupby(moves, lambda x: x.product_id):
+    #                 description = '%s-%s' % (description, product_id.display_name)
+    #                 if product_id not in product_dict.keys():
+    #                     product_dict[product_id] = sum(
+    #                         x.pure_weight for x in move_list)
+    #                 else:
+    #                     product_dict[product_id] = product_dict[product_id] + sum(
+    #                         x.pure_weight for x in move_list)
+    #             total_purity = sum(value for key, value in product_dict.items())
+    #             if total_purity > 0.0 and product_dict and \
+    #                     self.partner_id :
+    #                 if not next(iter(product_dict)).categ_id.gold_journal.id:
+    #                     raise ValidationError(_('Please fill gold journal in product Category'))
+    #                 journal_id = next(iter(product_dict)).categ_id.gold_journal.id
+    #
+    #                 move_lines = self._prepare_account_move_line(product_dict)
+    #                 if move_lines:
+    #                     AccountMove = self.env['account.move'].with_context(
+    #                         default_journal_id=journal_id)
+    #                     date = self._context.get('force_period_date',
+    #                                              fields.Date.context_today(self))
+    #                     new_account_move = AccountMove.sudo().create({
+    #                         'journal_id': journal_id,
+    #                         'line_ids': move_lines,
+    #                         'date': date,
+    #                         'ref': description,
+    #                         'type': 'entry',
+    #                     })
+    #                     new_account_move.post()
+    #                     if sale_obj:
+    #                         sale_obj.write({'stock_move_id': new_account_move.id})
+    #
+    # def _prepare_account_move_line(self, product_dict):
+    #     if 'P0' in self.group_id.name:
+    #         debit_lines = []
+    #         for product_id, value in product_dict.items():
+    #             if not product_id.categ_id.gold_on_hand_account.id or not product_id.categ_id.gold_stock_input_account.id:
+    #                 raise ValidationError(_('Please fill gold accounts in product Category'))
+    #             debit_lines.append({
+    #                 'name': '%s - %s' % (self.name, product_id.name),
+    #                 'product_id': product_id.id,
+    #                 'quantity': 1,
+    #                 'product_uom_id': product_id.uom_id.id,
+    #                 'ref': '%s - %s' % (self.name, product_id.name),
+    #                 'partner_id': self.partner_id.id,
+    #                 'debit': round(value, 3),
+    #                 'credit': 0,
+    #                 'account_id': product_id.categ_id.gold_on_hand_account.id,
+    #             })
+    #         credit_line = [{
+    #             'name': '%s - %s' % (self.name, product_id.name),
+    #             'product_id': product_id.id,
+    #             'quantity': 1,
+    #             'product_uom_id': product_id.uom_id.id,
+    #             'ref': '%s - %s' % (self.name, product_id.name),
+    #             'partner_id': self.partner_id.id,
+    #             'debit': 0,
+    #             'credit': sum(x['debit'] for x in debit_lines),
+    #             'account_id': product_id.categ_id.gold_stock_input_account.id,
+    #         }]
+    #         res = [(0, 0, x) for x in debit_lines + credit_line]
+    #         return res
+    #     elif 'S0' in self.origin:
+    #         credit_lines = []
+    #         for product_id, value in product_dict.items():
+    #             if not product_id.categ_id.gold_on_hand_account.id or not product_id.categ_id.gold_stock_output_account.id:
+    #                 raise ValidationError(_('Please fill gold accounts in product Category'))
+    #             credit_lines.append({
+    #                 'name': '%s - %s' % (self.name, product_id.name),
+    #                 'product_id': product_id.id,
+    #                 'quantity': 1,
+    #                 'product_uom_id': product_id.uom_id.id,
+    #                 'ref': '%s - %s' % (self.name, product_id.name),
+    #                 'partner_id': self.partner_id.id,
+    #                 'debit': 0,
+    #                 'credit': round(value, 3),
+    #                 'account_id': product_id.categ_id.gold_on_hand_account.id,
+    #             })
+    #         debit_line = [{
+    #             'name': '%s - %s' % (self.name, product_id.name),
+    #             'product_id': product_id.id,
+    #             'quantity': 1,
+    #             'product_uom_id': product_id.uom_id.id,
+    #             'ref': '%s - %s' % (self.name, product_id.name),
+    #             'partner_id': self.partner_id.id,
+    #             'debit': sum(x['credit'] for x in credit_lines),
+    #             'credit': 0,
+    #             'account_id': product_id.categ_id.gold_stock_output_account.id,
+    #         }]
+    #         res = [(0, 0, x) for x in credit_lines + debit_line]
+    #         return res
+    #
+    #
+    #
+    #
+    #
+    # def create_unfixed_journal_entry(self):
+    #     self.ensure_one()
+    #     if 'P0' in self.group_id.name:
+    #         account_move_obj = self.env['account.move'].search([('id','=',self.bill_unfixed.id)])
+    #         moves = self.move_lines.filtered(lambda x:
+    #                                                    x.product_id and
+    #                                                    x.product_id.gold and
+    #                                                    x.product_id.categ_id and
+    #                                                    x.product_id.categ_id.is_gold and
+    #                                                    x.product_id.categ_id.gold_on_hand_account)
+    #         if moves:
+    #             total_purity = 0
+    #             product_dict = {}
+    #             description = account_move_obj.name
+    #             for product_id, move_list in groupby(moves, lambda x: x.product_id):
+    #                 if product_id not in product_dict.keys():
+    #                     product_dict[product_id] = sum(
+    #                         x.pure_weight for x in move_list)
+    #                 else:
+    #                     product_dict[product_id] = product_dict[product_id] + sum(
+    #                         x.pure_weight for x in move_list)
+    #             total_purity = sum(value for key, value in product_dict.items())
+    #             if not  account_move_obj.partner_id.gold_account_payable_id:
+    #                     raise ValidationError(_('Please fill gold payable account for the partner'))
+    #             if total_purity > 0.0 and product_dict and \
+    #                     account_move_obj.partner_id and account_move_obj.partner_id.gold_account_payable_id:
+    #                 if not next(iter(product_dict)).categ_id.gold_purchase_journal.id:
+    #                     raise ValidationError(_('Please fill gold purchase journal in product Category'))
+    #                 journal_id = next(iter(product_dict)).categ_id.gold_purchase_journal.id
+    #                 move_lines = self._prepare_account_move_line_unfixed(product_dict)
+    #                 if move_lines:
+    #                     AccountMove = self.env['account.move'].with_context(default_type='entry',
+    #                         default_journal_id=journal_id)
+    #                     date = self._context.get('force_period_date',
+    #                                              fields.Date.context_today(self))
+    #                     new_account_move = AccountMove.sudo().create({
+    #                         'journal_id': journal_id,
+    #                         'line_ids': move_lines,
+    #                         'date': date,
+    #                         'ref': description,
+    #                         'type': 'entry'
+    #                     })
+    #                     new_account_move.post()
+    #                     if account_move_obj:
+    #                         if account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
+    #                             account_move_obj.write({'unfixed_move_id_three': new_account_move.id})
+    #                         if account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
+    #                             account_move_obj.write({'unfixed_move_id_two': new_account_move.id})
+    #                         if not account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
+    #                             account_move_obj.write({'unfixed_move_id': new_account_move.id})
+    #     elif 'S0' in self.origin:
+    #         account_move_obj = self.env['account.move'].search([('id','=',self.invoice_unfixed.id)])
+    #         moves = self.move_lines.filtered(lambda x:
+    #                                                    x.product_id and
+    #                                                    x.product_id.gold and
+    #                                                    x.product_id.categ_id and
+    #                                                    x.product_id.categ_id.is_gold and
+    #                                                    x.product_id.categ_id.gold_on_hand_account)
+    #         if moves:
+    #             total_purity = 0
+    #             product_dict = {}
+    #             description = account_move_obj.name
+    #             for product_id, move_list in groupby(moves, lambda x: x.product_id):
+    #                 if product_id not in product_dict.keys():
+    #                     product_dict[product_id] = sum(
+    #                         x.pure_weight for x in move_list)
+    #                 else:
+    #                     product_dict[product_id] = product_dict[product_id] + sum(
+    #                         x.pure_weight for x in move_list)
+    #             total_purity = sum(value for key, value in product_dict.items())
+    #             if not  account_move_obj.partner_id.gold_account_receivable_id:
+    #                     raise ValidationError(_('Please fill gold receivable account for the partner'))
+    #             if total_purity > 0.0 and product_dict and \
+    #                     account_move_obj.partner_id and account_move_obj.partner_id.gold_account_receivable_id:
+    #                 if not next(iter(product_dict)).categ_id.gold_sale_journal.id:
+    #                     raise ValidationError(_('Please fill gold sale journal in product Category'))
+    #                 journal_id = next(iter(product_dict)).categ_id.gold_sale_journal.id
+    #                 move_lines = self._prepare_account_move_line_unfixed(product_dict)
+    #                 if move_lines:
+    #                     AccountMove = self.env['account.move'].with_context(default_type='entry',
+    #                         default_journal_id=journal_id)
+    #                     date = self._context.get('force_period_date',
+    #                                              fields.Date.context_today(self))
+    #                     new_account_move = AccountMove.sudo().create({
+    #                         'journal_id': journal_id,
+    #                         'line_ids': move_lines,
+    #                         'date': date,
+    #                         'ref': description,
+    #                         'type': 'entry'
+    #                     })
+    #                     new_account_move.post()
+    #                     if account_move_obj:
+    #                         if account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
+    #                             account_move_obj.write({'unfixed_move_id_three': new_account_move.id})
+    #                         if account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
+    #                             account_move_obj.write({'unfixed_move_id_two': new_account_move.id})
+    #                         if not account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
+    #                             account_move_obj.write({'unfixed_move_id': new_account_move.id})
+    #
+    #
+    # def _prepare_account_move_line_unfixed(self, product_dict):
+    #     if 'P0' in self.group_id.name:
+    #         debit_lines = []
+    #         account_move_obj = self.env['account.move'].search([('id','=',self.bill_unfixed.id)])
+    #         for product_id, value in product_dict.items():
+    #             if not product_id.categ_id.gold_on_hand_account.id :
+    #                 raise ValidationError(_('Please fill gold accounts in product Category'))
+    #             debit_lines.append({
+    #                 'name': '%s - %s' % (self.name, product_id.name),
+    #                 'product_id': product_id.id,
+    #                 'quantity': 1,
+    #                 'product_uom_id': product_id.uom_id.id,
+    #                 'ref': '%s - %s' % (self.name, product_id.name),
+    #                 'partner_id': account_move_obj.partner_id.id,
+    #                 'debit': round(value, 3),
+    #                 'credit': 0,
+    #                 'account_id': account_move_obj.partner_id.gold_account_payable_id.id ,
+    #             })
+    #         credit_line = [{
+    #             'name': '%s - %s' % (self.name, product_id.name),
+    #             'product_id': product_id.id,
+    #             'quantity': 1,
+    #             'product_uom_id': product_id.uom_id.id,
+    #             'ref': '%s - %s' % (self.name, product_id.name),
+    #             'partner_id': False,
+    #             'debit': 0,
+    #             'credit': sum(x['debit'] for x in debit_lines),
+    #             'account_id': product_id.categ_id.gold_on_hand_account.id,
+    #         }]
+    #         res = [(0, 0, x) for x in debit_lines + credit_line]
+    #         return res
+    #     elif 'S0' in self.origin:
+    #         credit_lines = []
+    #         account_move_obj = self.env['account.move'].search([('id','=',self.invoice_unfixed.id)])
+    #         for product_id, value in product_dict.items():
+    #             if not product_id.categ_id.gold_on_hand_account.id :
+    #                 raise ValidationError(_('Please fill gold accounts in product Category'))
+    #             credit_lines.append({
+    #                 'name': '%s - %s' % (self.name, product_id.name),
+    #                 'product_id': product_id.id,
+    #                 'quantity': 1,
+    #                 'product_uom_id': product_id.uom_id.id,
+    #                 'ref': '%s - %s' % (self.name, product_id.name),
+    #                 'partner_id': account_move_obj.partner_id.id,
+    #                 'debit': 0,
+    #                 'credit': round(value, 3),
+    #                 'account_id': product_id.categ_id.gold_on_hand_account.id,
+    #             })
+    #         debit_line = [{
+    #             'name': '%s - %s' % (self.name, product_id.name),
+    #             'product_id': product_id.id,
+    #             'quantity': 1,
+    #             'product_uom_id': product_id.uom_id.id,
+    #             'ref': '%s - %s' % (self.name, product_id.name),
+    #             'partner_id': False,
+    #             'debit': sum(x['credit'] for x in credit_lines),
+    #             'credit': 0,
+    #             'account_id': account_move_obj.partner_id.gold_account_receivable_id.id ,
+    #         }]
+    #         res = [(0, 0, x) for x in credit_lines + debit_line]
+    #         return res
 
 
 
