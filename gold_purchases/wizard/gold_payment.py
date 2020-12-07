@@ -89,15 +89,16 @@ class stockGoldMove(models.TransientModel):
                                 'gross_weight': gross_weight ,
                                 'purity': purity,})]
                         })
+                if account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
+                    account_move.write({'unfixed_stock_picking_three': picking.id})
+                if account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
+                    account_move.write({'unfixed_stock_picking_two': picking.id})
+                if not account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
+                    account_move.write({'unfixed_stock_picking': picking.id})
             elif remain < 0:
                 raise UserError(_("Sorry please review your inputs , you are trying to deliver quant more than you have "))
             
-            if account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
-                account_move.write({'unfixed_stock_picking_three': picking.id})
-            if account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
-                account_move.write({'unfixed_stock_picking_two': picking.id})
-            if not account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
-                account_move.write({'unfixed_stock_picking': picking.id})
+            
                 
             #account_move.write({'unfixed_stock_picking' : picking.id})
                             
