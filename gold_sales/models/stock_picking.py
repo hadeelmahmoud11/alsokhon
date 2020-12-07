@@ -7,6 +7,18 @@ from odoo import api, fields, models , _
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
+    def read(self, fields=None, load='_classic_read'):
+        res = super(StockPicking, self).read(fields, load)
+        for this in self:
+            if 'S0' in this.origin:
+                sale_order = this.env['sale.order'].search([('name','=',this.origin)])
+                if sale_order:
+                    for this_lot_line in this.move_line_ids_without_package:
+                        for sale_lot_line in sale_order.order_line:
+                            if this_lot_line.product_id == sale_lot_line.product_id:
+                                this_lot_line.lot_id = sale_lot_line.lot_id.id
+        return res
+
     invoice_unfixed = fields.Many2one('account.move')
 
     def action_done(self):

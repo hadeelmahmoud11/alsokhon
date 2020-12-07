@@ -74,13 +74,25 @@ class SaleOrder(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
+    lot_id = fields.Many2one('stock.production.lot', string='Lot / Serial Number', required=True)
+
+    @api.onchange('lot_id')
+    def _get_making(self):
+        if self.lot_id and self.product_id:
+            stock_move_line = self.env['stock.move.line'].search([('lot_id','=',self.lot_id.id),('product_id','=',self.product_id.id)])
+            if stock_move_line:
+                if stock_move_line.picking_id:
+                    if 'P0' in stock_move_line.picking_id.group_id.name:
+                        purchase_order = self.env['purchase.order'].search([('name','=',stock_move_line.picking_id.group_id.name)])
+                        for line in purchase_order.order_line:
+                            if line.product_id == self.product_id:
+                                self.make_rate = line.make_rate
+                                self.make_value = line.make_value
+
+
     price_unit = fields.Float(string='Unit Price', required=True,
-                              digits='Product Price', copy=False, default=0)
+                              digits='Product Price', copy=False, default=0.0)
 
-
-
-    price_unit = fields.Float(string='Unit Price', required=True,
-                              digits='Product Price', copy=False, default=0)
     gross_wt = fields.Float('Gross Wt', digits=(16, 3))
     total_gross_wt = fields.Float('Total Gross', compute='_get_gold_rate' ,digits=(16, 3))
     received_gross_wt = fields.Float('received Gross Wt', digits=(16, 3))
