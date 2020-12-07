@@ -8,6 +8,7 @@
             <field name="arch" type="xml">
                 <field name="deprecated" position="after">
                     <field name="gold"/>
+                    <field name="current_position" attrs="{'invisible': [('gold', '=', False)]}" />
                 </field>
             </field>
         </record>

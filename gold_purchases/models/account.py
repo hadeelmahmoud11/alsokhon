@@ -19,6 +19,20 @@ MAP_INVOICE_TYPE_PARTNER_TYPE = {
 class AccountAccount(models.Model):
     _inherit = 'account.account'
 
+    @api.constrains('current_position')
+    def _constrains_current_position(self):
+        """
+        constrains current_position
+        """
+        for rec in self:
+            account = self.search([('current_position', '=', True),
+                                   ('id', '!=', rec.id)])
+            if account:
+                raise UserError(
+                    _('Current Position Already Marked in %s.' % account.name)
+                )
+
+    current_position = fields.Boolean()
     gold = fields.Boolean('Gold')
 
 
