@@ -67,7 +67,7 @@ class stockGoldMove(models.TransientModel):
 
         if pure > 0.00:
             if remain == 0:
-                raise UserError(_("remain : I will create a pickinig now "))
+                #raise UserError(_("remain : I will create a pickinig now "))
                 picking = self.env['stock.picking'].create({
                         'location_id': purchase_order.order_type.stock_picking_type_id.default_location_src_id.id,
                         'location_dest_id': purchase_order.order_type.stock_picking_type_id.default_location_dest_id.id,
@@ -97,7 +97,21 @@ class stockGoldMove(models.TransientModel):
                     account_move.write({'unfixed_stock_picking': picking.id})
             elif remain < 0:
                 raise UserError(_("Sorry please review your inputs , you are trying to deliver quant more than you have "))
-            
+            else:
+                Move = self.env['stock.move'].create({
+                                'name': "unfixed move",
+                                'location_id': purchase_order.order_type.stock_picking_type_id.default_location_src_id.id,
+                                'location_dest_id': purchase_order.order_type.stock_picking_type_id.default_location_dest_id.id,
+                                'product_id': product_id.id,
+                                'product_uom': product_id.uom_id.id,
+                                'picking_type_id':  purchase_order.order_type.stock_picking_type_id.id,
+                                
+                                'product_uom_qty': 0,
+                                
+                                'gold_rate' : rate ,
+                                'pure_weight': pure,
+                                'gross_weight': gross_weight ,
+                                'purity': purity,})]
             
                 
             #account_move.write({'unfixed_stock_picking' : picking.id})
