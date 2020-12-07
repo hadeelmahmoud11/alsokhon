@@ -460,74 +460,74 @@ class stock_move(models.Model):
         res.stock_move_id.sale_line_id.received_gross_wt = res.stock_move_id.sale_line_id.received_gross_wt + res.stock_move_id.gross_weight
         return res
 
-class StockRule(models.Model):
-    _inherit = 'stock.rule'
-
-    @api.model
-    def _run_pull(self, procurements):
-        moves_values_by_company = defaultdict(list)
-        mtso_products_by_locations = defaultdict(list)
-
-        # To handle the `mts_else_mto` procure method, we do a preliminary loop to
-        # isolate the products we would need to read the forecasted quantity,
-        # in order to to batch the read. We also make a sanitary check on the
-        # `location_src_id` field.
-        for procurement, rule in procurements:
-            if not rule.location_src_id:
-                msg = _('No source location defined on stock rule: %s!') % (rule.name, )
-                raise UserError(msg)
-
-            if rule.procure_method == 'mts_else_mto':
-                mtso_products_by_locations[rule.location_src_id].append(procurement.product_id.id)
-
-        # Get the forecasted quantity for the `mts_else_mto` procurement.
-        forecasted_qties_by_loc = {}
-        for location, product_ids in mtso_products_by_locations.items():
-            products = self.env['product.product'].browse(product_ids).with_context(location=location.id)
-            forecasted_qties_by_loc[location] = {product.id: product.free_qty for product in products}
-
-        # Prepare the move values, adapt the `procure_method` if needed.
-        for procurement, rule in procurements:
-            procure_method = rule.procure_method
-            if rule.procure_method == 'mts_else_mto':
-                qty_needed = procurement.product_uom._compute_quantity(procurement.product_qty, procurement.product_id.uom_id)
-                qty_available = forecasted_qties_by_loc[rule.location_src_id][procurement.product_id.id]
-                if float_compare(qty_needed, qty_available, precision_rounding=procurement.product_id.uom_id.rounding) <= 0:
-                    procure_method = 'make_to_stock'
-                    forecasted_qties_by_loc[rule.location_src_id][procurement.product_id.id] -= qty_needed
-                else:
-                    procure_method = 'make_to_order'
-
-            move_values = rule._get_stock_move_values(*procurement)
-            move_values['procure_method'] = procure_method
-            moves_values_by_company[procurement.company_id.id].append(move_values)
-
-        for company_id, moves_values in moves_values_by_company.items():
-            # create the move as SUPERUSER because the current user may not have the rights to do it (mto product launched by a sale for example)
-            moves = self.env['stock.move'].sudo().with_context(force_company=company_id).create(moves_values)
-            # Since action_confirm launch following procurement_group we should activate it.
-            moves._action_confirm()
-            picking_id = self.env['stock.picking'].browse(moves[0].picking_id.id)
-            if picking_id.origin:
-                if 'S0' in picking_id.origin:
-                    sale_order = self.env['sale.order'].search([('name','=',picking_id.origin)])
-                    picking_id.write(({
-                            'period_from': sale_order.period_from,
-                            'period_to': sale_order.period_to,
-                            'period_uom_id': sale_order.period_uom_id and sale_order.period_uom_id.id or False
-                        }))
-                    for sol in sale_order.order_line:
-                        for move in moves:
-                            if sol.product_id.id == move.product_id.id:
-                                move.update({
-                                    'gross_weight': sol.gross_wt * sol.product_uom_qty,
-                                    'pure_weight': sol.pure_wt,
-                                    'purity': sol.purity_id.purity or 1,
-                                    'gold_rate': sol.gold_rate,
-                                    'selling_karat_id':
-                                        sol.product_id.product_template_attribute_value_ids and
-                                        sol.product_id.product_template_attribute_value_ids.mapped(
-                                            'product_attribute_value_id')[0].id or
-                                        False
-                                })
-        return True
+# class StockRule(models.Model):
+#     _inherit = 'stock.rule'
+# 
+#     @api.model
+#     def _run_pull(self, procurements):
+#         moves_values_by_company = defaultdict(list)
+#         mtso_products_by_locations = defaultdict(list)
+# 
+#         # To handle the `mts_else_mto` procure method, we do a preliminary loop to
+#         # isolate the products we would need to read the forecasted quantity,
+#         # in order to to batch the read. We also make a sanitary check on the
+#         # `location_src_id` field.
+#         for procurement, rule in procurements:
+#             if not rule.location_src_id:
+#                 msg = _('No source location defined on stock rule: %s!') % (rule.name, )
+#                 raise UserError(msg)
+# 
+#             if rule.procure_method == 'mts_else_mto':
+#                 mtso_products_by_locations[rule.location_src_id].append(procurement.product_id.id)
+# 
+#         # Get the forecasted quantity for the `mts_else_mto` procurement.
+#         forecasted_qties_by_loc = {}
+#         for location, product_ids in mtso_products_by_locations.items():
+#             products = self.env['product.product'].browse(product_ids).with_context(location=location.id)
+#             forecasted_qties_by_loc[location] = {product.id: product.free_qty for product in products}
+# 
+#         # Prepare the move values, adapt the `procure_method` if needed.
+#         for procurement, rule in procurements:
+#             procure_method = rule.procure_method
+#             if rule.procure_method == 'mts_else_mto':
+#                 qty_needed = procurement.product_uom._compute_quantity(procurement.product_qty, procurement.product_id.uom_id)
+#                 qty_available = forecasted_qties_by_loc[rule.location_src_id][procurement.product_id.id]
+#                 if float_compare(qty_needed, qty_available, precision_rounding=procurement.product_id.uom_id.rounding) <= 0:
+#                     procure_method = 'make_to_stock'
+#                     forecasted_qties_by_loc[rule.location_src_id][procurement.product_id.id] -= qty_needed
+#                 else:
+#                     procure_method = 'make_to_order'
+# 
+#             move_values = rule._get_stock_move_values(*procurement)
+#             move_values['procure_method'] = procure_method
+#             moves_values_by_company[procurement.company_id.id].append(move_values)
+# 
+#         for company_id, moves_values in moves_values_by_company.items():
+#             # create the move as SUPERUSER because the current user may not have the rights to do it (mto product launched by a sale for example)
+#             moves = self.env['stock.move'].sudo().with_context(force_company=company_id).create(moves_values)
+#             # Since action_confirm launch following procurement_group we should activate it.
+#             moves._action_confirm()
+#             picking_id = self.env['stock.picking'].browse(moves[0].picking_id.id)
+#             if picking_id.origin:
+#                 if 'S0' in picking_id.origin:
+#                     sale_order = self.env['sale.order'].search([('name','=',picking_id.origin)])
+#                     picking_id.write(({
+#                             'period_from': sale_order.period_from,
+#                             'period_to': sale_order.period_to,
+#                             'period_uom_id': sale_order.period_uom_id and sale_order.period_uom_id.id or False
+#                         }))
+#                     for sol in sale_order.order_line:
+#                         for move in moves:
+#                             if sol.product_id.id == move.product_id.id:
+#                                 move.update({
+#                                     'gross_weight': sol.gross_wt * sol.product_uom_qty,
+#                                     'pure_weight': sol.pure_wt,
+#                                     'purity': sol.purity_id.purity or 1,
+#                                     'gold_rate': sol.gold_rate,
+#                                     'selling_karat_id':
+#                                         sol.product_id.product_template_attribute_value_ids and
+#                                         sol.product_id.product_template_attribute_value_ids.mapped(
+#                                             'product_attribute_value_id')[0].id or
+#                                         False
+#                                 })
+#         return True
