@@ -10,8 +10,8 @@ class stockGoldMove(models.TransientModel):
     _description = 'Generate move for all selected moves'
 
     move_ids = fields.Many2many('stock.valuation.layer', 'move_line_stock_valuation_rel', 'stock_gold_id', 'stock_valuation_id',  'moves', readonly=False)
-    pure_weight = fields.Float('pure weight')
-    pure_remainning = fields.Float('pure remainning',compute="get_pure_weight_remain")
+    pure_weight = fields.Float('pure weight', digits=(16, 3))
+    pure_remainning = fields.Float('pure remainning',compute="get_pure_weight_remain", digits=(16, 3))
 
     @api.depends('move_ids')
     def get_pure_weight_remain(self):

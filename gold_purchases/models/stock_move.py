@@ -220,12 +220,11 @@ class StockValuationLayer(models.Model):
     qty_done = fields.Float(related="stock_move_id.product_qty" , string="product_qty", store=True)
     picking_id = fields.Many2one('stock.picking',related="stock_move_id.picking_id" , string="picking_id", store=True)
     is_full_paid = fields.Boolean(string="full paid")
-    paid_pure = fields.Float(string="Paid Pure") 
-    paid_gross = fields.Float(string="Paid Gross")
+    paid_pure = fields.Float(string="Paid Pure", digits=(16, 3)) 
+    paid_gross = fields.Float(string="Paid Gross", digits=(16, 3))
 
     @api.onchange('paid_gross')
     def onchange_paid_gross(self):
         for rec in self:
             rec.write({'paid_pure': rec.paid_gross  *  (rec.stock_move_id.purity / 1000)})
-
 
