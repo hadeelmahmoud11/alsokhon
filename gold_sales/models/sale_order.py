@@ -79,15 +79,16 @@ class SaleOrderLine(models.Model):
     @api.onchange('lot_id')
     def _get_making(self):
         if self.lot_id and self.product_id:
-            stock_move_line = self.env['stock.move.line'].search([('lot_id','=',self.lot_id.id),('product_id','=',self.product_id.id)])
-            if stock_move_line:
-                if stock_move_line.picking_id:
-                    if 'P0' in stock_move_line.picking_id.group_id.name:
-                        purchase_order = self.env['purchase.order'].search([('name','=',stock_move_line.picking_id.group_id.name)])
-                        for line in purchase_order.order_line:
-                            if line.product_id == self.product_id:
-                                self.make_rate = line.make_rate
-                                self.make_value = line.make_value
+            self.make_rate = self.lot_id.selling_making_charge
+           # stock_move_line = self.env['stock.move.line'].search([('lot_id','=',self.lot_id.id),('product_id','=',self.product_id.id)])
+           # if stock_move_line:
+           #     if stock_move_line.picking_id:
+           #         if 'P0' in stock_move_line.picking_id.group_id.name:
+           #             purchase_order = self.env['purchase.order'].search([('name','=',stock_move_line.picking_id.group_id.name)])
+           #             for line in purchase_order.order_line:
+           #                 if line.product_id == self.product_id:
+           #                     self.make_rate = line.make_rate
+           #                     self.make_value = line.make_value
 
 
     price_unit = fields.Float(string='Unit Price', required=True,
