@@ -81,27 +81,34 @@ class SaleOrderLine(models.Model):
         if self.lot_id and self.product_id:
             self.make_rate = self.lot_id.selling_making_charge
             self.price_unit = 0
-            print(self.lot_id.gross_weight)
-            print(self.lot_id.pure_weight)
+            # print(self.lot_id.gross_weight)
+            # print(self.lot_id.pure_weight)
             self.gross_wt = self.lot_id.gross_weight
             self.pure_wt = self.lot_id.pure_weight
-           # stock_move_line = self.env['stock.move.line'].search([('lot_id','=',self.lot_id.id),('product_id','=',self.product_id.id)])
-           # if stock_move_line:
-           #     if stock_move_line.picking_id:
-           #         if 'P0' in stock_move_line.picking_id.group_id.name:
-           #             purchase_order = self.env['purchase.order'].search([('name','=',stock_move_line.picking_id.group_id.name)])
-           #             for line in purchase_order.order_line:
-           #                 if line.product_id == self.product_id:
-           #                     self.make_rate = line.make_rate
-           #                     self.make_value = line.make_value
+            stock_move_line = self.env['stock.move.line'].search([('lot_id','=',self.lot_id.id),('product_id','=',self.product_id.id)])
+            if stock_move_line and len(stock_move_line) == 1:
+                if stock_move_line.picking_id:
+                    if stock_move_line.picking_id.group_id:
+                        if stock_move_line.picking_id.group_id.name:
+                            if 'P0' in stock_move_line.picking_id.group_id.name:
+                                purchase_order = self.env['purchase.order'].search([('name','=',stock_move_line.picking_id.group_id.name)])
+                                if purchase_order and len(purchase_order) == 1:
+                                    for line in purchase_order.order_line:
+                                        if line.product_id == self.product_id:
+                                            self.purity_id = line.purity_id.id
+                                            # self.make_rate = line.make_rate
+                                            # self.make_value = line.make_value
     def _get_gold_stock(self):
-        if self.product_id:
-            location = self.env['stock.location'].search([('usage','=','internal')])
-            quants = self.env['stock.quant'].search([('product_id','=',self.product_id.id),('location_id','=',location[0].id)])
-            total = 0.0
-            for quant in quants:
-                total = total + quant.inventory_quantity
-            self.stock = total
+        for this in self:
+            if this.product_id:
+                location = self.env['stock.location'].search([('usage','=','internal')])
+                quants = self.env['stock.quant'].search([('product_id','=',this.product_id.id),('location_id','=',location[0].id)])
+                total = 0.0
+                for quant in quants:
+                    # print(quant.lot_id.name)
+                    # print(quant.inventory_quantity)
+                    total = total + quant.inventory_quantity
+                this.stock = total
 
 
     price_unit = fields.Float(string='Unit Price', required=True,
@@ -243,95 +250,95 @@ class SaleOrderLine(models.Model):
                 if self.env.context.get('import_file', False) and not self.env.user.user_has_groups('account.group_account_manager'):
                     line.tax_id.invalidate_cache(['invoice_repartition_line_ids'], [line.tax_id.id])
 
-    def _prepare_account_move_line(self, move):
-        res = super(PurchaseOrderLine, self)._prepare_account_move_line(move)
-        #make_value_product = self.env.ref('gold_purchases.make_value_product')
-        product_object = self.env['product.product'].browse([res.get('product_id')])
-
-        price_un = 0.00
-        diff_gross = 0.00
-        if product_object.is_making_charges:
-            price_un = res.get('price_unit')
-        if product_object.gold:
-            if product_object.purchase_method == "receive":
-                if self.received_gross_wt < (self.gross_wt * self.product_uom_qty):
-                    total_pure_weight = self.received_gross_wt * (self.purity_id and (
-                        self.purity_id.purity / 1000.000) or 1)
-                    diff_gross =  (self.gross_wt * self.product_uom_qty) / self.received_gross_wt
-                    new_pure = self.total_pure_weight / self.product_uom_qty
-                    new_purity_diff =  self.purity_diff / self.product_uom_qty
-                    res.update({
-                        'gross_wt': self.received_gross_wt ,
-                        'pure_wt': new_pure - new_purity_diff ,
-                        'purity_id': self.purity_id and self.purity_id.id or False,
-                        'purity_diff': new_purity_diff,
-                        'gold_rate': self.gold_rate,
-                        'make_rate': self.make_rate,
-                        'make_value': self.make_value / diff_gross ,
-                        'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
-                        'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0 ,
-                    })
-                else:
-                    res.update({
-                        'gross_wt': self.gross_wt,
-                        'pure_wt': self.pure_wt,
-                        'purity_id': self.purity_id and self.purity_id.id or False,
-                        'purity_diff': self.purity_diff,
-                        'gold_rate': self.gold_rate,
-                        'make_rate': self.make_rate,
-                        'make_value': self.make_value,
-                        'gold_value': self.gold_value,
-                        'price_unit': self.gold_value / self.product_uom_qty   ,
-                    })
-            else:
-                if self.received_gross_wt < (self.gross_wt * self.product_uom_qty):
-                    total_pure_weight = self.received_gross_wt * (self.purity_id and (
-                        self.purity_id.purity / 1000.000) or 1)
-                    diff_gross =  (self.gross_wt * self.product_uom_qty) / self.received_gross_wt
-                    new_pure = self.total_pure_weight / self.product_uom_qty
-                    new_purity_diff =  self.purity_diff / self.product_uom_qty
-                    res.update({
-                        'gross_wt': self.received_gross_wt ,
-                        'pure_wt': new_pure - new_purity_diff ,
-                        'purity_id': self.purity_id and self.purity_id.id or False,
-                        'purity_diff': new_purity_diff,
-                        'gold_rate': self.gold_rate,
-                        'make_rate': self.make_rate,
-                        'make_value': self.make_value / diff_gross ,
-                        'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
-                        'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0 ,
-                    })
-                else:
-                    res.update({
-                        'gross_wt': self.gross_wt,
-                        'pure_wt': self.pure_wt,
-                        'purity_id': self.purity_id and self.purity_id.id or False,
-                        'purity_diff': self.purity_diff,
-                        'gold_rate': self.gold_rate,
-                        'make_rate': self.make_rate,
-                        'make_value': self.make_value,
-                        'gold_value': self.gold_value,
-                        'price_unit': self.gold_value / self.product_uom_qty   ,
-                    })
-        product_object = self.env['product.product'].browse([res.get('product_id')])
-        make_value_product = product_object.making_charge_id
-        if product_object.is_making_charges:
-            purchase_order = self.env['purchase.order'].browse([self.order_id.id])
-            new_gross_wt = 0.00
-            new_product_qty = 0.00
-            new_received_gross_wt =0.00
-            for line in purchase_order.order_line:
-                if line.gross_wt > 0.00 and line.received_gross_wt > 0.00:
-                    new_gross_wt = line.gross_wt
-                    new_product_qty = line.product_uom_qty
-                    new_received_gross_wt = line.received_gross_wt
-            diff_gross =  (new_gross_wt * new_product_qty) / new_received_gross_wt
-            if diff_gross > 0.00:
-                res.update({'price_unit': price_un / diff_gross , 'quantity': 1.00,'gold_rate':0.00})
-            else:
-                res.update({'price_unit': price_un, 'quantity': 1.00,'gold_rate':0.00})
-
-        return res
+    # def _prepare_account_move_line(self, move):
+    #     res = super(PurchaseOrderLine, self)._prepare_account_move_line(move)
+    #     #make_value_product = self.env.ref('gold_purchases.make_value_product')
+    #     product_object = self.env['product.product'].browse([res.get('product_id')])
+    #
+    #     price_un = 0.00
+    #     diff_gross = 0.00
+    #     if product_object.is_making_charges:
+    #         price_un = res.get('price_unit')
+    #     if product_object.gold:
+    #         if product_object.purchase_method == "receive":
+    #             if self.received_gross_wt < (self.gross_wt * self.product_uom_qty):
+    #                 total_pure_weight = self.received_gross_wt * (self.purity_id and (
+    #                     self.purity_id.purity / 1000.000) or 1)
+    #                 diff_gross =  (self.gross_wt * self.product_uom_qty) / self.received_gross_wt
+    #                 new_pure = self.total_pure_weight / self.product_uom_qty
+    #                 new_purity_diff =  self.purity_diff / self.product_uom_qty
+    #                 res.update({
+    #                     'gross_wt': self.received_gross_wt ,
+    #                     'pure_wt': new_pure - new_purity_diff ,
+    #                     'purity_id': self.purity_id and self.purity_id.id or False,
+    #                     'purity_diff': new_purity_diff,
+    #                     'gold_rate': self.gold_rate,
+    #                     'make_rate': self.make_rate,
+    #                     'make_value': self.make_value / diff_gross ,
+    #                     'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
+    #                     'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0 ,
+    #                 })
+    #             else:
+    #                 res.update({
+    #                     'gross_wt': self.gross_wt,
+    #                     'pure_wt': self.pure_wt,
+    #                     'purity_id': self.purity_id and self.purity_id.id or False,
+    #                     'purity_diff': self.purity_diff,
+    #                     'gold_rate': self.gold_rate,
+    #                     'make_rate': self.make_rate,
+    #                     'make_value': self.make_value,
+    #                     'gold_value': self.gold_value,
+    #                     'price_unit': self.gold_value / self.product_uom_qty   ,
+    #                 })
+    #         else:
+    #             if self.received_gross_wt < (self.gross_wt * self.product_uom_qty):
+    #                 total_pure_weight = self.received_gross_wt * (self.purity_id and (
+    #                     self.purity_id.purity / 1000.000) or 1)
+    #                 diff_gross =  (self.gross_wt * self.product_uom_qty) / self.received_gross_wt
+    #                 new_pure = self.total_pure_weight / self.product_uom_qty
+    #                 new_purity_diff =  self.purity_diff / self.product_uom_qty
+    #                 res.update({
+    #                     'gross_wt': self.received_gross_wt ,
+    #                     'pure_wt': new_pure - new_purity_diff ,
+    #                     'purity_id': self.purity_id and self.purity_id.id or False,
+    #                     'purity_diff': new_purity_diff,
+    #                     'gold_rate': self.gold_rate,
+    #                     'make_rate': self.make_rate,
+    #                     'make_value': self.make_value / diff_gross ,
+    #                     'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
+    #                     'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0 ,
+    #                 })
+    #             else:
+    #                 res.update({
+    #                     'gross_wt': self.gross_wt,
+    #                     'pure_wt': self.pure_wt,
+    #                     'purity_id': self.purity_id and self.purity_id.id or False,
+    #                     'purity_diff': self.purity_diff,
+    #                     'gold_rate': self.gold_rate,
+    #                     'make_rate': self.make_rate,
+    #                     'make_value': self.make_value,
+    #                     'gold_value': self.gold_value,
+    #                     'price_unit': self.gold_value / self.product_uom_qty   ,
+    #                 })
+    #     product_object = self.env['product.product'].browse([res.get('product_id')])
+    #     make_value_product = product_object.making_charge_id
+    #     if product_object.is_making_charges:
+    #         purchase_order = self.env['purchase.order'].browse([self.order_id.id])
+    #         new_gross_wt = 0.00
+    #         new_product_qty = 0.00
+    #         new_received_gross_wt =0.00
+    #         for line in purchase_order.order_line:
+    #             if line.gross_wt > 0.00 and line.received_gross_wt > 0.00:
+    #                 new_gross_wt = line.gross_wt
+    #                 new_product_qty = line.product_uom_qty
+    #                 new_received_gross_wt = line.received_gross_wt
+    #         diff_gross =  (new_gross_wt * new_product_qty) / new_received_gross_wt
+    #         if diff_gross > 0.00:
+    #             res.update({'price_unit': price_un / diff_gross , 'quantity': 1.00,'gold_rate':0.00})
+    #         else:
+    #             res.update({'price_unit': price_un, 'quantity': 1.00,'gold_rate':0.00})
+    #
+    #     return res
 
 
     def _prepare_invoice_line(self):
@@ -460,74 +467,74 @@ class stock_move(models.Model):
         res.stock_move_id.sale_line_id.received_gross_wt = res.stock_move_id.sale_line_id.received_gross_wt + res.stock_move_id.gross_weight
         return res
 
-# class StockRule(models.Model):
-#     _inherit = 'stock.rule'
-# 
-#     @api.model
-#     def _run_pull(self, procurements):
-#         moves_values_by_company = defaultdict(list)
-#         mtso_products_by_locations = defaultdict(list)
-# 
-#         # To handle the `mts_else_mto` procure method, we do a preliminary loop to
-#         # isolate the products we would need to read the forecasted quantity,
-#         # in order to to batch the read. We also make a sanitary check on the
-#         # `location_src_id` field.
-#         for procurement, rule in procurements:
-#             if not rule.location_src_id:
-#                 msg = _('No source location defined on stock rule: %s!') % (rule.name, )
-#                 raise UserError(msg)
-# 
-#             if rule.procure_method == 'mts_else_mto':
-#                 mtso_products_by_locations[rule.location_src_id].append(procurement.product_id.id)
-# 
-#         # Get the forecasted quantity for the `mts_else_mto` procurement.
-#         forecasted_qties_by_loc = {}
-#         for location, product_ids in mtso_products_by_locations.items():
-#             products = self.env['product.product'].browse(product_ids).with_context(location=location.id)
-#             forecasted_qties_by_loc[location] = {product.id: product.free_qty for product in products}
-# 
-#         # Prepare the move values, adapt the `procure_method` if needed.
-#         for procurement, rule in procurements:
-#             procure_method = rule.procure_method
-#             if rule.procure_method == 'mts_else_mto':
-#                 qty_needed = procurement.product_uom._compute_quantity(procurement.product_qty, procurement.product_id.uom_id)
-#                 qty_available = forecasted_qties_by_loc[rule.location_src_id][procurement.product_id.id]
-#                 if float_compare(qty_needed, qty_available, precision_rounding=procurement.product_id.uom_id.rounding) <= 0:
-#                     procure_method = 'make_to_stock'
-#                     forecasted_qties_by_loc[rule.location_src_id][procurement.product_id.id] -= qty_needed
-#                 else:
-#                     procure_method = 'make_to_order'
-# 
-#             move_values = rule._get_stock_move_values(*procurement)
-#             move_values['procure_method'] = procure_method
-#             moves_values_by_company[procurement.company_id.id].append(move_values)
-# 
-#         for company_id, moves_values in moves_values_by_company.items():
-#             # create the move as SUPERUSER because the current user may not have the rights to do it (mto product launched by a sale for example)
-#             moves = self.env['stock.move'].sudo().with_context(force_company=company_id).create(moves_values)
-#             # Since action_confirm launch following procurement_group we should activate it.
-#             moves._action_confirm()
-#             picking_id = self.env['stock.picking'].browse(moves[0].picking_id.id)
-#             if picking_id.origin:
-#                 if 'S0' in picking_id.origin:
-#                     sale_order = self.env['sale.order'].search([('name','=',picking_id.origin)])
-#                     picking_id.write(({
-#                             'period_from': sale_order.period_from,
-#                             'period_to': sale_order.period_to,
-#                             'period_uom_id': sale_order.period_uom_id and sale_order.period_uom_id.id or False
-#                         }))
-#                     for sol in sale_order.order_line:
-#                         for move in moves:
-#                             if sol.product_id.id == move.product_id.id:
-#                                 move.update({
-#                                     'gross_weight': sol.gross_wt * sol.product_uom_qty,
-#                                     'pure_weight': sol.pure_wt,
-#                                     'purity': sol.purity_id.purity or 1,
-#                                     'gold_rate': sol.gold_rate,
-#                                     'selling_karat_id':
-#                                         sol.product_id.product_template_attribute_value_ids and
-#                                         sol.product_id.product_template_attribute_value_ids.mapped(
-#                                             'product_attribute_value_id')[0].id or
-#                                         False
-#                                 })
-#         return True
+class StockRule(models.Model):
+    _inherit = 'stock.rule'
+
+    @api.model
+    def _run_pull(self, procurements):
+        moves_values_by_company = defaultdict(list)
+        mtso_products_by_locations = defaultdict(list)
+
+        # To handle the `mts_else_mto` procure method, we do a preliminary loop to
+        # isolate the products we would need to read the forecasted quantity,
+        # in order to to batch the read. We also make a sanitary check on the
+        # `location_src_id` field.
+        for procurement, rule in procurements:
+            if not rule.location_src_id:
+                msg = _('No source location defined on stock rule: %s!') % (rule.name, )
+                raise UserError(msg)
+
+            if rule.procure_method == 'mts_else_mto':
+                mtso_products_by_locations[rule.location_src_id].append(procurement.product_id.id)
+
+        # Get the forecasted quantity for the `mts_else_mto` procurement.
+        forecasted_qties_by_loc = {}
+        for location, product_ids in mtso_products_by_locations.items():
+            products = self.env['product.product'].browse(product_ids).with_context(location=location.id)
+            forecasted_qties_by_loc[location] = {product.id: product.free_qty for product in products}
+
+        # Prepare the move values, adapt the `procure_method` if needed.
+        for procurement, rule in procurements:
+            procure_method = rule.procure_method
+            if rule.procure_method == 'mts_else_mto':
+                qty_needed = procurement.product_uom._compute_quantity(procurement.product_qty, procurement.product_id.uom_id)
+                qty_available = forecasted_qties_by_loc[rule.location_src_id][procurement.product_id.id]
+                if float_compare(qty_needed, qty_available, precision_rounding=procurement.product_id.uom_id.rounding) <= 0:
+                    procure_method = 'make_to_stock'
+                    forecasted_qties_by_loc[rule.location_src_id][procurement.product_id.id] -= qty_needed
+                else:
+                    procure_method = 'make_to_order'
+
+            move_values = rule._get_stock_move_values(*procurement)
+            move_values['procure_method'] = procure_method
+            moves_values_by_company[procurement.company_id.id].append(move_values)
+
+        for company_id, moves_values in moves_values_by_company.items():
+            # create the move as SUPERUSER because the current user may not have the rights to do it (mto product launched by a sale for example)
+            moves = self.env['stock.move'].sudo().with_context(force_company=company_id).create(moves_values)
+            # Since action_confirm launch following procurement_group we should activate it.
+            moves._action_confirm()
+            picking_id = self.env['stock.picking'].browse(moves[0].picking_id.id)
+            if picking_id.origin:
+                if 'S0' in picking_id.origin:
+                    sale_order = self.env['sale.order'].search([('name','=',picking_id.origin)])
+                    picking_id.write(({
+                            'period_from': sale_order.period_from,
+                            'period_to': sale_order.period_to,
+                            'period_uom_id': sale_order.period_uom_id and sale_order.period_uom_id.id or False
+                        }))
+                    for sol in sale_order.order_line:
+                        for move in moves:
+                            if sol.product_id.id == move.product_id.id:
+                                move.update({
+                                    'gross_weight': sol.gross_wt * sol.product_uom_qty,
+                                    'pure_weight': sol.pure_wt,
+                                    'purity': sol.purity_id.purity or 1,
+                                    'gold_rate': sol.gold_rate,
+                                    'selling_karat_id':
+                                        sol.product_id.product_template_attribute_value_ids and
+                                        sol.product_id.product_template_attribute_value_ids.mapped(
+                                            'product_attribute_value_id')[0].id or
+                                        False
+                                })
+        return True

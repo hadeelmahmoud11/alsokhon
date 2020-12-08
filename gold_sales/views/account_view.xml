@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
+
+      <record id="gold_sales_view_view_payment_form_inherited" model="ir.ui.view">
+          <field name="name">gold.sales.account.payment.form.view.inherit</field>
+          <field name="model">account.payment</field>
+          <field name="inherit_id" ref="account.view_account_payment_form"/>
+          <field name="arch" type="xml">
+              <xpath expr="//form/sheet/group/group[@name='right_column']/div/field[@name='amount']" position="replace">
+                <field name="unfixed_option" invisible="1"/>
+                <field name="amount" force_save="1" attrs="{'readonly':[('unfixed_option','!=',False)]}"/>
+              </xpath>
+          </field>
+      </record>
         <record id="gold_sales_view_view_move_form_inherited" model="ir.ui.view">
             <field name="name">gold.sales.account.move.form.view.inherit</field>
             <field name="model">account.move</field>

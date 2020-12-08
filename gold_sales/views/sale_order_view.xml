@@ -37,7 +37,7 @@
                     </group>
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='name']" position="after">
-                  <field name="lot_id" domain="[('product_id','=',product_id.id)]"/>
+                  <field name="lot_id" domain="[('product_id','=',product_id)]"/>
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="attributes">
                     <attribute name="width">15%</attribute>
@@ -65,7 +65,7 @@
                     <field name="pure_wt" width="10%"/>
                     <field name="purity_hall" width="10%"/>
                     <field name="purity_diff" width="10%"/>
-                    <field name="stock" width="10%"/>
+                    <field name="stock" width="10%" invisible="1"/>
                     <field name="make_rate" width="15%"/>
                     <field name="make_value" width="12%"/>
                     <field name="gold_rate" width="12%"/>
