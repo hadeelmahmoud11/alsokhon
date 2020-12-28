@@ -8,6 +8,27 @@ from odoo.exceptions import ValidationError
 class PurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
+    total_gold_vale_order = fields.Float('Total Gold Value', compute="_compute_total_gold_value_order")
+    def _compute_total_gold_value_order(self):
+        for this in self:
+            total = 0.0
+            for line in this.order_line:
+                if line.product_id.is_making_charges:
+                    total = total
+                else:
+                    total = total+line.price_subtotal
+            this.total_gold_vale_order = total
+    total_make_vale_order = fields.Float('Total Make Value', compute="_compute_total_make_value_order")
+    def _compute_total_make_value_order(self):
+        for this in self:
+            total = 0.0
+            for line in this.order_line:
+                if line.product_id.is_making_charges:
+                    total = total+line.price_subtotal
+                else:
+                    total = total
+            this.total_make_vale_order = total
+
     period_from = fields.Float('Period From')
     period_to = fields.Float('Period To')
     period_uom_id = fields.Many2one('uom.uom', 'Period UOM')
@@ -70,6 +91,10 @@ class PurchaseOrder(models.Model):
             'period_to': self.period_to,
             'period_uom_id': self.period_uom_id and self.period_uom_id.id or False
         })
+        if self.order_type.gold and self.order_type.is_unfixed:
+            res.update({'purchase_type':'unfixed'})
+        elif self.order_type.gold and self.order_type.is_fixed:
+            res.update({'purchase_type':'fixed'})
         return res
 
     @api.depends('order_type')
@@ -103,14 +128,20 @@ class PurchaseOrderLine(models.Model):
     gold_value = fields.Monetary('Gold Value', compute='_get_gold_rate',
                                  digits=(16, 3))
     is_make_value = fields.Boolean(string='is_make_value')
-    
-    
+    total_with_make = fields.Float('Total Value + Make Value', compute="_compute_total_with_make")
+    def _compute_total_with_make(self):
+        for this in self:
+            if this.product_id.is_making_charges:
+                this.total_with_make = 0.0
+            else:
+                this.total_with_make = this.price_subtotal +this.make_value
+
     @api.onchange('purity_hall','product_qty')
     def onchange_purity_hall(self):
         for rec in self:
             if rec.purity_hall > 1000 or rec.purity_hall < 0.00 :
-                raise ValidationError(_('purity hallmark between 1 - 1000')) 
-                
+                raise ValidationError(_('purity hallmark between 1 - 1000'))
+
             rec.purity_diff = ( rec.product_qty * (rec.purity_hall - rec.purity_id.purity)) / 100
 
     def write(self, vals):
@@ -136,13 +167,13 @@ class PurchaseOrderLine(models.Model):
     @api.model
     def create(self, vals):
         res = super(PurchaseOrderLine, self).create(vals)
-        
+
         if vals.get('product_id'):
             product_object = self.env['product.product'].browse([vals.get('product_id')])
             if product_object.gold:
                 if not  product_object.making_charge_id.id :
                     raise ValidationError(_('Please fill make value product for this product'))
-                
+
                 make_value_product = product_object.making_charge_id
                 uom = self.env.ref('uom.product_uom_unit')
                 if vals.get('make_rate') > 0.00:
@@ -159,7 +190,7 @@ class PurchaseOrderLine(models.Model):
                                     })
         return res
 
-                
+
 
     @api.depends('product_id', 'product_qty', 'price_unit', 'gross_wt',
                  'purity_id', 'purity_diff', 'make_rate',
@@ -169,28 +200,31 @@ class PurchaseOrderLine(models.Model):
             if rec.product_id.making_charge_id.id:
                 make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
                 product_make_object = self.env['purchase.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
-            
-            rec.pure_wt = rec.product_qty * rec.gross_wt * (rec.purity_id and (
-                    rec.purity_id.purity / 1000.000) or 0)
+            if rec.product_id.categ_id.is_scrap:
+                rec.pure_wt = rec.product_qty * rec.gross_wt * (rec.purity_id and (
+                        rec.purity_id.scrap_purity / 1000.000) or 0)
+            else:
+                rec.pure_wt = rec.product_qty * rec.gross_wt * (rec.purity_id and (
+                        rec.purity_id.purity / 1000.000) or 0)
             rec.total_pure_weight = rec.pure_wt + rec.purity_diff
             # NEED TO ADD PURITY DIFF + rec.purity_diff
-            new_pure_wt = rec.pure_wt + rec.purity_diff  
+            new_pure_wt = rec.pure_wt + rec.purity_diff
             rec.stock = (rec.product_id and rec.product_id.available_gold or
-                         0.00) + new_pure_wt 
-            
+                         0.00) + new_pure_wt
+
             rec.make_value = rec.product_qty * rec.gross_wt * rec.make_rate
             rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
             rec.gold_value = rec.gold_rate and (
                     rec.total_pure_weight * rec.gold_rate) or 0
             rec.total_gross_wt = rec.gross_wt * rec.product_qty
-            
-            
+
+
             make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
             product_basic_line = self.env['purchase.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
             for line in product_basic_line:
                 product_make_object.write({'gold_rate' : 0.00 ,'price_subtotal' : rec.make_value ,'price_unit':rec.make_value})
 
-        
+
 
     @api.depends('product_qty', 'price_unit', 'taxes_id', 'gross_wt',
                  'purity_id', 'purity_diff', 'make_rate',
@@ -247,7 +281,7 @@ class PurchaseOrderLine(models.Model):
         res = super(PurchaseOrderLine, self)._prepare_account_move_line(move)
         #make_value_product = self.env.ref('gold_purchases.make_value_product')
         product_object = self.env['product.product'].browse([res.get('product_id')])
-        
+
         price_un = 0.00
         diff_gross = 0.00
         if product_object.is_making_charges:
@@ -330,5 +364,5 @@ class PurchaseOrderLine(models.Model):
                 res.update({'price_unit': price_un / diff_gross , 'quantity': 1.00,'gold_rate':0.00})
             else:
                 res.update({'price_unit': price_un, 'quantity': 1.00,'gold_rate':0.00})
-        
+
         return res

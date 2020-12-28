@@ -21,6 +21,7 @@ class SaleOrder(models.Model):
             ozs = self.env.ref('uom.product_uom_oz')
             if rates and ozs:
                 self.gold_rate = (1.000/rates[0].rate)*ozs.factor
+                self.gold_rate = self.gold_rate + self.currency_id.premium
             else:
                 self.gold_rate = 0.00
         else:

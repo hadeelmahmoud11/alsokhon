@@ -23,7 +23,8 @@
                     </group>
                 </xpath>
                 <field name="origin" position="after">
-                    <field name="bill_unfixed" readonly="1"/>
+                  <field name="bill_unfixed" readonly="1" force_save="1"/>
+                  <field name="purchase_type" readonly="1" force_save="1"/>
                 </field>
 
             </field>

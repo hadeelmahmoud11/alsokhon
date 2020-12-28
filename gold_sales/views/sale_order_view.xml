@@ -57,6 +57,13 @@
                 <xpath expr="//field[@name='order_line']/tree/field[@name='price_subtotal']" position="attributes">
                     <attribute name="width">10%</attribute>
                 </xpath>
+                <xpath expr="//field[@name='order_line']/tree/field[@name='price_subtotal']" position="after">
+                    <field name="total_with_make"/>
+                </xpath>
+                <field name="amount_untaxed" position="before">
+                  <field name="total_gold_vale_order"/>
+                  <field name="total_make_vale_order"/>
+                </field>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="after">
                     <field name="gross_wt" width="12%"/>
                     <field name="total_gross_wt" width="10%" />

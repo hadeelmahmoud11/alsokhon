@@ -11,13 +11,15 @@ class StockPicking(models.Model):
     period_to = fields.Float('Period To')
     period_uom_id = fields.Many2one('uom.uom', 'Period UOM')
     bill_unfixed = fields.Many2one('account.move')
+    purchase_type = fields.Selection([('fixed', 'Fixed'),
+                                        ('unfixed', 'Unfixed')], string='purchase type')
 
     def action_done(self):
         res = super(StockPicking, self).action_done()
         for rec in self.filtered(lambda x: x.state == 'done'):
             rec.create_gold_journal_entry()
             if rec.bill_unfixed :
-                rec.create_unfixed_journal_entry() 
+                rec.create_unfixed_journal_entry()
         return res
 
     def create_gold_journal_entry(self):
@@ -149,7 +151,7 @@ class StockPicking(models.Model):
                             account_move_obj.write({'unfixed_move_id_two': new_account_move.id})
                         if not account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
                             account_move_obj.write({'unfixed_move_id': new_account_move.id})
-                          
+
 
     def _prepare_account_move_line_unfixed(self, product_dict):
         debit_lines = []
@@ -181,7 +183,7 @@ class StockPicking(models.Model):
         }]
         res = [(0, 0, x) for x in debit_lines + credit_line]
         return res
-    
+
 
     def _check_backorder(self):
         """ This method will loop over all the move lines of self and
@@ -243,4 +245,3 @@ class StockPicking(models.Model):
                 backorder_picking.action_assign()
                 backorders |= backorder_picking
         return backorders
-

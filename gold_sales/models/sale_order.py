@@ -17,6 +17,26 @@ _logger = logging.getLogger(__name__)
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    total_gold_vale_order = fields.Float('Total Gold Value', compute="_compute_total_gold_value_order")
+    def _compute_total_gold_value_order(self):
+        for this in self:
+            total = 0.0
+            for line in this.order_line:
+                if line.product_id.is_making_charges:
+                    total = total
+                else:
+                    total = total+line.price_subtotal
+            this.total_gold_vale_order = total
+    total_make_vale_order = fields.Float('Total Make Value', compute="_compute_total_make_value_order")
+    def _compute_total_make_value_order(self):
+        for this in self:
+            total = 0.0
+            for line in this.order_line:
+                if line.product_id.is_making_charges:
+                    total = total+line.price_subtotal
+                else:
+                    total = total
+            this.total_make_vale_order = total
     period_from = fields.Float('Period From')
     period_to = fields.Float('Period To')
     period_uom_id = fields.Many2one('uom.uom', 'Period UOM')
@@ -132,8 +152,14 @@ class SaleOrderLine(models.Model):
     gold_value = fields.Monetary('Gold Value', compute='_get_gold_rate',
                                  digits=(16, 3))
     is_make_value = fields.Boolean(string='is_make_value')
+    total_with_make = fields.Float('Total Value + Make Value', compute="_compute_total_with_make")
 
-
+    def _compute_total_with_make(self):
+        for this in self:
+            if this.product_id.is_making_charges:
+                this.total_with_make = 0.0
+            else:
+                this.total_with_make = this.price_subtotal +this.make_value
     @api.onchange('purity_hall','product_uom_qty')
     def onchange_purity_hall(self):
         for rec in self:
