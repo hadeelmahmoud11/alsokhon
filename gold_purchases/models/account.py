@@ -374,7 +374,7 @@ class AccountMove(models.Model):
         '''
         po_id = self.env['purchase.order'].search(
             [('invoice_ids', '=', self.id)])
-        if po_id and po_id.order_type.is_fixed or po_id.order_type.is_unfixed:
+        if po_id and po_id[0].order_type.is_fixed or po_id[0].order_type.is_unfixed:
             return po_id
         return False
 
