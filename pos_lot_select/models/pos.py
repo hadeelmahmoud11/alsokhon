@@ -57,7 +57,7 @@ class pos_config(models.Model):
             if this.currency_id and this.currency_id.is_gold :
                 rates = this.env['gold.rates'].search([
                     ('currency_id', '=', this.currency_id.id),
-                    ('name', '=', this.create_date.date()),
+                    ('name', '=', datetime.date.today()),
                     ('company_id', 'in', [False, this.company_id and
                                           this.company_id.id or False])
                 ], limit=1, order='name desc, id desc')
