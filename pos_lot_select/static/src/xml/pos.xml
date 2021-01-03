@@ -118,4 +118,16 @@
             </t>
         </t>
     </t>
+
+    <t t-extend="Chrome">
+        <t t-jquery='.placeholder-OrderSelectorWidget' t-operation='after'>
+            <span class="placeholder-GoldRateWidget"></span>
+        </t>
+    </t>
+
+    <t t-name="GoldRateWidget">
+        <span class="username oe_status">
+            <t t-esc="widget.get_rate()" />
+        </span>
+    </t>
 </templates>

@@ -50,6 +50,28 @@ class pos_config(models.Model):
     allow_pos_lot = fields.Boolean('Allow POS Lot', default=True)
     lot_expire_days = fields.Integer('Product Lot expire days.', default=1)
     pos_lot_receipt = fields.Boolean('Print lot Number on receipt',default=1)
+    gold_rate = fields.Float(string='Gold Rate', digits=(16, 3), compute="_compute_gold_rate")
+
+    def _compute_gold_rate(self):
+        for this in self:
+            if this.currency_id and this.currency_id.is_gold :
+                rates = this.env['gold.rates'].search([
+                    ('currency_id', '=', this.currency_id.id),
+                    ('name', '=', this.create_date.date()),
+                    ('company_id', 'in', [False, this.company_id and
+                                          this.company_id.id or False])
+                ], limit=1, order='name desc, id desc')
+                ozs = this.env.ref('uom.product_uom_oz')
+                if rates and ozs:
+                    gold_rate = (1.000/rates[0].rate)*ozs.factor
+                    gold_rate = gold_rate + this.currency_id.premium
+                    this.gold_rate = gold_rate / 1000.000000000000
+
+                else:
+                    this.gold_rate = 0.00
+            else:
+                this.gold_rate = 0.00
+
 
 class stock_production_lot(models.Model):
     _inherit = "stock.production.lot"
