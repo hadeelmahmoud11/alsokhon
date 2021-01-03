@@ -86,9 +86,10 @@ class stock_production_lot(models.Model):
             if stock_move_line:
                 if stock_move_line.picking_id:
                     if stock_move_line.picking_id.group_id:
-                        if stock_move_line.picking_id.group_id.name:
-                            if 'P0' in stock_move_line.picking_id.group_id.name:
-                                purchase_order = this.env['purchase.order'].search([('name','=',stock_move_line.picking_id.group_id.name)])
+                        group_id= stock_move_line.picking_id.group_id[0]
+                        if group_id.name:
+                            if 'P0' in group_id.name:
+                                purchase_order = this.env['purchase.order'].search([('name','=',group_id.name)])
                                 if purchase_order and len(purchase_order) == 1:
                                     for line in purchase_order.order_line:
                                         if line.product_id == this.product_id:

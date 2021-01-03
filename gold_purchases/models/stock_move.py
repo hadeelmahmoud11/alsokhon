@@ -42,7 +42,7 @@ class StockMove(models.Model):
     company_currency_id = fields.Many2one('res.currency',
                                           string="Company Currency",
                                           related='company_id.currency_id')
-    
+
 
     def _create_in_svl(self, forced_quantity=None):
         """Create a `stock.valuation.layer` from `self`.
@@ -77,11 +77,11 @@ class StockMove(models.Model):
             svl_vals_list.append(svl_vals)
 
         stock_val_layer = self.env['stock.valuation.layer'].sudo().create(svl_vals_list)
-        if not stock_val_layer.stock_move_id.picking_id.backorder_id: 
+        if not stock_val_layer.stock_move_id.picking_id.backorder_id:
             stock_val_layer.write({'value': stock_val_layer.value +  stock_val_layer.stock_move_id.purchase_line_id.make_value })
         stock_val_layer.stock_move_id.purchase_line_id.received_gross_wt = stock_val_layer.stock_move_id.purchase_line_id.received_gross_wt + stock_val_layer.stock_move_id.gross_weight
         return stock_val_layer
-    
+
 
 #    def _create_out_svl(self, forced_quantity=None):
  #       """Create a `stock.valuation.layer` from `self`.
@@ -102,15 +102,15 @@ class StockMove(models.Model):
             # cost, qty
          #   if move.product_id.gold:
          #       svl_vals = move.product_id._prepare_out_svl_vals(move.pure_weight, move.company_id)
-         #       svl_vals['unit_cost'] = 0.00 
-         #       svl_vals['quantity'] = 0.00 
-         #       svl_vals['value'] = 0.00  
+         #       svl_vals['unit_cost'] = 0.00
+         #       svl_vals['quantity'] = 0.00
+         #       svl_vals['value'] = 0.00
          #   else:
          #       svl_vals = move.product_id._prepare_out_svl_vals(forced_quantity or valued_quantity, move.company_id)
          #   svl_vals.update(move._prepare_common_svl_vals())
          #   if forced_quantity:
          #       svl_vals['description'] = 'Correction of %s (modification of past move)' % move.picking_id.name or move.name
-            
+
          #   svl_vals_list.append(svl_vals)
         ##return self.env['stock.valuation.layer'].sudo().create(svl_vals_list)
 
@@ -141,9 +141,9 @@ class StockMoveLine(models.Model):
     selling_making_charge = fields.Monetary('Selling Making Charge',
                                             digits=(16, 3))
     currency_id = fields.Many2one('res.currency', string="Company Currency",
-                                  related='company_id.currency_id') 
-    
-    
+                                  related='company_id.currency_id')
+
+
 
     @api.depends('move_id')
     def get_karat(self):
@@ -162,7 +162,7 @@ class StockMoveLine(models.Model):
     def get_pure_weight(self):
         for rec in self:
             rec.pure_weight = rec.gross_weight * (rec.purity / 1000.000)
-            
+
 
     def write(self, vals):
         res = super(StockMoveLine, self).write(vals)
@@ -194,7 +194,7 @@ class StockMoveLine(models.Model):
     @api.model
     def create(self, vals):
         res = super(StockMoveLine, self).create(vals)
-        if vals.get('gross_weight', False): 
+        if vals.get('gross_weight', False):
             if vals.get('move_id'):
                 stock_move = self.env['stock.move'].browse([vals.get('move_id')])
                 stock_move.write({'gross_weight':  vals.get('gross_weight')})
@@ -220,7 +220,7 @@ class StockValuationLayer(models.Model):
     qty_done = fields.Float(related="stock_move_id.product_qty" , string="product_qty", store=True)
     picking_id = fields.Many2one('stock.picking',related="stock_move_id.picking_id" , string="picking_id", store=True)
     is_full_paid = fields.Boolean(string="full paid")
-    paid_pure = fields.Float(string="Paid Pure", digits=(16, 3)) 
+    paid_pure = fields.Float(string="Paid Pure", digits=(16, 3))
     paid_gross = fields.Float(string="Paid Gross", digits=(16, 3))
 
     @api.onchange('paid_gross')
@@ -228,3 +228,13 @@ class StockValuationLayer(models.Model):
         for rec in self:
             rec.write({'paid_pure': rec.paid_gross  *  (rec.stock_move_id.purity / 1000)})
 
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        """ Override to handle the "inventory mode" and set the `inventory_quantity`
+        in view list grouped.
+        """
+        if 'purity' in fields:
+            fields.remove('purity')
+        result = super(StockValuationLayer, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
+        return result

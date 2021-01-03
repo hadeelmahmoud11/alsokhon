@@ -102,11 +102,19 @@ class GoldPayment(models.Model):
     move_ids = fields.Many2many(comodel_name='stock.move', string='moves')
     flag = fields.Boolean(_('Flag'), default=False)
 
-    
+
 
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
+
+    is_gold_entry = fields.Boolean(compute="_compute_is_gold_entry")
+    def _compute_is_gold_entry(self):
+        for this in self:
+            if this.journal_id.gold:
+                this.is_gold_entry = True
+            else:
+                this.is_gold_entry = False
 
     purchase_type = fields.Selection([('fixed', 'Fixed'),
                                         ('unfixed', 'Unfixed')], string='purchase type')
@@ -117,8 +125,8 @@ class AccountMove(models.Model):
     unfixed_move_id_two = fields.Many2one('account.move')
     unfixed_move_id_three = fields.Many2one('account.move')
     unfixed_stock_picking = fields.Many2one('stock.picking')
-    unfixed_stock_picking_two= fields.Many2one('stock.picking') 
-    unfixed_stock_picking_three= fields.Many2one('stock.picking') 
+    unfixed_stock_picking_two= fields.Many2one('stock.picking')
+    unfixed_stock_picking_three= fields.Many2one('stock.picking')
 
     @api.depends(
         'line_ids.debit',
@@ -205,11 +213,11 @@ class AccountMove(models.Model):
             if move.purchase_type == "unfixed":
                 if  move.make_value_move == 0.00 and move.pure_wt_value <= 0.00:
                     move.amount_residual = 0.00
-                else: 
+                else:
                     move.amount_residual = -sign * (total_residual_currency if len(currencies) == 1 else total_residual)
             else:
                 move.amount_residual = -sign * (total_residual_currency if len(currencies) == 1 else total_residual)
-            
+
             move.amount_untaxed_signed = -total_untaxed
             move.amount_tax_signed = -total_tax
             move.amount_total_signed = abs(total) if move.type == 'entry' else -total
@@ -229,7 +237,7 @@ class AccountMove(models.Model):
             else:
                 move.invoice_payment_state = 'not_paid'
 
-    
+
 
     @api.depends('invoice_line_ids')
     def _compute_make_value_move(self):
@@ -240,18 +248,18 @@ class AccountMove(models.Model):
                 rate = 0.00
                 for line in rec.invoice_line_ids:
                     if line.pure_wt == 0.00 and line.make_value == 0.00:
-                        make_value = line.price_unit 
+                        make_value = line.price_unit
                     else:
-                        pure = line.pure_wt + line.purity_diff 
+                        pure = line.pure_wt + line.purity_diff
                         rate = line.gold_rate
 
                 rec.pure_wt_value = pure
                 rec.gold_rate_value = rate
-                
+
                 if rec.amount_by_group:
                     rec.make_value_move = make_value + rec.amount_by_group[0][1]
                 else:
-                    rec.make_value_move = make_value 
+                    rec.make_value_move = make_value
 
     def button_draft(self):
         res = super(AccountMove, self).button_draft()
@@ -341,7 +349,7 @@ class AccountMove(models.Model):
         po_id = self.is_po_related()
         if po_id:
             po_id.bill_move_id.write({'ref':move.name})
-        
+
         for move in self:
             if not move.partner_id: continue
             if move.type.startswith('out_'):
@@ -355,9 +363,9 @@ class AccountMove(models.Model):
         self.filtered(
             lambda m: m.is_invoice(include_receipts=True) and m.currency_id.is_zero(m.amount_total)
         ).action_invoice_paid()
-        
 
-    
+
+
 
     def is_po_related(self):
         '''
@@ -366,7 +374,7 @@ class AccountMove(models.Model):
         '''
         po_id = self.env['purchase.order'].search(
             [('invoice_ids', '=', self.id)])
-        if po_id and po_id.order_type.is_fixed or po_id.order_type.is_unfixed: 
+        if po_id and po_id.order_type.is_fixed or po_id.order_type.is_unfixed:
             return po_id
         return False
 
@@ -396,7 +404,7 @@ class AccountMove(models.Model):
                 if not next(iter(product_dict)).categ_id.gold_purchase_journal.id:
                     raise ValidationError(_('Please fill gold purchase journal in product Category'))
                 journal_id = next(iter(product_dict)).categ_id.gold_purchase_journal.id
-                
+
                 move_lines = self._prepare_account_move_line(product_dict, po_id)
                 if move_lines:
                     AccountMove = self.with_context(default_type='entry',
@@ -440,7 +448,7 @@ class AccountMove(models.Model):
             'account_id': self.partner_id.gold_account_payable_id.id,
         }]
         res = [(0, 0, x) for x in debit_lines + credit_line]
-        return res 
+        return res
 
 
 
@@ -450,7 +458,7 @@ class Account_Payment_Inherit(models.Model):
     is_unfixed_wizard = fields.Boolean('is_unfixed')
     unfixed_option = fields.Selection([('make_tax', 'make value + tax'), ('pay_gold_value', 'pay gold value')],
         string='Unfixed Option')
-    
+
     @api.onchange('unfixed_option')
     def _onchange_unfixed_option(self):
         active_ids = self._context.get('active_ids') or self._context.get('active_id')
@@ -511,10 +519,10 @@ class Account_Payment_Inherit(models.Model):
                     'communication': invoices[0].invoice_payment_ref or invoices[0].ref or invoices[0].name,
                     'invoice_ids': [(6, 0, invoices.ids)],
                 })
-        
+
         return rec
 
-    
+
 
     def post(self):
         """ Create the journal items for the payment and update the payment's state to 'posted'.
@@ -538,11 +546,11 @@ class Account_Payment_Inherit(models.Model):
 
                     if rec.invoice_ids.pure_wt_value <= 0.00 and rec.invoice_ids.make_value_move == 0.00:
                         rec.invoice_ids.write({'invoice_payment_state': "paid"})
-                    
-                            
+
+
 
                     if rec.unfixed_option == "make_tax":
-                        rec.invoice_ids.write({'make_value_move':rec.invoice_ids.make_value_move - rec.amount }) 
+                        rec.invoice_ids.write({'make_value_move':rec.invoice_ids.make_value_move - rec.amount })
 
             if rec.state != 'draft':
                 raise UserError(_("Only a draft payment can be posted."))

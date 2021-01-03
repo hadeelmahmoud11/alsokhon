@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-
+      <record model="ir.ui.view" id="gold_entry_inherit_action">
+        <field name="name">gold_entry_inherit_action</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+          <field name="ref" position="after">
+            <field name="is_gold_entry" invisible="1"/>
+            <field name="type_of_action" attrs="{'invisible':[('is_gold_entry','!=',True)]}"/>
+          </field>
+        </field>
+      </record>
       <record id="gold_sales_view_view_payment_form_inherited" model="ir.ui.view">
           <field name="name">gold.sales.account.payment.form.view.inherit</field>
           <field name="model">account.payment</field>

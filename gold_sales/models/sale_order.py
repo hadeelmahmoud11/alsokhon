@@ -82,6 +82,9 @@ class SaleOrder(models.Model):
         else:
             pass
         action['context'] = context
+        print("-----------------------------------------")
+        print(action['context'])
+        print("-----------------------------------------")
         return action
 
     @api.depends('order_type')
@@ -403,12 +406,15 @@ class SaleOrderLine(models.Model):
         if product_object.is_making_charges:
             price_un = res.get('price_unit')
         if product_object.gold:
-            if product_object.invoice_policy == "receive":
+            if product_object.invoice_policy == "delivery":
                 if self.received_gross_wt < (self.gross_wt * self.product_uom_qty):
                     total_pure_weight = self.received_gross_wt * (self.purity_id and (
                         self.purity_id.purity / 1000.000) or 1)
-                    diff_gross =  (self.gross_wt * self.product_uom_qty) / self.received_gross_wt
-                    new_pure = self.total_pure_weight / self.product_uom_qty
+                    try:
+                        diff_gross =  (self.gross_wt * self.product_uom_qty) / self.received_gross_wt
+                    except:
+                        raise UserError('You Should Deliver Quantities First')
+                    new_pure = total_pure_weight / self.product_uom_qty
                     new_purity_diff =  self.purity_diff / self.product_uom_qty
                     res.update({
                         'gross_wt': self.received_gross_wt ,
@@ -434,35 +440,38 @@ class SaleOrderLine(models.Model):
                         'price_unit': self.gold_value / self.product_uom_qty   ,
                     })
             else:
-                if self.received_gross_wt < (self.gross_wt * self.product_uom_qty):
-                    total_pure_weight = self.received_gross_wt * (self.purity_id and (
-                        self.purity_id.purity / 1000.000) or 1)
-                    diff_gross =  (self.gross_wt * self.product_uom_qty) / self.received_gross_wt
-                    new_pure = self.total_pure_weight / self.product_uom_qty
-                    new_purity_diff =  self.purity_diff / self.product_uom_qty
-                    res.update({
-                        'gross_wt': self.received_gross_wt ,
-                        'pure_wt': new_pure - new_purity_diff ,
-                        'purity_id': self.purity_id and self.purity_id.id or False,
-                        'purity_diff': new_purity_diff,
-                        'gold_rate': self.gold_rate,
-                        'make_rate': self.make_rate,
-                        'make_value': self.make_value / diff_gross ,
-                        'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
-                        'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0 ,
-                    })
-                else:
-                    res.update({
-                        'gross_wt': self.gross_wt,
-                        'pure_wt': self.pure_wt,
-                        'purity_id': self.purity_id and self.purity_id.id or False,
-                        'purity_diff': self.purity_diff,
-                        'gold_rate': self.gold_rate,
-                        'make_rate': self.make_rate,
-                        'make_value': self.make_value,
-                        'gold_value': self.gold_value,
-                        'price_unit': self.gold_value / self.product_uom_qty   ,
-                    })
+                # if self.received_gross_wt < (self.gross_wt * self.product_uom_qty):
+                #     total_pure_weight = self.received_gross_wt * (self.purity_id and (
+                #         self.purity_id.purity / 1000.000) or 1)
+                #     try:
+                #         diff_gross =  (self.gross_wt * self.product_uom_qty) / self.product_uom_qty
+                #     except:
+                #         raise UserError('You Should Deliver Quantities First')
+                #     new_pure = self.total_pure_weight / self.product_uom_qty
+                #     new_purity_diff =  self.purity_diff / self.product_uom_qty
+                #     res.update({
+                #         'gross_wt': self.received_gross_wt ,
+                #         'pure_wt': new_pure - new_purity_diff ,
+                #         'purity_id': self.purity_id and self.purity_id.id or False,
+                #         'purity_diff': new_purity_diff,
+                #         'gold_rate': self.gold_rate,
+                #         'make_rate': self.make_rate,
+                #         'make_value': self.make_value / diff_gross ,
+                #         'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
+                #         'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0 ,
+                #     })
+                # else:
+                res.update({
+                    'gross_wt': self.gross_wt,
+                    'pure_wt': self.pure_wt,
+                    'purity_id': self.purity_id and self.purity_id.id or False,
+                    'purity_diff': self.purity_diff,
+                    'gold_rate': self.gold_rate,
+                    'make_rate': self.make_rate,
+                    'make_value': self.make_value,
+                    'gold_value': self.gold_value,
+                    'price_unit': self.gold_value / self.product_uom_qty   ,
+                })
         product_object = self.env['product.product'].browse([res.get('product_id')])
         make_value_product = product_object.making_charge_id
         if product_object.is_making_charges:
@@ -471,15 +480,39 @@ class SaleOrderLine(models.Model):
             new_product_qty = 0.00
             new_received_gross_wt =0.00
             for line in sale_order.order_line:
-                if line.gross_wt > 0.00 and line.received_gross_wt > 0.00:
-                    new_gross_wt = line.gross_wt
-                    new_product_qty = line.product_uom_qty
-                    new_received_gross_wt = line.received_gross_wt
-            diff_gross =  (new_gross_wt * new_product_qty) / new_received_gross_wt
-            if diff_gross > 0.00:
-                res.update({'price_unit': price_un / diff_gross , 'quantity': 1.00,'gold_rate':0.00})
+                if line.product_id == self.product_id:
+                    if line.product_id.invoice_policy == 'receive':
+                        if line.gross_wt > 0.00 and line.received_gross_wt > 0.00:
+                            new_gross_wt = line.gross_wt
+                            new_product_qty = line.product_uom_qty
+                            new_received_gross_wt = line.received_gross_wt
+                    else:
+                        if line.gross_wt > 0.00 and line.product_qty > 0.00:
+                            new_gross_wt = line.gross_wt
+                            new_product_qty = line.product_uom_qty
+                            new_received_gross_wt = line.received_gross_wt
+                        # print(new_gross_wt)
+                        # print(new_product_qty)
+                        # print(new_received_gross_wt)
+            if self.product_id.invoice_policy == 'delivery':
+                if new_received_gross_wt <=0:
+                    raise ValidationError(_('You Should Deliver Products First'))
+                else:
+                    diff_gross =  (new_gross_wt * new_product_qty) / new_received_gross_wt
+                if diff_gross > 0.00:
+                    res.update({'price_unit': price_un / diff_gross , 'quantity': 1.00,'gold_rate':0.00})
+                else:
+                    res.update({'price_unit': price_un, 'quantity': 1.00,'gold_rate':0.00})
             else:
-                res.update({'price_unit': price_un, 'quantity': 1.00,'gold_rate':0.00})
+                # if new_product_qty <=0:
+                #     raise ValidationError(_('DownDown'))
+                # else:
+                diff_gross =  (new_gross_wt * new_product_qty)
+                if diff_gross > 0.00:
+                    res.update({'price_unit': price_un / diff_gross , 'quantity': 1.00,'gold_rate':0.00})
+                else:
+                    res.update({'price_unit': price_un, 'quantity': 1.00,'gold_rate':0.00})
+
 
         if self.display_type:
             res['account_id'] = False
@@ -549,6 +582,10 @@ class StockRule(models.Model):
                             'period_to': sale_order.period_to,
                             'period_uom_id': sale_order.period_uom_id and sale_order.period_uom_id.id or False
                         }))
+                    if sale_order.order_type.gold and sale_order.order_type.is_unfixed:
+                        picking_id.update({'sale_type':'unfixed'})
+                    elif sale_order.order_type.gold and sale_order.order_type.is_fixed:
+                        picking_id.update({'sale_type':'fixed'})
                     for sol in sale_order.order_line:
                         for move in moves:
                             if sol.product_id.id == move.product_id.id:

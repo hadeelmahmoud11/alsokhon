@@ -7,7 +7,7 @@ class ProductCategory(models.Model):
 
     @api.model
     def get_account_assets_type(self):
-        asset_type = self.env.ref('account.data_account_type_current_assets')
+        asset_type = self.env.ref('account.data_account_type_direct_costs')
         if asset_type:
             return [('user_type_id', '=', asset_type.id), ('gold', '=', True)]
         return []

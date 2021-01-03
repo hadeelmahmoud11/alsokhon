@@ -10,8 +10,27 @@ from datetime import date, timedelta
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
+    type_of_action = fields.Selection([('fixed', 'Fixed'),
+                                        ('unfixed', 'Unfixed')])
     sale_type = fields.Selection([('fixed', 'Fixed'),
-                                        ('unfixed', 'Unfixed')], string='sale type')
+                                        ('unfixed', 'Unfixed')], string='sale type', compute="_compute_sale_type")
+    def _compute_sale_type(self):
+        for this in self:
+            if this.invoice_origin and 'S0' in this.invoice_origin:
+                sale_order = self.env['sale.order'].search([('name','=',this.invoice_origin)])
+                if sale_order and len(sale_order)>0:
+                    if sale_order.order_type.is_fixed:
+                        this.sale_type = 'fixed'
+                    elif sale_order.order_type.gold:
+                        this.sale_type = 'unfixed'
+                    else:
+                        this.sale_type = False
+                else:
+                    this.sale_type = False
+            else:
+                this.sale_type = False
+
+
     # @api.depends(
     #     'line_ids.debit',
     #     'line_ids.credit',
