@@ -15,7 +15,7 @@ odoo.define('pos_lot_select.pos', function(require){
           domain: function(self){
               var from = moment(new Date()).subtract(self.config.lot_expire_days,'d').format('YYYY-MM-DD')+" 00:00:00";
               if(self.config.allow_pos_lot){
-                  return [['create_date','>=',from]];
+                  return ['&',['create_date','>=',from],['product_qty','>',0]];
               }
               else{
                   return [['id','=',0]];
@@ -129,16 +129,44 @@ odoo.define('pos_lot_select.pos', function(require){
               var self = this;
               var product_lot = [];
               var lot_list = self.pos.list_lot_num;
+              // console.log(lot_list);
               for(var i=0;i<lot_list.length;i++){
                   if(lot_list[i].product_id[0] == options.pack_lot_lines.order_line.product.id){
                       product_lot.push(lot_list[i]);
                   }
               }
+              // self.render_list_lots(product_lot,undefined);
               options.qstr = "";
               options.product_lot = product_lot;
               this._super(options);
               this.focus();
           },
+          render_list_lots: function(lots, search_input){
+      			var self = this;
+      			// console.log("((((orders))))");
+      			// console.log(orders);
+      			// console.log(self.pos.get('all_orders_list'));
+      			// console.log(this.pos);
+
+      			var content = this.$el[0].querySelector('.lots-list-contents');
+      			content.innerHTML = "";
+      			var lots = lots;
+      			var current_date = null;
+      			if(lots){
+      				for(var i = 0, len = Math.min(lots.length,1000); i < len; i++){
+      					var lot    = lots[i];
+                console.log(lot);
+      					// current_date =  field_utils.format.datetime(moment(order.date_order), {type: 'datetime'});
+      					// var ordersline_html = QWeb.render('OrdersLine',{widget: this, order:orders[i], selected_partner_id: orders[i].partner_id[0],current_date:current_date});
+      					// var ordersline = document.createElement('tbody');
+      					// ordersline.innerHTML = ordersline_html;
+      					// ordersline = ordersline.childNodes[1];
+      					// content.appendChild(ordersline);
+      				}
+      			}
+
+      		},
+
 
           renderElement:function(){
               this._super();
