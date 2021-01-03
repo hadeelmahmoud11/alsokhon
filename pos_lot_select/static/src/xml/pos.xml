@@ -52,11 +52,13 @@
                                             <td>Purity</td>
                                             <td>Pure Weight</td>
                                             <td>Making Charge</td>
-                                            <td>Gold Rate</td>
+                                            <!-- <td>Gold Rate</td> -->
+
 
                                         </colgroup>
                                         <t t-foreach="widget.options.product_lot" t-as="product_lot">
                                             <tr style="font-size: 12px;">
+                                              <t t-set="making_charge" t-value="product_lot.selling_making_charge*product_lot.gross_weight"/>
                                                 <td>
                                                     <div t-att-value="product_lot.id">
                                                         <t t-esc="product_lot.name" />
@@ -75,11 +77,14 @@
                                                     <t t-esc="product_lot.pure_weight"/>
                                                 </td>
                                                 <td id="selling_making_charge">
+                                                    <t t-esc="making_charge" />
+                                                </td>
+                                                <!-- <td id="selling_making">
                                                     <t t-esc="product_lot.selling_making_charge" />
-                                                </td>
-                                                <td id="gold_rate">
+                                                </td> -->
+                                                <!-- <td id="gold_rate">
                                                     <t t-esc="product_lot.gold_rate" />
-                                                </td>
+                                                </td> -->
                                                 <td>
                                                     <input type="text" value="1" style="font-size: 15px;width: 52px;min-height: 9px;height: 25px;padding: -1px;"/>
                                                 </td>
@@ -125,9 +130,15 @@
         </t>
     </t>
 
+
     <t t-name="GoldRateWidget">
         <span class="username oe_status">
             <t t-esc="widget.get_rate()" />
         </span>
+    </t>
+
+    <t t-extend="Product">
+        <t t-jquery='.price-tag' t-operation='replace'>
+        </t>
     </t>
 </templates>
