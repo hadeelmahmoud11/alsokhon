@@ -139,11 +139,14 @@ class StockMoveLine(models.Model):
                 'purity': self.purity
                 })
     image = fields.Binary()
-    gross_weight = fields.Float(related='actual_gross_weight',
-                                string='Gross Weight', store=True)
-    actual_gross_weight = fields.Float(related='move_id.gross_weight',
-                                       string='Gross Weight', store=True)
-    purity = fields.Float(related="move_id.purity", string="Purity", store=True)
+    # related='actual_gross_weight',
+
+    gross_weight = fields.Float(string='Gross Weight', store=True)
+                                # related='move_id.gross_weight',
+
+    actual_gross_weight = fields.Float(string='Gross Weight', store=True)
+    # related="move_id.purity", 
+    purity = fields.Float(string="Purity", store=True)
     pure_weight = fields.Float(compute='get_pure_weight', string="Pure Weight",
                                store=True, digits=(16, 3))
     item_category_id = fields.Many2one('item.category', string="Item Category")
