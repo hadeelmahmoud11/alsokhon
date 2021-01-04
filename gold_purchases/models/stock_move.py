@@ -138,22 +138,26 @@ class StockMoveLine(models.Model):
     def change_lot(self):
         if self.lot_id:
             if self.lot_id.product_id and self.lot_id.product_id.categ_id.is_scrap:
-                self.lot_id.write({
-                'gross_weight': 0.0,
-                'purity': 0.0
-                })
-                self.lot_id.write({
-                'gross_weight': self.gross_weight,
-                'purity': self.purity
-                })
-            elif self.lot_id.product_id and not self.lot_id.product_id.categ_id.is_scrap:
-                self.lot_id.write({
-                'gross_weight': 0.0,
-                'purity': 0.0
-                })
+                # self.lot_id.write({
+                # 'gross_weight': 0.0,
+                # 'purity': 0.0,
+                # 'selling_making_charge': 0.0
+                # })
                 self.lot_id.write({
                 'gross_weight': self.lot_id.gross_weight + self.gross_weight,
-                'purity': self.purity
+                'purity': self.purity,
+                'selling_making_charge':self.selling_making_charge
+                })
+            elif self.lot_id.product_id and not self.lot_id.product_id.categ_id.is_scrap:
+                # self.lot_id.write({
+                # 'gross_weight': 0.0,
+                # 'purity': 0.0,
+                # 'selling_making_charge': 0.0
+                # })
+                self.lot_id.write({
+                'gross_weight': self.gross_weight,
+                'purity': self.purity,
+                'selling_making_charge':self.selling_making_charge
                 })
     image = fields.Binary()
     # related='actual_gross_weight',
