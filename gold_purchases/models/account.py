@@ -348,7 +348,7 @@ class AccountMove(models.Model):
 
         po_id = self.is_po_related()
         if po_id:
-            po_id.bill_move_id.write({'ref':move.name})
+            po_id.bill_move_id.write({'ref':self.name})
 
         for move in self:
             if not move.partner_id: continue
@@ -374,7 +374,7 @@ class AccountMove(models.Model):
         '''
         po_id = self.env['purchase.order'].search(
             [('invoice_ids', '=', self.id)])
-        if po_id and po_id.order_type.is_fixed or po_id.order_type.is_unfixed:
+        if po_id and (po_id[0].order_type.is_fixed or po_id[0].order_type.is_unfixed):
             return po_id
         return False
 
