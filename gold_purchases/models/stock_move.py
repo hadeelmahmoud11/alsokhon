@@ -50,6 +50,10 @@ class StockMove(models.Model):
         :param forced_quantity: under some circunstances, the quantity to value is different than
             the initial demand of the move (Default value = None)
         """
+        print("KJHSJHSDJKADSGDASHJADSGJGADSADAGDAJDGASDGSDAHJ")
+        print("KJHSJHSDJKADSGDASHJADSGJGADSADAGDAJDGASDGSDAHJ")
+        print("KJHSJHSDJKADSGDASHJADSGJGADSADAGDAJDGASDGSDAHJ")
+        print("KJHSJHSDJKADSGDASHJADSGJGADSADAGDAJDGASDGSDAHJ")
         svl_vals_list = []
         for move in self:
             move = move.with_context(force_company=move.company_id.id)
@@ -77,9 +81,10 @@ class StockMove(models.Model):
             svl_vals_list.append(svl_vals)
 
         stock_val_layer = self.env['stock.valuation.layer'].sudo().create(svl_vals_list)
-        if not stock_val_layer.stock_move_id.picking_id.backorder_id:
-            stock_val_layer.write({'value': stock_val_layer.value +  stock_val_layer.stock_move_id.purchase_line_id.make_value })
-        stock_val_layer.stock_move_id.purchase_line_id.received_gross_wt = stock_val_layer.stock_move_id.purchase_line_id.received_gross_wt + stock_val_layer.stock_move_id.gross_weight
+        for layer in stock_val_layer:
+            if not layer.stock_move_id.picking_id.backorder_id:
+                layer.write({'value': layer.value +  layer.stock_move_id.purchase_line_id.make_value })
+            layer.stock_move_id.purchase_line_id.received_gross_wt = layer.stock_move_id.purchase_line_id.received_gross_wt + layer.stock_move_id.gross_weight
         return stock_val_layer
 
 
@@ -124,6 +129,19 @@ class StockMove(models.Model):
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
 
+    @api.onchange('lot_id')
+    def change_lot(self):
+        if self.lot_id:
+            if self.lot_id.product_id and self.lot_id.product_id.scrap:
+                self.lot_id.write({
+                'gross_weight': self.gross_weight,
+                'purity': self.purity
+                })
+            elif self.lot_id.product_id and not self.lot_id.product_id.scrap:
+                self.lot_id.write({
+                'gross_weight': self.lot_id.gross_weight + self.gross_weight,
+                'purity': self.purity
+                })
     image = fields.Binary()
     gross_weight = fields.Float(related='actual_gross_weight',
                                 string='Gross Weight', store=True)
@@ -165,6 +183,7 @@ class StockMoveLine(models.Model):
 
 
     def write(self, vals):
+        print("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWw")
         res = super(StockMoveLine, self).write(vals)
         if vals.get('lot_id', False):
             for move_line in self:
@@ -193,6 +212,7 @@ class StockMoveLine(models.Model):
 
     @api.model
     def create(self, vals):
+        print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
         res = super(StockMoveLine, self).create(vals)
         if vals.get('gross_weight', False):
             if vals.get('move_id'):

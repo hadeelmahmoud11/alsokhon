@@ -17,6 +17,7 @@ class ProductTemplate(models.Model):
     gold = fields.Boolean(string='Gold')
     origin = fields.Many2one('res.country', string='Origin')
     is_making_charges = fields.Boolean('Gold Making Charges')
+    scrap = fields.Boolean(string="Scrap")
     making_charge_id = fields.Many2one('product.product', 'Making Charges product')
 
     # @api.onchange('type')
@@ -87,11 +88,11 @@ class ProductCategory(models.Model):
         if asset_type:
             return [('user_type_id', '=', asset_type.id), ('gold', '=', True)]
         return []
-    
+
     @api.model
     def get_account_gold_type(self):
         return [('gold', '=', True)]
-        
+
 
     gold_journal = fields.Many2one(
         'account.journal', domain=[('gold', '=', True)],
@@ -108,4 +109,3 @@ class ProductCategory(models.Model):
     gold_expense_account = fields.Many2one('account.account',
                                            domain=get_account_gold_type,
                                            string='Expense Account - Gold')
-   
