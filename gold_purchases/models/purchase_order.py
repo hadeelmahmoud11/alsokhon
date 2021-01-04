@@ -8,6 +8,53 @@ from odoo.exceptions import ValidationError,UserError
 class PurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
+    @api.model
+    def create(self, values):
+        res = super(PurchaseOrder, self).create(values)
+        total_make_rate = 0
+        for line in res.order_line:
+            if line.make_rate > 0.00 and line.make_value > 0.00:
+                total_make_rate = total_make_rate + line.make_value
+        if total_make_rate > 0:
+            make_value_product = self.env['product.product'].search([('is_making_charges','=',True)], limit=1)
+            uom = self.env.ref('uom.product_uom_unit')
+            make = self.env['purchase.order.line'].create({
+                                    'product_id': make_value_product.id,
+                                    'name': make_value_product.name,
+                                    'product_qty': 1,
+                                    'price_unit': total_make_rate,
+                                    'product_uom': uom.id,
+                                    'order_id':res.id,
+                                    'date_planned': datetime.today() ,
+                                    'is_make_value': True,
+                                    'price_subtotal': total_make_rate,
+                                })
+        return res
+
+    def write(self, values):
+        res = super(PurchaseOrder, self).write(values)
+        making_order_line = self.env['purchase.order.line'].search([('order_id','=',self.id),('is_make_value','=',True)])
+        making_order_line.unlink()
+        total_make_rate = 0
+        for line in self.order_line:
+            if line.make_rate > 0.00 and line.make_value > 0.00:
+                total_make_rate = total_make_rate + line.make_value
+        if total_make_rate > 0:
+            make_value_product = self.env['product.product'].search([('is_making_charges','=',True)], limit=1)
+            uom = self.env.ref('uom.product_uom_unit')
+            make = self.env['purchase.order.line'].create({
+                                    'product_id': make_value_product.id,
+                                    'name': make_value_product.name,
+                                    'product_qty': 1,
+                                    'price_unit': total_make_rate,
+                                    'product_uom': uom.id,
+                                    'order_id':self.id,
+                                    'date_planned': datetime.today() ,
+                                    'is_make_value': True,
+                                    'price_subtotal': total_make_rate,
+                                })
+        return res
+
     total_gold_vale_order = fields.Float('Total Gold Value', compute="_compute_total_gold_value_order")
     def _compute_total_gold_value_order(self):
         for this in self:
@@ -143,7 +190,9 @@ class PurchaseOrderLine(models.Model):
     gold_value = fields.Monetary('Gold Value', compute='_get_gold_rate',
                                  digits=(16, 3))
     is_make_value = fields.Boolean(string='is_make_value')
+
     total_with_make = fields.Float('Total Value + Make Value', compute="_compute_total_with_make")
+    # make_related_pol = fields.Many2one('purchase.order.line')
     def _compute_total_with_make(self):
         for this in self:
             if this.product_id.is_making_charges:
@@ -159,55 +208,55 @@ class PurchaseOrderLine(models.Model):
 
             rec.purity_diff = ( rec.product_qty * (rec.purity_hall - rec.purity_id.purity)) / 100
 
-    def write(self, vals):
-        res = super(PurchaseOrderLine, self).write(vals)
-        if vals.get('make_rate'):
-            if vals.get('make_rate') > 0.00 and len(self.order_id.order_line) == 1 :
-                product_object = self.env['product.product'].browse([self.product_id.id])
-                make_value_product = product_object.making_charge_id
-                uom = self.env.ref('uom.product_uom_unit')
-                make = self.env['purchase.order.line'].create({
-                                        'product_id': make_value_product.id,
-                                        'name': make_value_product.name,
-                                        'product_qty': 1,
-                                        'price_unit': 0.00,
-                                        'product_uom': uom.id,
-                                        'order_id':self.order_id.id,
-                                        'date_planned': datetime.today() ,
-                                        'is_make_value': True,
-                                        'price_subtotal': 0.00,
-                                    })
-        return res
+    # def write(self, vals):
+    #     res = super(PurchaseOrderLine, self).write(vals)
+    #     if vals.get('make_rate'):
+    #         if vals.get('make_rate') > 0.00 and len(self.order_id.order_line) == 1 :
+    #             product_object = self.env['product.product'].browse([self.product_id.id])
+    #             make_value_product = product_object.making_charge_id
+    #             uom = self.env.ref('uom.product_uom_unit')
+    #             make = self.env['purchase.order.line'].create({
+    #                                     'product_id': make_value_product.id,
+    #                                     'name': make_value_product.name,
+    #                                     'product_qty': 1,
+    #                                     'price_unit': 0.00,
+    #                                     'product_uom': uom.id,
+    #                                     'order_id':self.order_id.id,
+    #                                     'date_planned': datetime.today() ,
+    #                                     'is_make_value': True,
+    #                                     'price_subtotal': 0.00,
+    #                                 })
+    #     return res
 
     @api.onchange('product_qty')
     def update_gross(self):
         if self.product_id and self.product_id.scrap and self.product_qty:
             self.gross_wt = self.product_qty
-    @api.model
-    def create(self, vals):
-        res = super(PurchaseOrderLine, self).create(vals)
-
-        if vals.get('product_id'):
-            product_object = self.env['product.product'].browse([vals.get('product_id')])
-            if product_object.gold and not product_object.scrap:
-                if not  product_object.making_charge_id.id :
-                    raise ValidationError(_('Please fill make value product for this product'))
-
-                make_value_product = product_object.making_charge_id
-                uom = self.env.ref('uom.product_uom_unit')
-                if vals.get('make_rate') > 0.00:
-                    make = self.env['purchase.order.line'].create({
-                                        'product_id': make_value_product.id,
-                                        'name': make_value_product.name,
-                                        'product_qty': 1,
-                                        'price_unit': 0.00,
-                                        'product_uom': uom.id,
-                                        'order_id': vals.get('order_id'),
-                                        'date_planned': datetime.today() ,
-                                        'is_make_value': True,
-                                        'price_subtotal': 0.00,
-                                    })
-        return res
+    # @api.model
+    # def create(self, vals):
+    #     res = super(PurchaseOrderLine, self).create(vals)
+    #
+    #     if vals.get('product_id'):
+    #         product_object = self.env['product.product'].browse([vals.get('product_id')])
+    #         if product_object.gold and not product_object.scrap:
+    #             if not  product_object.making_charge_id.id :
+    #                 raise ValidationError(_('Please fill make value product for this product'))
+    #
+    #             make_value_product = product_object.making_charge_id
+    #             uom = self.env.ref('uom.product_uom_unit')
+    #             if vals.get('make_rate') > 0.00:
+    #                 make = self.env['purchase.order.line'].create({
+    #                                     'product_id': make_value_product.id,
+    #                                     'name': make_value_product.name,
+    #                                     'product_qty': 1,
+    #                                     'price_unit': 0.00,
+    #                                     'product_uom': uom.id,
+    #                                     'order_id': vals.get('order_id'),
+    #                                     'date_planned': datetime.today() ,
+    #                                     'is_make_value': True,
+    #                                     'price_subtotal': 0.00,
+    #                                 })
+    #     return res
 
 
 
