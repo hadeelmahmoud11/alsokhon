@@ -125,15 +125,15 @@ class StockMove(models.Model):
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
 
-    @api.onchange('lot_id')
+    @api.onchange('lot_id', 'gross_weight')
     def change_lot(self):
         if self.lot_id:
-            if self.lot_id.product_id and self.lot_id.product_id.scrap:
+            if self.lot_id.product_id and self.lot_id.product_id.categ_id.is_scrap:
                 self.lot_id.write({
                 'gross_weight': self.gross_weight,
                 'purity': self.purity
                 })
-            elif self.lot_id.product_id and not self.lot_id.product_id.scrap:
+            elif self.lot_id.product_id and not self.lot_id.product_id.categ_id.is_scrap:
                 self.lot_id.write({
                 'gross_weight': self.lot_id.gross_weight + self.gross_weight,
                 'purity': self.purity
@@ -198,21 +198,21 @@ class StockMoveLine(models.Model):
                     lot_rec.selling_karat_id = move_line.selling_karat_id.id if \
                         move_line.selling_karat_id else False
 
-        if vals.get('gross_weight', False):
-            for move_line_gross in self:
-                move_line_gross.move_id.write({'gross_weight':  vals.get('gross_weight')})
-                move_line_gross.move_id.write({'pure_weight':  vals.get('gross_weight') * (self.purity / 1000.000) })
+        # if vals.get('gross_weight', False):
+        #     for move_line_gross in self:
+        #         move_line_gross.move_id.write({'gross_weight':  vals.get('gross_weight')})
+        #         move_line_gross.move_id.write({'pure_weight':  vals.get('gross_weight') * (self.purity / 1000.000) })
 
         return res
 
     @api.model
     def create(self, vals):
         res = super(StockMoveLine, self).create(vals)
-        if vals.get('gross_weight', False):
-            if vals.get('move_id'):
-                stock_move = self.env['stock.move'].browse([vals.get('move_id')])
-                stock_move.write({'gross_weight':  vals.get('gross_weight')})
-                stock_move.write({'pure_weight':  vals.get('gross_weight') * (stock_move.purity / 1000.000) })
+        # if vals.get('gross_weight', False):
+        #     if vals.get('move_id'):
+        #         stock_move = self.env['stock.move'].browse([vals.get('move_id')])
+        #         stock_move.write({'gross_weight':  vals.get('gross_weight')})
+        #         stock_move.write({'pure_weight':  vals.get('gross_weight') * (stock_move.purity / 1000.000) })
 
         return res
 

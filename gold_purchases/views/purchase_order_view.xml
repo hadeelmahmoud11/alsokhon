@@ -63,9 +63,10 @@
                 </field>
 
                 <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="after">
-                    <field name="gross_wt" width="12%"/>
-                    <field name="total_gross_wt" width="10%" />
-                    <field name="received_gross_wt" width="10%" readonly="1"/>
+                    <field name="scrap_state_read" invisible="1"/>
+                    <field name="gross_wt" width="12%" force_save="1" attrs="{'readonly':[('scrap_state_read','=',True)]}"/>
+                    <field name="total_gross_wt" width="10%"  force_save="1" attrs="{'readonly':[('scrap_state_read','=',True)]}"/>
+                    <field name="received_gross_wt" width="10%" readonly="1" />
                     <field name="purity_id" width="10%"/>
                     <field name="pure_wt" width="10%"/>
                     <field name="purity_hall" width="10%"/>
@@ -79,8 +80,9 @@
                 </xpath>
                 <xpath expr="//field[@name='order_line']/form/group/group/field[@name='qty_received']"
                        position="before">
-                    <field name="gross_wt"/>
-                    <field name="total_gross_wt"/>
+                    <field name="scrap_state_read" invisible="1"/>
+                    <field name="gross_wt" force_save="1" attrs="{'readonly':[('scrap_state_read','=',True)]}"/>
+                    <field name="total_gross_wt" force_save="1" attrs="{'readonly':[('scrap_state_read','=',True)]}"/>
                     <field name="received_gross_wt" readonly="1"/>
                     <field name="purity_id"/>
                     <field name="pure_wt"/>

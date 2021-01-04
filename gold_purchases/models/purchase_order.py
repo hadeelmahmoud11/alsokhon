@@ -15,6 +15,7 @@ class PurchaseOrder(models.Model):
         for line in res.order_line:
             if line.make_rate > 0.00 and line.make_value > 0.00:
                 total_make_rate += line.make_value
+
         if total_make_rate > 0:
             make_value_product = self.env['product.product'].search([('is_making_charges','=',True)], limit=1)
             uom = self.env.ref('uom.product_uom_unit')
@@ -34,25 +35,27 @@ class PurchaseOrder(models.Model):
     def write(self, values):
         res = super(PurchaseOrder, self).write(values)
         making_order_line = self.env['purchase.order.line'].search([('order_id','=',self.id),('is_make_value','=',True)])
-        making_order_line.unlink()
-        total_make_rate = 0
-        for line in self.order_line:
-            if line.make_rate > 0.00 and line.make_value > 0.00:
-                total_make_rate = total_make_rate + line.make_value
-        if total_make_rate > 0:
-            make_value_product = self.env['product.product'].search([('is_making_charges','=',True)], limit=1)
-            uom = self.env.ref('uom.product_uom_unit')
-            make = self.env['purchase.order.line'].create({
-                                    'product_id': make_value_product.id,
-                                    'name': make_value_product.name,
-                                    'product_qty': 1,
-                                    'price_unit': total_make_rate,
-                                    'product_uom': uom.id,
-                                    'order_id':self.id,
-                                    'date_planned': datetime.today() ,
-                                    'is_make_value': True,
-                                    'price_subtotal': total_make_rate,
-                                })
+        if self.state not in  ['done','purchase']:
+            making_order_line.unlink()
+            total_make_rate = 0
+            for line in self.order_line:
+                if line.make_rate > 0.00 and line.make_value > 0.00:
+                    total_make_rate += line.make_value
+
+            if total_make_rate > 0:
+                make_value_product = self.env['product.product'].search([('is_making_charges','=',True)], limit=1)
+                uom = self.env.ref('uom.product_uom_unit')
+                make = self.env['purchase.order.line'].create({
+                                        'product_id': make_value_product.id,
+                                        'name': make_value_product.name,
+                                        'product_qty': 1,
+                                        'price_unit': total_make_rate,
+                                        'product_uom': uom.id,
+                                        'order_id':self.id,
+                                        'date_planned': datetime.today() ,
+                                        'is_make_value': True,
+                                        'price_subtotal': total_make_rate,
+                                    })
         return res
 
     total_gold_vale_order = fields.Float('Total Gold Value', compute="_compute_total_gold_value_order")
@@ -192,7 +195,14 @@ class PurchaseOrderLine(models.Model):
     is_make_value = fields.Boolean(string='is_make_value')
 
     total_with_make = fields.Float('Total Value + Make Value', compute="_compute_total_with_make")
-    # make_related_pol = fields.Many2one('purchase.order.line')
+    scrap_state_read = fields.Boolean(compute="_compute_scrap_state_read")
+    @api.onchange('product_id')
+    def _compute_scrap_state_read(self):
+        for this in self:
+            if this.product_id and this.product_id.categ_id.is_scrap:
+                this.scrap_state_read = True
+            elif this.product_id and not this.product_id.categ_id.is_scrap:
+                this.scrap_state_read = False
     def _compute_total_with_make(self):
         for this in self:
             if this.product_id.is_making_charges:
@@ -230,7 +240,7 @@ class PurchaseOrderLine(models.Model):
 
     @api.onchange('product_qty')
     def update_gross(self):
-        if self.product_id and self.product_id.scrap and self.product_qty:
+        if self.product_id and self.product_id.categ_id.is_scrap and self.product_qty:
             self.gross_wt = self.product_qty
     # @api.model
     # def create(self, vals):
@@ -265,9 +275,9 @@ class PurchaseOrderLine(models.Model):
                  'order_id', 'order_id.order_type', 'order_id.currency_id')
     def _get_gold_rate(self):
         for rec in self:
-            if rec.product_id.making_charge_id.id:
-                make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
-                product_make_object = self.env['purchase.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
+            # if rec.product_id.making_charge_id.id:
+            #     make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
+            #     product_make_object = self.env['purchase.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
             if rec.product_id.categ_id.is_scrap:
                 rec.pure_wt = rec.gross_wt * (rec.purity_id and (
                         rec.purity_id.scrap_purity / 1000.000) or 0)
@@ -279,21 +289,23 @@ class PurchaseOrderLine(models.Model):
             new_pure_wt = rec.pure_wt + rec.purity_diff
             rec.stock = (rec.product_id and rec.product_id.available_gold or
                          0.00) + new_pure_wt
-
-            rec.make_value = rec.product_qty * rec.gross_wt * rec.make_rate
+            if rec.product_id.categ_id.is_scrap:
+                rec.make_value = rec.gross_wt * rec.make_rate
+            else:
+                rec.make_value = rec.product_qty * rec.gross_wt * rec.make_rate
             rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
             rec.gold_value = rec.gold_rate and (
                     rec.total_pure_weight * rec.gold_rate) or 0
-            if rec.product_id.scrap:
+            if rec.product_id.categ_id.is_scrap:
                 rec.total_gross_wt = rec.product_qty
             else:
                 rec.total_gross_wt = rec.gross_wt * rec.product_qty
 
 
-            make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
-            product_basic_line = self.env['purchase.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
-            for line in product_basic_line:
-                product_make_object.write({'gold_rate' : 0.00 ,'price_subtotal' : rec.make_value ,'price_unit':rec.make_value})
+            # make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
+            # product_basic_line = self.env['purchase.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
+            # for line in product_basic_line:
+            #     product_make_object.write({'gold_rate' : 0.00 ,'price_subtotal' : rec.make_value ,'price_unit':rec.make_value})
 
 
 
@@ -335,7 +347,7 @@ class PurchaseOrderLine(models.Model):
 
     def _prepare_stock_moves(self, picking):
         res = super(PurchaseOrderLine, self)._prepare_stock_moves(picking)
-        if self.product_id and self.product_id.scrap:
+        if self.product_id and self.product_id.categ_id.is_scrap:
             res and res[0].update({
                 'gross_weight': self.gross_wt,
                 'pure_weight': self.pure_wt,

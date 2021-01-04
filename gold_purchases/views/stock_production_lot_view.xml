@@ -7,14 +7,15 @@
             <field name="inherit_id" ref="stock.view_production_lot_form"/>
             <field name="arch" type="xml">
                 <field name="company_id" position="after">
-                    <field name="gross_weight"/>
-                    <field name="purity"/>
-                    <field name="pure_weight"/>
-                    <field name="remaining_weight" />
-                    <field name="item_category_id"/>
-                    <field name="sub_category_id"/>
-                    <field name="selling_karat_id"/>
-                    <field name="selling_making_charge" widget="monetary"/>
+                    <field name="gross_weight" readonly="1" force_save="1"/>
+                    <field name="purity" readonly="1" force_save="1"/>
+                    <field name="purity_id" readonly="1" force_save="1"/>
+                    <field name="pure_weight" readonly="1" force_save="1"/>
+                    <field name="remaining_weight" readonly="1" force_save="1"/>
+                    <field name="item_category_id" readonly="1" force_save="1"/>
+                    <field name="sub_category_id" readonly="1" force_save="1"/>
+                    <field name="selling_karat_id" readonly="1" force_save="1"/>
+                    <field name="selling_making_charge" widget="monetary" readonly="1" force_save="1"/>
                 </field>
             </field>
         </record>
