@@ -14,7 +14,7 @@ class PurchaseOrder(models.Model):
         total_make_rate = 0
         for line in res.order_line:
             if line.make_rate > 0.00 and line.make_value > 0.00:
-                total_make_rate = total_make_rate + line.make_value
+                total_make_rate += line.make_value
         if total_make_rate > 0:
             make_value_product = self.env['product.product'].search([('is_making_charges','=',True)], limit=1)
             uom = self.env.ref('uom.product_uom_unit')
