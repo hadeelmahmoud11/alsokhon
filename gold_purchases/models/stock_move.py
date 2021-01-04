@@ -124,6 +124,15 @@ class StockMove(models.Model):
 
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        """ Override to handle the "inventory mode" and set the `inventory_quantity`
+        in view list grouped.
+        """
+        if 'purity' in fields:
+            fields.remove('purity')
+        result = super(StockValuationLayer, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
+        return result
 
     @api.onchange('lot_id', 'gross_weight')
     def change_lot(self):
@@ -153,7 +162,18 @@ class StockMoveLine(models.Model):
                                 # related='move_id.gross_weight',
 
     actual_gross_weight = fields.Float(string='Gross Weight', store=True)
-
+    purity_id = fields.Many2one('gold.purity', string="Purity Karat", compute="_compute_purity_id")
+    def _compute_purity_id(self):
+        for this in self:
+            this.purity_id = False
+            if this.product_id and this.product_id.categ_id.is_scrap:
+                purity_id = self.env['gold.purity'].search([('scrap_purity','=',this.purity)])
+                if purity_id:
+                    this.purity_id = purity_id.id
+            elif this.product_id and not this.product_id.categ_id.is_scrap:
+                purity_id = self.env['gold.purity'].search([('purity','=',this.purity)])
+                if purity_id:
+                    this.purity_id = purity_id.id
     purity = fields.Float(related="move_id.purity", string="Purity", store=True)
     pure_weight = fields.Float(compute='get_pure_weight', string="Pure Weight",
                                store=True, digits=(16, 3))
