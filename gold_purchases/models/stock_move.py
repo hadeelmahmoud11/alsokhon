@@ -50,10 +50,6 @@ class StockMove(models.Model):
         :param forced_quantity: under some circunstances, the quantity to value is different than
             the initial demand of the move (Default value = None)
         """
-        print("KJHSJHSDJKADSGDASHJADSGJGADSADAGDAJDGASDGSDAHJ")
-        print("KJHSJHSDJKADSGDASHJADSGJGADSADAGDAJDGASDGSDAHJ")
-        print("KJHSJHSDJKADSGDASHJADSGJGADSADAGDAJDGASDGSDAHJ")
-        print("KJHSJHSDJKADSGDASHJADSGJGADSADAGDAJDGASDGSDAHJ")
         svl_vals_list = []
         for move in self:
             move = move.with_context(force_company=move.company_id.id)
@@ -183,7 +179,6 @@ class StockMoveLine(models.Model):
 
 
     def write(self, vals):
-        print("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWw")
         res = super(StockMoveLine, self).write(vals)
         if vals.get('lot_id', False):
             for move_line in self:
@@ -212,7 +207,6 @@ class StockMoveLine(models.Model):
 
     @api.model
     def create(self, vals):
-        print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
         res = super(StockMoveLine, self).create(vals)
         if vals.get('gross_weight', False):
             if vals.get('move_id'):

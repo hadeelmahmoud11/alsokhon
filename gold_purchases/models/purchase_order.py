@@ -310,7 +310,6 @@ class PurchaseOrderLine(models.Model):
                         'product_attribute_value_id')[0].id or
                     False
             })
-        print(res)
         return res
 
     def _prepare_account_move_line(self, move):
