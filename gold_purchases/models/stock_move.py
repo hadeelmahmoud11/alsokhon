@@ -130,10 +130,18 @@ class StockMoveLine(models.Model):
         if self.lot_id:
             if self.lot_id.product_id and self.lot_id.product_id.categ_id.is_scrap:
                 self.lot_id.write({
+                'gross_weight': 0.0,
+                'purity': 0.0
+                })
+                self.lot_id.write({
                 'gross_weight': self.gross_weight,
                 'purity': self.purity
                 })
             elif self.lot_id.product_id and not self.lot_id.product_id.categ_id.is_scrap:
+                self.lot_id.write({
+                'gross_weight': 0.0,
+                'purity': 0.0
+                })
                 self.lot_id.write({
                 'gross_weight': self.lot_id.gross_weight + self.gross_weight,
                 'purity': self.purity
