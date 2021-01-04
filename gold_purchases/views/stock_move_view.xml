@@ -112,6 +112,9 @@
                     <attribute name="attrs">{'readonly': True}</attribute>
                     <attribute name="force_save">1</attribute>
                 </xpath>
+                <field name="lot_id" position="attributes">
+                  <attributes name="options">{'no_create_edit':True}</attributes>
+                </field>
             </field>
         </record>
 

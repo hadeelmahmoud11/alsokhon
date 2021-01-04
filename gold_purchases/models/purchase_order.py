@@ -179,13 +179,17 @@ class PurchaseOrderLine(models.Model):
                                     })
         return res
 
+    @api.onchange('product_qty')
+    def update_gross(self):
+        if self.product_id and self.product_id.scrap and self.product_qty:
+            self.gross_wt = self.product_qty
     @api.model
     def create(self, vals):
         res = super(PurchaseOrderLine, self).create(vals)
 
         if vals.get('product_id'):
             product_object = self.env['product.product'].browse([vals.get('product_id')])
-            if product_object.gold:
+            if product_object.gold and not product_object.scrap:
                 if not  product_object.making_charge_id.id :
                     raise ValidationError(_('Please fill make value product for this product'))
 
@@ -216,7 +220,7 @@ class PurchaseOrderLine(models.Model):
                 make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
                 product_make_object = self.env['purchase.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
             if rec.product_id.categ_id.is_scrap:
-                rec.pure_wt = rec.product_qty * rec.gross_wt * (rec.purity_id and (
+                rec.pure_wt = rec.gross_wt * (rec.purity_id and (
                         rec.purity_id.scrap_purity / 1000.000) or 0)
             else:
                 rec.pure_wt = rec.product_qty * rec.gross_wt * (rec.purity_id and (
@@ -231,7 +235,10 @@ class PurchaseOrderLine(models.Model):
             rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
             rec.gold_value = rec.gold_rate and (
                     rec.total_pure_weight * rec.gold_rate) or 0
-            rec.total_gross_wt = rec.gross_wt * rec.product_qty
+            if rec.product_id.scrap:
+                rec.total_gross_wt = rec.product_qty
+            else:
+                rec.total_gross_wt = rec.gross_wt * rec.product_qty
 
 
             make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
@@ -279,17 +286,31 @@ class PurchaseOrderLine(models.Model):
 
     def _prepare_stock_moves(self, picking):
         res = super(PurchaseOrderLine, self)._prepare_stock_moves(picking)
-        res and res[0].update({
-            'gross_weight': self.gross_wt * self.product_qty,
-            'pure_weight': self.pure_wt,
-            'purity': self.purity_id.purity or 1,
-            'gold_rate': self.gold_rate,
-            'selling_karat_id':
-                self.product_id.product_template_attribute_value_ids and
-                self.product_id.product_template_attribute_value_ids.mapped(
-                    'product_attribute_value_id')[0].id or
-                False
-        })
+        if self.product_id and self.product_id.scrap:
+            res and res[0].update({
+                'gross_weight': self.gross_wt,
+                'pure_weight': self.pure_wt,
+                'purity': self.purity_id.scrap_purity or 1,
+                'gold_rate': self.gold_rate,
+                'selling_karat_id':
+                    self.product_id.product_template_attribute_value_ids and
+                    self.product_id.product_template_attribute_value_ids.mapped(
+                        'product_attribute_value_id')[0].id or
+                    False
+            })
+        else:
+            res and res[0].update({
+                'gross_weight': self.gross_wt * self.product_qty,
+                'pure_weight': self.pure_wt,
+                'purity': self.purity_id.purity or 1,
+                'gold_rate': self.gold_rate,
+                'selling_karat_id':
+                    self.product_id.product_template_attribute_value_ids and
+                    self.product_id.product_template_attribute_value_ids.mapped(
+                        'product_attribute_value_id')[0].id or
+                    False
+            })
+        print(res)
         return res
 
     def _prepare_account_move_line(self, move):
