@@ -312,10 +312,10 @@ class SaleOrderLine(models.Model):
                 rec.total_gross_wt = rec.gross_wt * rec.product_uom_qty
 
 
-            make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
-            product_basic_line = self.env['sale.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
-            for line in product_basic_line:
-                product_make_object.write({'gold_rate' : 0.00 ,'price_subtotal' : rec.make_value ,'price_unit':rec.make_value})
+            # make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
+            # product_basic_line = self.env['sale.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
+            # for line in product_basic_line:
+            #     product_make_object.write({'gold_rate' : 0.00 ,'price_subtotal' : rec.make_value ,'price_unit':rec.make_value})
 
     @api.depends('product_uom_qty', 'discount', 'price_unit', 'tax_id', 'gross_wt',
                  'purity_id', 'purity_diff', 'make_rate',
