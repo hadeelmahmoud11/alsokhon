@@ -7,7 +7,10 @@
             <field name="inherit_id" ref="stock_account.view_stock_quant_tree_editable_inherit"/>
             <field name="arch" type="xml">
               <field name="value" position="after">
-                  <field name="total_value" readonly="1"/>
+                  <field name="total_value" readonly="1" invisible="1"/>
+              </field>
+              <field name="value" position="attributes">
+                <attribute name="invisible">1</attribute>
               </field>
             </field>
         </record>
