@@ -17,6 +17,56 @@ _logger = logging.getLogger(__name__)
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    @api.model
+    def create(self, values):
+        res = super(SaleOrder, self).create(values)
+        total_make_rate = 0
+        for line in res.order_line:
+            if line.make_rate > 0.00 and line.make_value > 0.00:
+                total_make_rate += line.make_value
+
+        if total_make_rate > 0:
+            make_value_product = self.env['product.product'].search([('is_making_charges','=',True)], limit=1)
+            uom = self.env.ref('uom.product_uom_unit')
+            make = self.env['sale.order.line'].create({
+                                    'product_id': make_value_product.id,
+                                    'name': make_value_product.name,
+                                    'product_uom_qty': 1,
+                                    'price_unit': total_make_rate,
+                                    'product_uom': uom.id,
+                                    'order_id':res.id,
+                                    'date_planned': datetime.today() ,
+                                    'is_make_value': True,
+                                    'price_subtotal': total_make_rate,
+                                })
+        return res
+
+    def write(self, values):
+        res = super(SaleOrder, self).write(values)
+        making_order_line = self.env['sale.order.line'].search([('order_id','=',self.id),('is_make_value','=',True)])
+        if self.state not in  ['done','purchase']:
+            making_order_line.unlink()
+            total_make_rate = 0
+            for line in self.order_line:
+                if line.make_rate > 0.00 and line.make_value > 0.00:
+                    total_make_rate += line.make_value
+
+            if total_make_rate > 0:
+                make_value_product = self.env['product.product'].search([('is_making_charges','=',True)], limit=1)
+                uom = self.env.ref('uom.product_uom_unit')
+                make = self.env['purchase.order.line'].create({
+                                        'product_id': make_value_product.id,
+                                        'name': make_value_product.name,
+                                        'product_uom_qty': 1,
+                                        'price_unit': total_make_rate,
+                                        'product_uom': uom.id,
+                                        'order_id':self.id,
+                                        'date_planned': datetime.today() ,
+                                        'is_make_value': True,
+                                        'price_subtotal': total_make_rate,
+                                    })
+        return res
+
     total_gold_vale_order = fields.Float('Total Gold Value', compute="_compute_total_gold_value_order")
     def _compute_total_gold_value_order(self):
         for this in self:
@@ -170,53 +220,64 @@ class SaleOrderLine(models.Model):
                 raise ValidationError(_('purity hallmark between 1 - 1000'))
 
             rec.purity_diff = ( rec.product_uom_qty * (rec.purity_hall - rec.purity_id.purity)) / 100
+    scrap_state_read = fields.Boolean(compute="_compute_scrap_state_read")
+    @api.onchange('product_id')
+    def _compute_scrap_state_read(self):
+        for this in self:
+            if this.product_id and this.product_id.categ_id.is_scrap:
+                this.scrap_state_read = True
+            elif this.product_id and not this.product_id.categ_id.is_scrap:
+                this.scrap_state_read = False
+    # def write(self, vals):
+    #     res = super(SaleOrderLine, self).write(vals)
+    #     if vals.get('make_rate'):
+    #         if vals.get('make_rate') > 0.00 and len(self.order_id.order_line) == 1 :
+    #             product_object = self.env['product.product'].browse([self.product_id.id])
+    #             make_value_product = product_object.making_charge_id
+    #             uom = self.env.ref('uom.product_uom_unit')
+    #             make = self.env['sale.order.line'].create({
+    #                                     'product_id': make_value_product.id,
+    #                                     'name': make_value_product.name,
+    #                                     'product_uom_qty': 1,
+    #                                     'price_unit': 0.00,
+    #                                     'product_uom': uom.id,
+    #                                     'order_id':self.order_id.id,
+    #                                     # 'date_planned': datetime.today() ,
+    #                                     'is_make_value': True,
+    #                                     'price_subtotal': 0.00,
+    #                                 })
+    #     return res
+    #
+    # @api.model
+    # def create(self, vals):
+    #     res = super(SaleOrderLine, self).create(vals)
+    #
+    #     if vals.get('product_id'):
+    #         product_object = self.env['product.product'].browse([vals.get('product_id')])
+    #         if product_object.gold:
+    #             if not  product_object.making_charge_id.id :
+    #                 raise ValidationError(_('Please fill make value product for this product'))
+    #
+    #             make_value_product = product_object.making_charge_id
+    #             uom = self.env.ref('uom.product_uom_unit')
+    #             if vals.get('make_rate') > 0.00:
+    #                 make = self.env['sale.order.line'].create({
+    #                                     'product_id': make_value_product.id,
+    #                                     'name': make_value_product.name,
+    #                                     'product_uom_qty': 1,
+    #                                     'price_unit': 0.00,
+    #                                     'product_uom': uom.id,
+    #                                     'order_id': vals.get('order_id'),
+    #                                     # 'date_order': datetime.today() ,
+    #                                     'is_make_value': True,
+    #                                     'price_subtotal': 0.00,
+    #                                 })
+    #     return res
 
-    def write(self, vals):
-        res = super(SaleOrderLine, self).write(vals)
-        if vals.get('make_rate'):
-            if vals.get('make_rate') > 0.00 and len(self.order_id.order_line) == 1 :
-                product_object = self.env['product.product'].browse([self.product_id.id])
-                make_value_product = product_object.making_charge_id
-                uom = self.env.ref('uom.product_uom_unit')
-                make = self.env['sale.order.line'].create({
-                                        'product_id': make_value_product.id,
-                                        'name': make_value_product.name,
-                                        'product_uom_qty': 1,
-                                        'price_unit': 0.00,
-                                        'product_uom': uom.id,
-                                        'order_id':self.order_id.id,
-                                        # 'date_planned': datetime.today() ,
-                                        'is_make_value': True,
-                                        'price_subtotal': 0.00,
-                                    })
-        return res
-
-    @api.model
-    def create(self, vals):
-        res = super(SaleOrderLine, self).create(vals)
-
-        if vals.get('product_id'):
-            product_object = self.env['product.product'].browse([vals.get('product_id')])
-            if product_object.gold:
-                if not  product_object.making_charge_id.id :
-                    raise ValidationError(_('Please fill make value product for this product'))
-
-                make_value_product = product_object.making_charge_id
-                uom = self.env.ref('uom.product_uom_unit')
-                if vals.get('make_rate') > 0.00:
-                    make = self.env['sale.order.line'].create({
-                                        'product_id': make_value_product.id,
-                                        'name': make_value_product.name,
-                                        'product_uom_qty': 1,
-                                        'price_unit': 0.00,
-                                        'product_uom': uom.id,
-                                        'order_id': vals.get('order_id'),
-                                        # 'date_order': datetime.today() ,
-                                        'is_make_value': True,
-                                        'price_subtotal': 0.00,
-                                    })
-        return res
-
+    @api.onchange('product_qty')
+    def update_gross(self):
+        if self.product_id and self.product_id.categ_id.is_scrap and self.product_qty:
+            self.gross_wt = self.product_uom_qty
 
 
     @api.depends('product_id', 'product_uom_qty', 'price_unit', 'gross_wt',
@@ -224,23 +285,31 @@ class SaleOrderLine(models.Model):
                  'order_id', 'order_id.order_type', 'order_id.currency_id')
     def _get_gold_rate(self):
         for rec in self:
-            if rec.product_id.making_charge_id.id:
-                make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
-                product_make_object = self.env['sale.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
-
-            rec.pure_wt = rec.product_uom_qty * rec.gross_wt * (rec.purity_id and (
-                    rec.purity_id.purity / 1000.000) or 0)
+            # if rec.product_id.making_charge_id.id:
+            #     make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
+            #     product_make_object = self.env['sale.order.line'].search([('order_id','=',rec.order_id.id),('product_id','=',make_value_product.id)])
+            if rec.product_id.categ_id.is_scrap:
+                rec.pure_wt = rec.gross_wt * (rec.purity_id and (
+                        rec.purity_id.scrap_purity / 1000.000) or 0)
+            else:
+                rec.pure_wt = rec.product_uom_qty * rec.gross_wt * (rec.purity_id and (
+                        rec.purity_id.purity / 1000.000) or 0)
             rec.total_pure_weight = rec.pure_wt + rec.purity_diff
             # NEED TO ADD PURITY DIFF + rec.purity_diff
             new_pure_wt = rec.pure_wt + rec.purity_diff
             # rec.stock = (rec.product_id and rec.product_id.available_gold or
             #              0.00) + new_pure_wt
-
-            rec.make_value = rec.product_uom_qty * rec.gross_wt * rec.make_rate
+            if rec.product_id.categ_id.is_scrap:
+                rec.make_value = rec.gross_wt * rec.make_rate
+            else:
+                rec.make_value = rec.product_uom_qty * rec.gross_wt * rec.make_rate
             rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
             rec.gold_value = rec.gold_rate and (
                     rec.total_pure_weight * rec.gold_rate) or 0
-            rec.total_gross_wt = rec.gross_wt * rec.product_uom_qty
+            if rec.product_id.categ_id.is_scrap:
+                rec.total_gross_wt = rec.product_uom_qty
+            else:
+                rec.total_gross_wt = rec.gross_wt * rec.product_uom_qty
 
 
             make_value_product = self.env['product.product'].browse([rec.product_id.making_charge_id.id])
