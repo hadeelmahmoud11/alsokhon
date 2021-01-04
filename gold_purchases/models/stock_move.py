@@ -131,7 +131,7 @@ class StockMoveLine(models.Model):
         """
         if 'purity' in fields:
             fields.remove('purity')
-        result = super(StockValuationLayer, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
+        result = super(StockMoveLine, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
         return result
 
     @api.onchange('lot_id', 'gross_weight')
