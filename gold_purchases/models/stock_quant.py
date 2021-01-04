@@ -14,6 +14,18 @@ class StockQuant(models.Model):
     move_line_id = fields.Many2one(comodel_name="stock.move.line",
                                    compute="_compute_move_line_values",
                                    string="Move Line", )
+    purity_id = fields.Many2one('gold.purity', string="Purity Karat", compute="_compute_purity_id")
+    def _compute_purity_id(self):
+        for this in self:
+            this.purity_id = False
+            if this.product_id and this.product_id.categ_id.is_scrap:
+                purity_id = self.env['gold.purity'].search([('scrap_purity','=',this.purity)])
+                if purity_id:
+                    this.purity_id = purity_id.id
+            elif this.product_id and not this.product_id.categ_id.is_scrap:
+                purity_id = self.env['gold.purity'].search([('purity','=',this.purity)])
+                if purity_id:
+                    this.purity_id = purity_id.id
     gross_weight = fields.Float(compute="_compute_move_line_values",
                                 string='Gross Weight', )
     purity = fields.Float(string="Purity",
@@ -164,6 +176,3 @@ class StockQuant(models.Model):
         if ids:
             return [('id', 'in', ids)]
         return []
-
-
-

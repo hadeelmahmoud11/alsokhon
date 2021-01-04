@@ -21,6 +21,7 @@
             <xpath expr="//field[@name='product_uom_id']" position="after">
                 <field name="gross_weight"/>
                 <field name="pure_weight"/>
+                <field name="purity_id" readonly="1" force_save="1"/>
                 <field name="purity"/>
                 <field name="item_category_id"/>
                 <field name="sub_category_id"/>
