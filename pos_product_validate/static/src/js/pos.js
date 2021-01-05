@@ -15,7 +15,7 @@ odoo.define('pos_product_validate.pos', function(require){
 
 
     models.load_fields('product.product',['qty_available']);
-    var exports = {};
+    // var exports = {};
 
 
     screens.PaymentScreenWidget.include({
@@ -159,10 +159,12 @@ odoo.define('pos_product_validate.pos', function(require){
           var all = $('.product');
           $.each(all, function(index, value) {
             var product_id = $(value).data('product-id');
+            var product = self.pos.db.get_product_by_id(product_id)
             for (var i = 0; i < output.length; i++) {
               if(product_id == output[i].id ){
                 var product_qty = output[i].qty_available;
-                $(value).find('#availqty').html(product_qty);
+                // console.log(typeof(product_qty+""),product.uom_id[1]);
+                $(value).find('#availqty').html(product_qty+" "+product.uom_id[1]);
                 break;
               }
             }
@@ -171,8 +173,58 @@ odoo.define('pos_product_validate.pos', function(require){
       },
   	});
 
+    screens.ProductListWidget.include({
 
-    return exports;
+      renderElement: function() {
+          var el_str  = QWeb.render(this.template, {widget: this});
+          var el_node = document.createElement('div');
+              el_node.innerHTML = el_str;
+              el_node = el_node.childNodes[1];
+          if(this.el && this.el.parentNode){
+              this.el.parentNode.replaceChild(el_node,this.el);
+          }
+          this.el = el_node;
+          var list_container = el_node.querySelector('.product-list');
+          // console.log("((this.product_lsadasdasdasdsist))");
+          // console.log(this.product_list);
+          for(var i = 0, len = this.product_list.length; i < len; i++){
+              var product_node = this.render_product(this.product_list[i]);
+              var product_qty_available = this.product_list[i].qty_available;
+              if(product_qty_available<1){
+                continue;
+              }
+              product_node.addEventListener('click',this.click_product_handler);
+              product_node.addEventListener('keypress',this.keypress_product_handler);
+              list_container.appendChild(product_node);
+          }
+      },
+
+  	});
+
+
+    screens.ClientListScreenWidget.include({
+      save_changes: function(){
+          var order = this.pos.get_order();
+          if( this.has_client_changed() ){
+              var default_fiscal_position_id = _.findWhere(this.pos.fiscal_positions, {'id': this.pos.config.default_fiscal_position_id[0]});
+              if ( this.new_client ) {
+                  var client_fiscal_position_id;
+                  if (this.new_client.property_account_position_id ){
+                      client_fiscal_position_id = _.findWhere(this.pos.fiscal_positions, {'id': this.new_client.property_account_position_id[0]});
+                  }
+                  order.fiscal_position = client_fiscal_position_id || default_fiscal_position_id;
+                  // order.set_pricelist(_.findWhere(this.pos.pricelists, {'id': this.new_client.property_product_pricelist[0]}) || this.pos.default_pricelist);
+              } else {
+                  order.fiscal_position = default_fiscal_position_id;
+                  // order.set_pricelist(this.pos.default_pricelist);
+              }
+              order.set_client(this.new_client);
+          }
+      },
+  	});
+
+
+    // return exports;
 
 
 

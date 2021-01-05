@@ -180,7 +180,7 @@ odoo.define('pos_lot_select.pos', function(require){
 
           show: function(options){
               var self = this;
-              self.get_pos_lots();
+              // self.get_pos_lots();
               var product_lots =  self.pos.list_lot_num;
               var product_lot = []
               product_lots.forEach(function(lot) {
