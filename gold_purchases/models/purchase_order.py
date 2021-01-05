@@ -287,8 +287,8 @@ class PurchaseOrderLine(models.Model):
             rec.total_pure_weight = rec.pure_wt + rec.purity_diff
             # NEED TO ADD PURITY DIFF + rec.purity_diff
             new_pure_wt = rec.pure_wt + rec.purity_diff
-            rec.stock = (rec.product_id and rec.product_id.available_gold or
-                         0.00) + new_pure_wt
+            # rec.stock = (rec.product_id and rec.product_id.available_gold or
+            #              0.00) + new_pure_wt
             if rec.product_id.categ_id.is_scrap:
                 rec.make_value = rec.gross_wt * rec.make_rate
             else:
