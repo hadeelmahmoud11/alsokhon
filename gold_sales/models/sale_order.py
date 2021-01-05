@@ -174,8 +174,7 @@ class SaleOrderLine(models.Model):
     def _get_gold_stock(self):
         for this in self:
             if this.product_id:
-                location = self.env['stock.location'].search([('usage','=','internal')])
-                quants = self.env['stock.quant'].search([('product_id','=',this.product_id.id),('location_id','=',location[0].id)])
+                quants = self.env['stock.quant'].search([('product_id','=',this.product_id.id),('location_id','=',8)])
                 total = 0.0
                 for quant in quants:
                     # print(quant.lot_id.name)
