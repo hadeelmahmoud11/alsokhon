@@ -6,7 +6,7 @@ from odoo.exceptions import ValidationError
 class ProductProduct(models.Model):
     _inherit = "product.product"
 
-    available_gold = fields.Float('Available Gold', digits=(16, 3), compute="compute_available_gold")
+    available_gold = fields.Float('Available Gold', digits=(16, 3))
 
     def compute_available_gold(self):
         stock_move_line_env = self.env['stock.move.line']
