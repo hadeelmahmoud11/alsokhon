@@ -217,8 +217,8 @@ class PurchaseOrderLine(models.Model):
         for rec in self:
             if rec.purity_hall > 1000 or rec.purity_hall < 0.00 :
                 raise ValidationError(_('purity hallmark between 1 - 1000'))
-
-            rec.purity_diff = ( rec.product_qty * (rec.purity_hall - rec.purity_id.purity)) / 100
+            if rec.purity_hall:
+                rec.purity_diff = ( rec.product_qty * (rec.purity_hall - rec.purity_id.purity)) / 100
 
     # def write(self, vals):
     #     res = super(PurchaseOrderLine, self).write(vals)

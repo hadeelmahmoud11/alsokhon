@@ -217,8 +217,9 @@ class SaleOrderLine(models.Model):
         for rec in self:
             if rec.purity_hall > 1000 or rec.purity_hall < 0.00 :
                 raise ValidationError(_('purity hallmark between 1 - 1000'))
+            if rec.purity_hall:
+                rec.purity_diff = ( rec.product_uom_qty * (rec.purity_hall - rec.purity_id.purity)) / 100
 
-            rec.purity_diff = ( rec.product_uom_qty * (rec.purity_hall - rec.purity_id.purity)) / 100
     scrap_state_read = fields.Boolean(compute="_compute_scrap_state_read")
     @api.onchange('product_id')
     def _compute_scrap_state_read(self):
