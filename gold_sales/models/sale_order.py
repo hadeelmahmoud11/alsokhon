@@ -152,6 +152,10 @@ class SaleOrderLine(models.Model):
     @api.onchange('lot_id')
     def _get_making(self):
         if self.lot_id and self.product_id:
+            if self.product_id.categ_id.is_scrap:
+                self.product_uom_qty = self.lot_id.product_qty
+            if not self.product_id.categ_id.is_scrap:
+                self.purity_id = self.lot_id.purity_id.id
             self.make_rate = self.lot_id.selling_making_charge
             self.price_unit = 0
             # print(self.lot_id.gross_weight)
