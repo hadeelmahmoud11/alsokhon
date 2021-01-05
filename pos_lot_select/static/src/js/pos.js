@@ -324,19 +324,21 @@ odoo.define('pos_lot_select.pos', function(require){
                 if (lot.name == selected_lot)
                 {
                   var order_line = self.options.order_line
-                  var product = self.pos.db.get_product_by_id(self.options.order_line.product.making_charge_id[0]);
-                  // console.log("product");
-                  // console.log(product);
-                  // console.log(lot);
-
                   self.change_price(self.pos.config.gold_rate,lot.pure_weight)
-                  // console.log("hjfghf");
-                  // console.log(product);
-                  // console.log(order_line.quantity * lot.gross_weight * lot.selling_making_charge);
-                  self.options.order.add_product(product, {
-                    quantity: 1,
-                    price: order_line.quantity * lot.gross_weight * lot.selling_making_charge,
-                  });
+                  if(self.options.order_line.product.making_charge_id){
+                    var product = self.pos.db.get_product_by_id(self.options.order_line.product.making_charge_id[0]);
+                    // console.log("product");
+                    // console.log(product);
+                    // console.log(lot);
+
+                    // console.log("hjfghf");
+                    // console.log(product);
+                    // console.log(order_line.quantity * lot.gross_weight * lot.selling_making_charge);
+                    self.options.order.add_product(product, {
+                      quantity: 1,
+                      price: order_line.quantity * lot.gross_weight * lot.selling_making_charge,
+                    });
+                  }
                 }
                 // order_ids.push(order.id)
                 // self.pos.db.get_orders_by_id[order.id] = order;
