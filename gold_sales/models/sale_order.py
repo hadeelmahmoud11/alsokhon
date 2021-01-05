@@ -587,13 +587,13 @@ class SaleOrderLine(models.Model):
             res['account_id'] = False
         return res
 
-class stock_move(models.Model):
-    _inherit='stock.move'
-
-    def _create_out_svl(self):
-        res = super(stock_move,self)._create_out_svl()
-        res.stock_move_id.sale_line_id.received_gross_wt = res.stock_move_id.sale_line_id.received_gross_wt + res.stock_move_id.gross_weight
-        return res
+# class stock_move(models.Model):
+#     _inherit='stock.move'
+#
+#     def _create_out_svl(self):
+#         res = super(stock_move,self)._create_out_svl()
+#         res.stock_move_id.sale_line_id.received_gross_wt = res.stock_move_id.sale_line_id.received_gross_wt + res.stock_move_id.gross_weight
+#         return res
 
 class StockRule(models.Model):
     _inherit = 'stock.rule'
