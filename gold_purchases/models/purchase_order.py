@@ -173,18 +173,19 @@ class PurchaseOrderLine(models.Model):
     total_pure_weight = fields.Float('Pure Weight', compute='_get_gold_rate',
                                      digits=(16, 3))
 
-    def _get_gold_stock(self):
-        for this in self:
-            if this.product_id:
-                location = self.env['stock.location'].search([('usage','=','internal')])
-                quants = self.env['stock.quant'].search([('product_id','=',this.product_id.id),('location_id','=',location[0].id)])
-                total = 0.0
-                for quant in quants:
-                    # print(quant.lot_id.name)
-                    # print(quant.inventory_quantity)
-                    total = total + quant.inventory_quantity
-                this.stock = total
-    stock = fields.Float('Stock', compute='_get_gold_stock', digits=(16, 3))
+    # def _get_gold_stock(self):
+    #     for this in self:
+    #         if this.product_id:
+    #             location = self.env['stock.location'].search([('usage','=','internal')])
+    #             quants = self.env['stock.quant'].search([('product_id','=',this.product_id.id),('location_id','=',location[0].id)])
+    #             total = 0.0
+    #             for quant in quants:
+    #                 # print(quant.lot_id.name)
+    #                 # print(quant.inventory_quantity)
+    #                 total = total + quant.inventory_quantity
+    #             this.stock = total
+    # , compute='_get_gold_stock'
+    stock = fields.Float('Stock', digits=(16, 3))
     make_rate = fields.Monetary('Make Rate/G', digits=(16, 3))
     make_value = fields.Monetary('Make Value', compute='_get_gold_rate',
                                  digits=(16, 3))
@@ -287,8 +288,8 @@ class PurchaseOrderLine(models.Model):
             rec.total_pure_weight = rec.pure_wt + rec.purity_diff
             # NEED TO ADD PURITY DIFF + rec.purity_diff
             new_pure_wt = rec.pure_wt + rec.purity_diff
-            # rec.stock = (rec.product_id and rec.product_id.available_gold or
-            #              0.00) + new_pure_wt
+            rec.stock = (rec.product_id and rec.product_id.available_gold or
+                         0.00) + new_pure_wt
             if rec.product_id.categ_id.is_scrap:
                 rec.make_value = rec.gross_wt * rec.make_rate
             else:
