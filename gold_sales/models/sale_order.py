@@ -35,7 +35,7 @@ class SaleOrder(models.Model):
                                     'price_unit': total_make_rate,
                                     'product_uom': uom.id,
                                     'order_id':res.id,
-                                    'date_planned': datetime.today() ,
+                                    # 'date_planned': datetime.today() ,
                                     'is_make_value': True,
                                     'price_subtotal': total_make_rate,
                                 })
@@ -61,7 +61,7 @@ class SaleOrder(models.Model):
                                         'price_unit': total_make_rate,
                                         'product_uom': uom.id,
                                         'order_id':self.id,
-                                        'date_planned': datetime.today() ,
+                                        # 'date_planned': datetime.today() ,
                                         'is_make_value': True,
                                         'price_subtotal': total_make_rate,
                                     })
