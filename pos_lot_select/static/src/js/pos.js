@@ -240,7 +240,8 @@ odoo.define('pos_lot_select.pos', function(require){
                   var pure_weight= $(this).closest("tr").find("#pure_weight")[0].innerText;
                   var gross_weight= $(this).closest("tr").find("#gross_weight")[0].innerText;
                   var purity_id= $(this).closest("tr").find("#purity_id")[0].innerText;
-                  var gold_rate= $(this).closest("tr").find("#gold_rate")[0].innerText;
+                  var gold_rate= self.pos.config.gold_rate;
+                  // var gold_rate= $(this).closest("tr").find("#gold_rate")[0].innerText;
 
                   for(var i=0;i<lot_count;i++){
                       var lot = $(this).data("lot");
@@ -328,7 +329,7 @@ odoo.define('pos_lot_select.pos', function(require){
                   // console.log(product);
                   // console.log(lot);
 
-                  self.change_price(lot.gold_rate,lot.pure_weight)
+                  self.change_price(self.pos.config.gold_rate,lot.pure_weight)
                   // console.log("hjfghf");
                   // console.log(product);
                   // console.log(order_line.quantity * lot.gross_weight * lot.selling_making_charge);
