@@ -274,7 +274,7 @@ class SaleOrderLine(models.Model):
     #                                 })
     #     return res
 
-    @api.onchange('product_qty')
+    @api.onchange('product_uom_qty')
     def update_gross(self):
         if self.product_id and self.product_id.categ_id.is_scrap and self.product_uom_qty:
             self.gross_wt = self.product_uom_qty
