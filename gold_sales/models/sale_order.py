@@ -44,7 +44,7 @@ class SaleOrder(models.Model):
     def write(self, values):
         res = super(SaleOrder, self).write(values)
         making_order_line = self.env['sale.order.line'].search([('order_id','=',self.id),('is_make_value','=',True)])
-        if self.state not in  ['done','purchase']:
+        if self.state not in  ['done','sale']:
             making_order_line.unlink()
             total_make_rate = 0
             for line in self.order_line:
