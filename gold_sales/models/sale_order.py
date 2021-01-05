@@ -154,8 +154,7 @@ class SaleOrderLine(models.Model):
         if self.lot_id and self.product_id:
             if self.product_id.categ_id.is_scrap:
                 self.product_uom_qty = self.lot_id.product_qty
-            if not self.product_id.categ_id.is_scrap:
-                self.purity_id = self.lot_id.purity_id.id
+            self.purity_id = self.lot_id.purity_id.id
             self.make_rate = self.lot_id.selling_making_charge
             self.price_unit = 0
             # print(self.lot_id.gross_weight)
@@ -232,6 +231,9 @@ class SaleOrderLine(models.Model):
                 this.scrap_state_read = True
             elif this.product_id and not this.product_id.categ_id.is_scrap:
                 this.scrap_state_read = False
+            else:
+                this.scrap_state_read = False
+
     # def write(self, vals):
     #     res = super(SaleOrderLine, self).write(vals)
     #     if vals.get('make_rate'):
