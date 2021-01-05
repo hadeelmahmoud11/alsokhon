@@ -6,6 +6,7 @@ odoo.define('pos_lot_select.pos', function(require){
       var PopupWidget = require('point_of_sale.popups');
       var QWeb = core.qweb;
       var chrome = require("point_of_sale.chrome");
+      var rpc = require('web.rpc');
       var PosBaseWidget = require('point_of_sale.BaseWidget');
 
       models.load_fields('product.product',['making_charge_id']);
@@ -22,9 +23,26 @@ odoo.define('pos_lot_select.pos', function(require){
               }
           },
           loaded: function(self,list_lot_num){
+            // console.log(list_lot_num);
               self.list_lot_num = list_lot_num;
           },
       });
+
+
+
+      // models.Packlotline = models.Packlotline.extend({
+      //   export_as_JSON: function(){
+      //     console.log("sadasdasdasdfe");
+      //       return {
+      //           id: this.id,
+      //           lot_name: this.get_lot_name(),
+      //       };
+      //   },
+      //
+      // });
+
+
+
 
       var PacklotlineCollection2 = Backbone.Collection.extend({
           model: models.Packlotline,
@@ -45,6 +63,7 @@ odoo.define('pos_lot_select.pos', function(require){
                   return model.get('lot_name');
               });
           },
+
 
           set_quantity_by_lot: function() {
               if (this.order_line.product.tracking == 'serial' || this.order_line.product.tracking == 'lot') {
@@ -124,22 +143,57 @@ odoo.define('pos_lot_select.pos', function(require){
               'keydown': 'add_lot',
               'blur .packlot-line-input': 'lose_input_focus'
           }),
+          get_lots_fields: function () {
+      			var fields = [];
+      			return fields;
+      		},
+          get_lots_domain: function(){
+            var self = this;
+            var from = moment(new Date()).subtract(self.pos.config.lot_expire_days,'d').format('YYYY-MM-DD')+" 00:00:00";
+            if(self.pos.config.allow_pos_lot){
+                return ['&',['create_date','>=',from],['product_qty','>',0]];
+            }
+            else{
+                return [['id','=',0]];
+            }
+            // return [['product_qty', '>', 0]];
+          },
+          get_pos_lots: function () {
+      			var self = this;
+            var product_lot = [];
+            var fields = self.get_lots_fields();
+            var lot_domain = self.get_lots_domain();
+            rpc.query({
+                model: 'stock.production.lot',
+                method: 'search_read',
+                args: [lot_domain,fields],
+            }, {async: true}).then(function(output) {
+              output.forEach(function(lot) {
+                  product_lot.push(lot);
+                  self.pos.set({'list_lot_num' : product_lot});
+              });
+            });
+      		},
+
+
+
 
           show: function(options){
               var self = this;
-              var product_lot = [];
-              var lot_list = self.pos.list_lot_num;
-              // console.log(lot_list);
-              for(var i=0;i<lot_list.length;i++){
-                  if(lot_list[i].product_id[0] == options.pack_lot_lines.order_line.product.id){
-                      product_lot.push(lot_list[i]);
+              self.get_pos_lots();
+              var product_lots =  self.pos.list_lot_num;
+              var product_lot = []
+              product_lots.forEach(function(lot) {
+                  if(lot.product_id[0] == options.pack_lot_lines.order_line.product.id && lot.total_qty>0){
+                    product_lot.push(lot);
                   }
-              }
+              });
+
               // self.render_list_lots(product_lot,undefined);
               options.qstr = "";
               options.product_lot = product_lot;
               this._super(options);
-              this.focus();
+              // this.focus();
           },
           render_list_lots: function(lots, search_input){
       			var self = this;
@@ -155,7 +209,7 @@ odoo.define('pos_lot_select.pos', function(require){
       			if(lots){
       				for(var i = 0, len = Math.min(lots.length,1000); i < len; i++){
       					var lot    = lots[i];
-                console.log(lot);
+                // console.log(lot);
       					// current_date =  field_utils.format.datetime(moment(order.date_order), {type: 'datetime'});
       					// var ordersline_html = QWeb.render('OrdersLine',{widget: this, order:orders[i], selected_partner_id: orders[i].partner_id[0],current_date:current_date});
       					// var ordersline = document.createElement('tbody');
@@ -171,6 +225,7 @@ odoo.define('pos_lot_select.pos', function(require){
           renderElement:function(){
               this._super();
               var self = this;
+              // console.log(self.pos);
               $.fn.setCursorToTextEnd = function() {
                   $initialVal = this.val();
                   this.val($initialVal + ' ');
@@ -267,6 +322,9 @@ odoo.define('pos_lot_select.pos', function(require){
                 {
                   var order_line = self.options.order_line
                   var product = self.pos.db.get_product_by_id(self.options.order_line.product.making_charge_id[0]);
+                  // console.log("product");
+                  // console.log(product);
+                  // console.log(lot);
 
                   self.change_price(lot.gold_rate,lot.pure_weight)
                   // console.log("hjfghf");
