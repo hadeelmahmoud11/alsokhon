@@ -18,7 +18,8 @@ class pos_order_line(models.Model):
         if line[2].get('pack_lot_ids'):
             lot_name = line[2].get('pack_lot_ids')[0][2]['lot_name']
             if lot_name:
-                lot = self.env['stock.production.lot'].search([('name','=',lot_name)])
+
+                lot = self.env['stock.production.lot'].search([('name','=',lot_name),('product_id','=',line[2]['product_id'])])
                 if lot:
                     line[2]['gross_weight'] = lot.gross_weight
                     line[2]['purity_id'] = lot.purity_id.id

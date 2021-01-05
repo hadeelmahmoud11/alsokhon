@@ -259,6 +259,8 @@ odoo.define('pos_lot_select.pos', function(require){
                               lot_name = $input.val();
 
                           var lot_model = pack_lot_lines.get({cid: cid});
+                          // console.log("(((lot_model)))");
+                          // console.log(lot_model);
 
                           lot_model.set_lot_name(lot_name);
                           if(!pack_lot_lines.get_empty_model()){
