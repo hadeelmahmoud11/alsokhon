@@ -177,7 +177,7 @@ class PurchaseOrderLine(models.Model):
         for this in self:
             if this.product_id and this.purity_id:
                 location = self.env['stock.location'].search([('usage','=','internal')])
-                quants = self.env['stock.quant'].search([('product_id','=',this.product_id.id),('location_id','=',location[0].id)])
+                quants = self.env['stock.quant'].search([('product_id','=',this.product_id.id),('location_id','=',location.id)])
                 total = 0.0
                 for quant in quants:
                     # print(quant.lot_id.name)
