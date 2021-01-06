@@ -68,6 +68,9 @@ odoo.define('pos_lot_select.pos', function(require){
           set_quantity_by_lot: function() {
               if (this.order_line.product.tracking == 'serial' || this.order_line.product.tracking == 'lot') {
                   var valid_lots = this.get_valid_lots();
+                  console.log("OOOOO");
+                  console.log(this);
+                  console.log(this.order_line);
                   this.order_line.set_quantity(valid_lots.length);
               }
           }
@@ -109,7 +112,7 @@ odoo.define('pos_lot_select.pos', function(require){
               }
 
               return lots_required;
-      },
+          },
 
 
       });
@@ -243,7 +246,7 @@ odoo.define('pos_lot_select.pos', function(require){
                   var gold_rate= self.pos.config.gold_rate;
                   // var gold_rate= $(this).closest("tr").find("#gold_rate")[0].innerText;
 
-                  for(var i=0;i<lot_count;i++){
+                  // for(var i=0;i<lot_count;i++){
                       var lot = $(this).data("lot");
 
                       var input_box;
@@ -252,28 +255,35 @@ odoo.define('pos_lot_select.pos', function(require){
                               input_box = $(el)
 
                       });
+                      console.log("input_box");
+                      console.log(self.options);
+                      console.log(self.options.pack_lot_lines);
                       if(input_box != undefined){
                           input_box.val(lot);
                           var pack_lot_lines = self.options.pack_lot_lines,
                               $input = input_box,
                               cid = $input.attr('cid'),
                               lot_name = $input.val();
+                          console.log(pack_lot_lines);
 
                           var lot_model = pack_lot_lines.get({cid: cid});
-                          // console.log("(((lot_model)))");
-                          // console.log(lot_model);
+                          console.log("(((lot_model)))");
+                          console.log(lot_model);
+                          lot_model.quantity=parseInt(lot_count);
+                          console.log(lot_model);
 
                           lot_model.set_lot_name(lot_name);
                           if(!pack_lot_lines.get_empty_model()){
                               var new_lot_model = lot_model.add();
                               self.focus_model = new_lot_model;
                           }
-                          pack_lot_lines.set_quantity_by_lot();
+                          pack_lot_lines.order_line.set_quantity(parseInt(lot_count));
+                          // pack_lot_lines.set_quantity_by_lot();
                           self.change_price(gold_rate,pure_weight);
                           self.renderElement();
                           self.focus();
                       }
-                  }
+                  // }
               });
 
               $(".search_lot").keyup(function(){
@@ -308,6 +318,8 @@ odoo.define('pos_lot_select.pos', function(require){
                   pack_line.set_lot_name(lot_name);
 
               });
+              console.log("pack_lot_lines");
+              console.log(pack_lot_lines);
               // selected_lot = this.options.order_line.pack_lot_lines.models[0].attributes.lot_name;
               // this.options.product_lot.forEach(function(lot) {
               //   if (lot.name == selected_lot)
@@ -318,7 +330,7 @@ odoo.define('pos_lot_select.pos', function(require){
               // 	// self.pos.db.get_orders_by_id[order.id] = order;
               // });
               pack_lot_lines.remove_empty_model();
-              pack_lot_lines.set_quantity_by_lot();
+              // pack_lot_lines.set_quantity_by_lot();
               var selected_lot = this.options.order_line.pack_lot_lines.models[0].attributes.lot_name;
               this.options.product_lot.forEach(function(lot) {
                 if (lot.name == selected_lot)
@@ -374,7 +386,7 @@ odoo.define('pos_lot_select.pos', function(require){
                       var new_lot_model = lot_model.add();
                       this.focus_model = new_lot_model;
                   }
-                  pack_lot_lines.set_quantity_by_lot();
+                  // pack_lot_lines.set_quantity_by_lot();
                   this.renderElement();
                   this.focus();
               }
@@ -386,7 +398,8 @@ odoo.define('pos_lot_select.pos', function(require){
                   cid = $input.attr('cid');
               var lot_model = pack_lot_lines.get({cid: cid});
               lot_model.remove();
-              pack_lot_lines.set_quantity_by_lot();
+              pack_lot_lines.order_line.set_quantity(0)
+              // pack_lot_lines.set_quantity_by_lot();
               this.renderElement();
           },
 
