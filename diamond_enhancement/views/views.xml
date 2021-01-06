@@ -37,5 +37,24 @@
 -->
       </field>
     </record> 
+	<record id="diamond_enhancement_lot" model="ir.ui.view">
+      <field name="name">stock.production.lot.form.diamond.inherit</field>
+      <field name="model">stock.production.lot</field>
+      <field name="inherit_id" ref="stock.view_production_lot_form"/>
+      <field name="arch" type="xml">
+          <field name="company_id" position="after">
+<!--             
+			 <field name="gross_weight" readonly="0"/>
+              <field name="pure_weight" readonly="1"/>
+              <field name="purity_id" readonly="1" force_save="1"/>
+              <field name="purity" readonly="1"/>
+              <field name="item_category_id"/>
+              <field name="sub_category_id" attrs="{'invisible': [('item_category_id','=', False)]}"
+                     domain="[('parent_category_id', '=', item_category_id)]"/> -->
+              <field name="selling_karat_id" readonly="1"/>
+              <field name="selling_making_charge"/>
+          </field>
+      </field>
+    </record> 
   </data>
 </odoo>

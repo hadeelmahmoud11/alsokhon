@@ -7,11 +7,11 @@ from odoo.tools import float_compare, float_round, float_is_zero
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
-    carat = fields.Float('Carat')
-    carat_wt = fields.Float('Carat Wt')
+    carat = fields.Float('Diamond Carat')
+    carat_wt = fields.Float('Diamond Wt')
 
 class StockProductionLot(models.Model):
     _inherit = 'stock.production.lot'
 
-    carat = fields.Float('Carat')
-    carat_wt = fields.Float('Carat Wt')
+    carat = fields.Float('Diamond Carat')
+    carat_wt = fields.Float('Diamond Carat Wt')
