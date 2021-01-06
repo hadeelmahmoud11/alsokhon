@@ -120,6 +120,7 @@ odoo.define('pos_lot_select.pos', function(require){
               }
               var valid_product_lot = this.pack_lot_lines.get_valid_lots();
               if (this.pack_lot_lines.models[0]) {
+                console.log( this.get_required_number_of_lots(), this.pack_lot_lines.models[0].quantity);
                 return this.get_required_number_of_lots() === this.pack_lot_lines.models[0].quantity;
               }
               return false;
@@ -267,8 +268,8 @@ odoo.define('pos_lot_select.pos', function(require){
                               input_box = $(el)
 
                       });
-                      // console.log("input_box");
-                      // console.log(self.options);
+                      console.log("input_box");
+                      console.log(self.options);
                       // console.log(self.options.pack_lot_lines);
                       if(input_box != undefined){
                           input_box.val(lot);
