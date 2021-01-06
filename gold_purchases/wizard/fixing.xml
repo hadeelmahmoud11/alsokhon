@@ -16,14 +16,14 @@
          </form>
         </field>
      </record>
-     <record id="gold_purchase.action_fixing_unfixed_bill_wiz" model="ir.actions.act_window">
+     <!-- <record id="gold_purchase.action_fixing_unfixed_bill_wiz" model="ir.actions.act_window">
          <field name="name">Fixing Unfixed Bill</field>
          <field name="res_model">fixing.unfixed.bill</field>
          <field name="view_mode">form</field>
          <field name="view_id" ref="fixing_unfixed_bill_form"/>
          <field name="context">{'default_value': context.get('pure_wt_value', False),}</field>
          <field name="target">new</field>
-     </record>
+     </record> -->
 
    </data>
 </odoo>
