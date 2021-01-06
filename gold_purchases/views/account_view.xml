@@ -164,6 +164,7 @@
             <field name="arch" type="xml">
                     <xpath expr="//header" position="inside">
                         <button  name="%(action_stock_moves)d" type="action" context="{'pure_weight': pure_wt_value_perm}" groups="account.group_account_invoice" attrs="{'invisible': ['|', '|','|','|',('pure_wt_value','=',0.00),('state', '!=', 'posted'),('invoice_payment_state', '!=', 'not_paid'),('purchase_type', '!=', 'unfixed'),('type', 'not in', ('in_invoice'))]}"  string="Register Gold" class="oe_highlight"/>
+                        <button  name="%(gold_purchases.action_fixing_unfixed_bill_wiz)d" type="action" context="{'value': pure_wt_value}" string="Convert Into Fixed" class="oe_highlight" attrs="{'invisible': ['|', '|','|','|',('pure_wt_value','=',0.00),('state', '!=', 'posted'),('invoice_payment_state', '!=', 'not_paid'),('purchase_type', '!=', 'unfixed'),('type', 'not in', ('in_invoice'))]}"/>
                     </xpath>
 
                     <xpath expr="//field[@name='fiscal_position_id']" position="after">
