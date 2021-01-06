@@ -19,12 +19,12 @@ class StockProductionLot(models.Model):
     paid_pure = fields.Float()
     @api.onchange('paid_gross')
     def onchange_paid_gross(self):
-        print("<<<<<<>>>>>>>>>")
-        print("<<<<<<>>>>>>>>>")
-        print("<<<<<<>>>>>>>>>")
-        print("<<<<<<>>>>>>>>>")
-        print("<<<<<<>>>>>>>>>")
-        print("<<<<<<>>>>>>>>>")
+        # print("<<<<<<>>>>>>>>>")
+        # print("<<<<<<>>>>>>>>>")
+        # print("<<<<<<>>>>>>>>>")
+        # print("<<<<<<>>>>>>>>>")
+        # print("<<<<<<>>>>>>>>>")
+        # print("<<<<<<>>>>>>>>>")
         for rec in self:
             rec.write({'paid_pure': rec.paid_gross  *  (rec.purity / 1000)})
 
@@ -102,7 +102,8 @@ class stockGoldMove(models.TransientModel):
                     # 'gold_rate' : rate ,
                     'pure_weight': paid_pure,
                     'gross_weight': paid_gross ,
-                    'purity': purity,}))
+                    'purity': purity,
+                    'lot_id':move.id}))
             move_line_ids_without_package.append((0, 0, {
                     'location_id': purchase_order.order_type.stock_picking_type_id.default_location_src_id.id,
                     'location_dest_id': purchase_order.order_type.stock_picking_type_id.default_location_dest_id.id,
@@ -147,6 +148,10 @@ class stockGoldMove(models.TransientModel):
                         })
                 picking.action_confirm()
                 picking.action_assign()
+                for this in picking:
+                    for this_lot_line in this.move_line_ids_without_package:
+                        this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
+
                 if account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
                     account_move.write({'unfixed_stock_picking_three': picking.id})
                 if account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:

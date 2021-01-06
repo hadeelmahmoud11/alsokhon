@@ -624,9 +624,9 @@ class stock_move(models.Model):
             else:
                 vals = dict(vals, product_uom_qty=quantity, product_uom_id=self.product_id.uom_id.id)
         if reserved_quant:
-            print("reserved_quant")
-            print(reserved_quant)
-            print("reserved_quant")
+            # print("reserved_quant")
+            # print(reserved_quant)
+            # print("reserved_quant")
             vals = dict(
                 vals,
                 location_id=reserved_quant.location_id.id,
@@ -749,10 +749,10 @@ class StockRule(models.Model):
                 else:
                     procure_method = 'make_to_order'
 
-            print(procurement[7])
-            print(type(procurement[7]))
-            print(len(procurement[7]))
-            print(procurement[7]['lot_id'])
+            # print(procurement[7])
+            # print(type(procurement[7]))
+            # print(len(procurement[7]))
+            # print(procurement[7]['lot_id'])
             move_values = rule._get_stock_move_values(*procurement)
             move_values['procure_method'] = procure_method
             moves_values_by_company[procurement.company_id.id].append(move_values)
@@ -761,12 +761,12 @@ class StockRule(models.Model):
             # create the move as SUPERUSER because the current user may not have the rights to do it (mto product launched by a sale for example)
             moves = self.env['stock.move'].sudo().with_context(force_company=company_id).create(moves_values)
             # Since action_confirm launch following procurement_group we should activate it.
-            print("++++++++++++++++++++++++++++==")
-            print(moves)
-            print(moves_values)
-            print(moves.origin)
-            print(moves.lot_id)
-            print("++++++++++++++++++++++++++++==")
+            # print("++++++++++++++++++++++++++++==")
+            # print(moves)
+            # print(moves_values)
+            # print(moves.origin)
+            # print(moves.lot_id)
+            # print("++++++++++++++++++++++++++++==")
             moves._action_confirm()
             picking_id = self.env['stock.picking'].browse(moves[0].picking_id.id)
             if picking_id.origin:
