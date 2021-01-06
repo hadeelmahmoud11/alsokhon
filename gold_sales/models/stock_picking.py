@@ -26,20 +26,86 @@ class StockPicking(models.Model):
 
     def action_done(self):
         res = super(StockPicking, self).action_done()
+
+        # for rec in self.filtered(lambda x: x.state == 'done'):
+        #     print(rec)
+        #     print(rec.origin)
+
+
+
         for rec in self.filtered(lambda x: x.state == 'done'):
             if 'S0' in rec.origin:
                 rec.create_gold_journal_entry_sale()
                 if rec.invoice_unfixed :
                     rec.create_unfixed_journal_entry_sale()
+            if 'POS' in rec.origin:
+                rec.create_gold_journal_entry_sale()
             if 'P0' in self.group_id.name:
                 rec.create_gold_journal_entry_sale()
                 if rec.bill_unfixed :
                     rec.create_unfixed_journal_entry_sale()
+
+
         return res
     #
     def create_gold_journal_entry_sale(self):
         self.ensure_one()
-        if 'P0' in self.group_id.name:
+
+        if 'POS' in self.origin :
+            pos_obj = self.env['pos.order'].search([('name','=',self.origin.split(" - ")[1])])
+            moves = self.move_lines.filtered(lambda x: x._is_out() and
+                                                        x.product_id and
+                                                        x.product_id.gold and
+                                                        x.product_id.categ_id and
+                                                        x.product_id.categ_id.is_gold and
+                                                        x.product_id.categ_id.gold_on_hand_account)
+            if moves:
+                total_purity = 0
+                product_dict = {}
+                description = '%s' % self.name
+                for product_id, move_list in groupby(moves, lambda x: x.product_id):
+                    description = '%s-%s' % (description, product_id.display_name)
+                    if product_id not in product_dict.keys():
+                        product_dict[product_id] = sum(
+                            x.pure_weight for x in move_list)
+                    else:
+                        product_dict[product_id] = product_dict[product_id] + sum(
+                            x.pure_weight for x in move_list)
+                total_purity = sum(value for key, value in product_dict.items())
+
+                if total_purity > 0.0 and product_dict and \
+                        self.partner_id :
+                    if not next(iter(product_dict)).categ_id.gold_journal.id:
+                        raise ValidationError(_('Please fill gold journal in product Category'))
+                    journal_id = next(iter(product_dict)).categ_id.gold_journal.id
+
+                    move_lines = self._prepare_account_move_line(product_dict)
+
+                    if move_lines:
+                        AccountMove = self.env['account.move'].with_context(
+                             default_journal_id=journal_id)
+                        date = self._context.get('force_period_date',
+                                                  fields.Date.context_today(self))
+                        type_of_action = ''
+                        # if sale_obj.order_type.is_fixed:
+                        #     type_of_action = 'fixed'
+                        # elif  sale_obj.order_type.gold:
+                        #     type_of_action = 'unfixed'
+                        # else:
+                        #     pass
+                        new_account_move = AccountMove.sudo().create({
+                             'journal_id': journal_id,
+                             'line_ids': move_lines,
+                             'date': date,
+                             'ref': description,
+                             'type': 'entry',
+                             'type_of_action':'fixed',
+                             # 'type_of_action':type_of_action,
+                        })
+                        new_account_move.post()
+                        if pos_obj:
+                            pos_obj.write({'stock_move_id': new_account_move.id})
+        elif 'P0' in self.group_id.name:
             purchase_obj = self.env['purchase.order'].search([('name','=',self.group_id.name)])
             moves = self.move_lines.filtered(lambda x: x._is_in() and
                                                         x.product_id and
@@ -90,7 +156,7 @@ class StockPicking(models.Model):
                         new_account_move.post()
                         if purchase_obj:
                             purchase_obj.write({'stock_move_id': new_account_move.id})
-        elif 'S0' in self.origin:
+        elif 'S0' in self.origin :
             sale_obj = self.env['sale.order'].search([('name','=',self.origin)])
             moves = self.move_lines.filtered(lambda x: x._is_out() and
                                                         x.product_id and
@@ -141,9 +207,39 @@ class StockPicking(models.Model):
                         new_account_move.post()
                         if sale_obj:
                             sale_obj.write({'stock_move_id': new_account_move.id})
+
     #
     def _prepare_account_move_line(self, product_dict):
-        if 'P0' in self.group_id.name:
+        if 'POS' in self.origin:
+            credit_lines = []
+            for product_id, value in product_dict.items():
+                if not product_id.categ_id.gold_on_hand_account.id or not product_id.categ_id.gold_stock_output_account.id:
+                    raise ValidationError(_('Please fill gold accounts in product Category'))
+                credit_lines.append({
+                    'name': '%s - %s' % (self.name, product_id.name),
+                    'product_id': product_id.id,
+                    'quantity': 1,
+                    'product_uom_id': product_id.uom_id.id,
+                    'ref': '%s - %s' % (self.name, product_id.name),
+                    'partner_id': self.partner_id.id,
+                    'debit': 0,
+                    'credit': round(value, 3),
+                    'account_id': product_id.categ_id.gold_on_hand_account.id,
+                })
+            debit_line = [{
+                'name': '%s - %s' % (self.name, product_id.name),
+                'product_id': product_id.id,
+                'quantity': 1,
+                'product_uom_id': product_id.uom_id.id,
+                'ref': '%s - %s' % (self.name, product_id.name),
+                'partner_id': self.partner_id.id,
+                'debit': sum(x['credit'] for x in credit_lines),
+                'credit': 0,
+                'account_id': product_id.categ_id.gold_stock_output_account.id,
+            }]
+            res = [(0, 0, x) for x in credit_lines + debit_line]
+            return res
+        elif 'P0' in self.group_id.name:
             debit_lines = []
             for product_id, value in product_dict.items():
                 if not product_id.categ_id.gold_on_hand_account.id or not product_id.categ_id.gold_stock_input_account.id:
@@ -415,6 +511,7 @@ class StockPicking(models.Model):
         """
         backorders = self.env['stock.picking']
         purchase_order = self.env['purchase.order'].search([('name','=',self.group_id.name)])
+
         if purchase_order:
             gross_wt = 0.00
             pure_wt = 0.00
@@ -423,6 +520,14 @@ class StockPicking(models.Model):
                 pure_wt =  rec.pure_wt
         sale_order = self.env['sale.order'].search([('name','=',self.origin)])
         if sale_order:
+            gross_wt = 0.00
+            pure_wt = 0.00
+            for rec in sale_order.order_line:
+                gross_wt = (gross_wt + rec.gross_wt) * (rec.product_uom_qty)
+                pure_wt =  rec.pure_wt
+# pos edit
+        pos_order = self.env['pos.order'].search([('name','=',self.origin.split(" - ")[1])])
+        if pos_order:
             gross_wt = 0.00
             pure_wt = 0.00
             for rec in sale_order.order_line:

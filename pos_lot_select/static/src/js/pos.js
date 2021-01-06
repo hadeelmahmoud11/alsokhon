@@ -68,9 +68,9 @@ odoo.define('pos_lot_select.pos', function(require){
           set_quantity_by_lot: function() {
               if (this.order_line.product.tracking == 'serial' || this.order_line.product.tracking == 'lot') {
                   var valid_lots = this.get_valid_lots();
-                  console.log("OOOOO");
-                  console.log(this);
-                  console.log(this.order_line);
+                  // console.log("OOOOO");
+                  // console.log(this);
+                  // console.log(this.order_line);
                   this.order_line.set_quantity(valid_lots.length);
               }
           }
@@ -112,6 +112,18 @@ odoo.define('pos_lot_select.pos', function(require){
               }
 
               return lots_required;
+          },
+
+          has_valid_product_lot: function(){
+              if(!this.has_product_lot){
+                  return true;
+              }
+              var valid_product_lot = this.pack_lot_lines.get_valid_lots();
+              if (this.pack_lot_lines.models[0]) {
+                return this.get_required_number_of_lots() === this.pack_lot_lines.models[0].quantity;
+              }
+              return false;
+              // return this.get_required_number_of_lots() === valid_product_lot.length;
           },
 
 
@@ -187,7 +199,7 @@ odoo.define('pos_lot_select.pos', function(require){
               var product_lots =  self.pos.list_lot_num;
               var product_lot = []
               product_lots.forEach(function(lot) {
-                  if(lot.product_id[0] == options.pack_lot_lines.order_line.product.id && lot.total_qty>0){
+                  if(lot.product_id[0] == options.pack_lot_lines.order_line.product.id && lot.product_qty>0){
                     product_lot.push(lot);
                   }
               });
@@ -255,29 +267,30 @@ odoo.define('pos_lot_select.pos', function(require){
                               input_box = $(el)
 
                       });
-                      console.log("input_box");
-                      console.log(self.options);
-                      console.log(self.options.pack_lot_lines);
+                      // console.log("input_box");
+                      // console.log(self.options);
+                      // console.log(self.options.pack_lot_lines);
                       if(input_box != undefined){
                           input_box.val(lot);
                           var pack_lot_lines = self.options.pack_lot_lines,
                               $input = input_box,
                               cid = $input.attr('cid'),
                               lot_name = $input.val();
-                          console.log(pack_lot_lines);
+                          // console.log(pack_lot_lines);
 
                           var lot_model = pack_lot_lines.get({cid: cid});
-                          console.log("(((lot_model)))");
-                          console.log(lot_model);
-                          lot_model.quantity=parseInt(lot_count);
-                          console.log(lot_model);
+                          // console.log("(((lot_model)))");
+                          // console.log(lot_model);
+                          lot_model.quantity=parseFloat(lot_count);
+                          // console.log(lot_model);
 
                           lot_model.set_lot_name(lot_name);
                           if(!pack_lot_lines.get_empty_model()){
                               var new_lot_model = lot_model.add();
                               self.focus_model = new_lot_model;
                           }
-                          pack_lot_lines.order_line.set_quantity(parseInt(lot_count));
+
+                          pack_lot_lines.order_line.set_quantity(parseFloat(lot_count));
                           // pack_lot_lines.set_quantity_by_lot();
                           self.change_price(gold_rate,pure_weight);
                           self.renderElement();
@@ -318,8 +331,8 @@ odoo.define('pos_lot_select.pos', function(require){
                   pack_line.set_lot_name(lot_name);
 
               });
-              console.log("pack_lot_lines");
-              console.log(pack_lot_lines);
+              // console.log("pack_lot_lines");
+              // console.log(pack_lot_lines);
               // selected_lot = this.options.order_line.pack_lot_lines.models[0].attributes.lot_name;
               // this.options.product_lot.forEach(function(lot) {
               //   if (lot.name == selected_lot)
@@ -331,31 +344,32 @@ odoo.define('pos_lot_select.pos', function(require){
               // });
               pack_lot_lines.remove_empty_model();
               // pack_lot_lines.set_quantity_by_lot();
-              var selected_lot = this.options.order_line.pack_lot_lines.models[0].attributes.lot_name;
-              this.options.product_lot.forEach(function(lot) {
-                if (lot.name == selected_lot)
-                {
-                  var order_line = self.options.order_line
-                  self.change_price(self.pos.config.gold_rate,lot.pure_weight)
-                  if(self.options.order_line.product.making_charge_id){
-                    var product = self.pos.db.get_product_by_id(self.options.order_line.product.making_charge_id[0]);
-                    // console.log("product");
-                    // console.log(product);
-                    // console.log(lot);
+              if(this.options.order_line.pack_lot_lines.models[0]){
+                var selected_lot = this.options.order_line.pack_lot_lines.models[0].attributes.lot_name;
+                this.options.product_lot.forEach(function(lot) {
+                  if (lot.name == selected_lot)
+                  {
+                    var order_line = self.options.order_line
+                    self.change_price(self.pos.config.gold_rate,lot.pure_weight)
+                    if(self.options.order_line.product.making_charge_id){
+                      var product = self.pos.db.get_product_by_id(self.options.order_line.product.making_charge_id[0]);
+                      // console.log("product");
+                      // console.log(product);
+                      // console.log(lot);
 
-                    // console.log("hjfghf");
-                    // console.log(product);
-                    // console.log(order_line.quantity * lot.gross_weight * lot.selling_making_charge);
-                    self.options.order.add_product(product, {
-                      quantity: 1,
-                      price: order_line.quantity * lot.gross_weight * lot.selling_making_charge,
-                    });
+                      // console.log("hjfghf");
+                      // console.log(product);
+                      // console.log(order_line.quantity * lot.gross_weight * lot.selling_making_charge);
+                      self.options.order.add_product(product, {
+                        quantity: 1,
+                        price: order_line.quantity * lot.gross_weight * lot.selling_making_charge,
+                      });
+                    }
                   }
-                }
-                // order_ids.push(order.id)
-                // self.pos.db.get_orders_by_id[order.id] = order;
+                  // order_ids.push(order.id)
+                  // self.pos.db.get_orders_by_id[order.id] = order;
               });
-
+}
 
               // var selling_making_charge= $(this).closest("tr").find("#selling_making_charge")[0].innerText;
               // var pure_weight= $(this).closest("tr").find("#pure_weight")[0].innerText;
