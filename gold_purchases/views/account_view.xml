@@ -132,16 +132,16 @@
                     </group>
                     <group>
                       <group>
-                        <field name="make_value_move" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
+                        <field name="make_value_move" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" force_save="1" />
                         <field name="make_value_move_perm"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" force_save="1" />
-                        <field name="make_value_move_perm_flag" invisible="1"  />
-                        <field name="make_value_move_paid" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" />
+                        <field name="make_value_move_perm_flag" invisible="1"   force_save="1" />
+                        <field name="make_value_move_paid" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"  force_save="1" />
                       </group>
                       <group>
-                        <field name="pure_wt_value" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" />
+                        <field name="pure_wt_value" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"  force_save="1" />
                         <field name="pure_wt_value_perm"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" force_save="1" />
-                        <field name="pure_wt_value_perm_flag"  invisible="1" />
-                        <field name="pure_wt_value_paid"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" />
+                        <field name="pure_wt_value_perm_flag"  invisible="1"  force_save="1" />
+                        <field name="pure_wt_value_paid"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"  force_save="1" />
                       </group>
                     </group>
                   </page>
