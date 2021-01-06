@@ -109,3 +109,7 @@ class ProductCategory(models.Model):
     gold_expense_account = fields.Many2one('account.account',
                                            domain=get_account_gold_type,
                                            string='Expense Account - Gold')
+
+    gold_fixing_account = fields.Many2one('account.account',
+                                            domain="get_account_fixing_type",
+                                            string="Fixing Account - Gold")

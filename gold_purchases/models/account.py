@@ -108,6 +108,11 @@ class GoldPayment(models.Model):
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
+
+
+    def convert_fixed(self):
+        pass
+
     is_gold_entry = fields.Boolean(compute="_compute_is_gold_entry")
     def _compute_is_gold_entry(self):
         for this in self:
