@@ -234,6 +234,10 @@ class AccountMove(models.Model):
                     self.create_gold_unfixing_entry(stock_picking,value)
                     self.create_gold_fixing_entry(stock_picking,value)
 
+    def open_wizard_for_fixing(self):
+        return self.env.ref('gold_purchases.action_fixing_unfixed_bill_wiz')
+
+
 
     is_gold_entry = fields.Boolean(compute="_compute_is_gold_entry")
     def _compute_is_gold_entry(self):
