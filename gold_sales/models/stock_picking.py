@@ -34,16 +34,15 @@ class StockPicking(models.Model):
                             line.lot_id.gross_weight -= line.move_id.product_uom_qty
                         else:
                             line.lot_id.gross_weight -= line.move_id.product_uom_qty * line.move_id.gross_weight
-
                     rec.create_gold_journal_entry_sale()
-                    if rec.invoice_unfixed :
-                        rec.create_unfixed_journal_entry_sale()
+                if rec.invoice_unfixed :
+                    rec.create_unfixed_journal_entry_sale()
                 if 'POS' in rec.origin:
                     rec.create_gold_journal_entry_sale()
                 if 'P0' in self.group_id.name:
                     rec.create_gold_journal_entry_sale()
-                    if rec.bill_unfixed :
-                        rec.create_unfixed_journal_entry_sale()
+                if rec.bill_unfixed :
+                    rec.create_unfixed_journal_entry_sale()
         return res
     #
     def create_gold_journal_entry_sale(self):
