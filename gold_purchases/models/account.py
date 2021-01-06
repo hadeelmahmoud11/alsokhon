@@ -272,12 +272,13 @@ class AccountMove(models.Model):
                     rec.make_value_move = make_value + rec.amount_by_group[0][1]
                 else:
                     rec.make_value_move = make_value
-                if rec.pure_wt_value_perm_flag == False:
-                    rec.pure_wt_value_perm = rec.pure_wt_value
-                    rec.pure_wt_value_perm_flag = True
-                if rec.make_value_move_perm_flag == False:
-                    rec.make_value_move_perm = rec.make_value_move
-                    rec.make_value_move_perm_flag = True
+                if rec.pure_wt_value > 0 and rec.make_value_move > 0:
+                    if rec.pure_wt_value_perm_flag == False:
+                        rec.pure_wt_value_perm = rec.pure_wt_value
+                        rec.pure_wt_value_perm_flag = True
+                    if rec.make_value_move_perm_flag == False:
+                        rec.make_value_move_perm = rec.make_value_move
+                        rec.make_value_move_perm_flag = True
 
 
 
