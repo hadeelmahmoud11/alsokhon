@@ -275,7 +275,8 @@ class AccountMove(models.Model):
                 self.create_gold_journal_entry(po_id)
             elif po_id.bill_move_id:
                 if po_id.bill_move_id.state == "draft":
-                    po_id.bill_move_id.action_post()
+                    for acc_move in po_id.bill_move_id:
+                        acc_move.action_post()
 
         for move in self:
             if not move.line_ids.filtered(lambda line: not line.display_type):
