@@ -147,6 +147,12 @@ class SaleOrder(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
+
+    def _prepare_procurement_values(self, group_id=False):
+        values = super(SaleOrderLine, self)._prepare_procurement_values(group_id)
+        print("================================================================")
+        values.update({'lot_id':self.lot_id})
+        return values
     lot_id = fields.Many2one('stock.production.lot', string='Lot / Serial Number', required=True)
 
     @api.onchange('lot_id')
@@ -593,9 +599,47 @@ class SaleOrderLine(models.Model):
             res['account_id'] = False
         return res
 
-# class stock_move(models.Model):
-#     _inherit='stock.move'
-#
+class stock_move(models.Model):
+    _inherit='stock.move'
+    lot_id = fields.Many2one('stock.production.lot')
+    def _prepare_move_line_vals(self, quantity=None, reserved_quant=None):
+        self.ensure_one()
+        # apply putaway
+        location_dest_id = self.location_dest_id._get_putaway_strategy(self.product_id).id or self.location_dest_id.id
+        vals = {
+            'move_id': self.id,
+            'product_id': self.product_id.id,
+            'product_uom_id': self.product_uom.id,
+            'location_id': self.location_id.id,
+            'location_dest_id': location_dest_id,
+            'picking_id': self.picking_id.id,
+        }
+        if quantity:
+            rounding = self.env['decimal.precision'].precision_get('Product Unit of Measure')
+            uom_quantity = self.product_id.uom_id._compute_quantity(quantity, self.product_uom, rounding_method='HALF-UP')
+            uom_quantity = float_round(uom_quantity, precision_digits=rounding)
+            uom_quantity_back_to_product_uom = self.product_uom._compute_quantity(uom_quantity, self.product_id.uom_id, rounding_method='HALF-UP')
+            if float_compare(quantity, uom_quantity_back_to_product_uom, precision_digits=rounding) == 0:
+                vals = dict(vals, product_uom_qty=uom_quantity)
+            else:
+                vals = dict(vals, product_uom_qty=quantity, product_uom_id=self.product_id.uom_id.id)
+        if reserved_quant:
+            print("reserved_quant")
+            print(reserved_quant)
+            print("reserved_quant")
+            vals = dict(
+                vals,
+                location_id=reserved_quant.location_id.id,
+                lot_id=reserved_quant.lot_id.id or False,
+                package_id=reserved_quant.package_id.id or False,
+                owner_id =reserved_quant.owner_id.id or False,
+            )
+        # if self.lot_id and self.origin and 'S0' in self.origin:
+        #     vals['lot_id'] = self.lot_id.id
+        #     print("VALS")
+        #     print(vals)
+        #     print("VALS")
+        return vals
 #     def _create_out_svl(self):
 #         res = super(stock_move,self)._create_out_svl()
 #         res.stock_move_id.sale_line_id.received_gross_wt = res.stock_move_id.sale_line_id.received_gross_wt + res.stock_move_id.gross_weight
@@ -604,11 +648,77 @@ class SaleOrderLine(models.Model):
 class StockRule(models.Model):
     _inherit = 'stock.rule'
 
+    def _get_stock_move_values(self, product_id, product_qty, product_uom, location_id, name, origin, company_id, values):
+        ''' Returns a dictionary of values that will be used to create a stock move from a procurement.
+        This function assumes that the given procurement has a rule (action == 'pull' or 'pull_push') set on it.
+
+        :param procurement: browse record
+        :rtype: dictionary
+        '''
+        group_id = False
+        if self.group_propagation_option == 'propagate':
+            group_id = values.get('group_id', False) and values['group_id'].id
+        elif self.group_propagation_option == 'fixed':
+            group_id = self.group_id.id
+
+        date_expected = fields.Datetime.to_string(
+            fields.Datetime.from_string(values['date_planned']) - relativedelta(days=self.delay or 0)
+        )
+
+        partner = self.partner_address_id or (values.get('group_id', False) and values['group_id'].partner_id)
+        if partner:
+            product_id = product_id.with_context(lang=partner.lang or self.env.user.lang)
+
+        # it is possible that we've already got some move done, so check for the done qty and create
+        # a new move with the correct qty
+        qty_left = product_qty
+        move_values = {
+            'name': name[:2000],
+            'company_id': self.company_id.id or self.location_src_id.company_id.id or self.location_id.company_id.id or company_id.id,
+            'product_id': product_id.id,
+            'product_uom': product_uom.id,
+            'product_uom_qty': qty_left,
+            'partner_id': partner.id if partner else False,
+            'location_id': self.location_src_id.id,
+            'location_dest_id': location_id.id,
+            'move_dest_ids': values.get('move_dest_ids', False) and [(4, x.id) for x in values['move_dest_ids']] or [],
+            'rule_id': self.id,
+            'procure_method': self.procure_method,
+            'origin': origin,
+            'picking_type_id': self.picking_type_id.id,
+            'group_id': group_id,
+            'route_ids': [(4, route.id) for route in values.get('route_ids', [])],
+            'warehouse_id': self.propagate_warehouse_id.id or self.warehouse_id.id,
+            'date': date_expected,
+            'date_expected': date_expected,
+            'propagate_cancel': self.propagate_cancel,
+            'propagate_date': self.propagate_date,
+            'propagate_date_minimum_delta': self.propagate_date_minimum_delta,
+            'description_picking': product_id._get_description(self.picking_type_id),
+            'priority': values.get('priority', "1"),
+            'delay_alert': self.delay_alert,
+            'lot_id':values.get('lot_id',False).id
+        }
+        for field in self._get_custom_move_fields():
+            if field in values:
+                move_values[field] = values.get(field)
+        return move_values
+
     @api.model
     def _run_pull(self, procurements):
         moves_values_by_company = defaultdict(list)
         mtso_products_by_locations = defaultdict(list)
-
+        print("procurementsprocurementsprocurementsprocurementsprocurements")
+        print("procurementsprocurementsprocurementsprocurementsprocurements")
+        print("procurementsprocurementsprocurementsprocurementsprocurements")
+        print("procurementsprocurementsprocurementsprocurementsprocurements")
+        print("procurementsprocurementsprocurementsprocurementsprocurements")
+        print(procurements)
+        print("procurementsprocurementsprocurementsprocurementsprocurements")
+        print("procurementsprocurementsprocurementsprocurementsprocurements")
+        print("procurementsprocurementsprocurementsprocurementsprocurements")
+        print("procurementsprocurementsprocurementsprocurementsprocurements")
+        print("procurementsprocurementsprocurementsprocurementsprocurements")
         # To handle the `mts_else_mto` procure method, we do a preliminary loop to
         # isolate the products we would need to read the forecasted quantity,
         # in order to to batch the read. We also make a sanitary check on the
@@ -639,6 +749,10 @@ class StockRule(models.Model):
                 else:
                     procure_method = 'make_to_order'
 
+            print(procurement[7])
+            print(type(procurement[7]))
+            print(len(procurement[7]))
+            print(procurement[7]['lot_id'])
             move_values = rule._get_stock_move_values(*procurement)
             move_values['procure_method'] = procure_method
             moves_values_by_company[procurement.company_id.id].append(move_values)
@@ -647,6 +761,12 @@ class StockRule(models.Model):
             # create the move as SUPERUSER because the current user may not have the rights to do it (mto product launched by a sale for example)
             moves = self.env['stock.move'].sudo().with_context(force_company=company_id).create(moves_values)
             # Since action_confirm launch following procurement_group we should activate it.
+            print("++++++++++++++++++++++++++++==")
+            print(moves)
+            print(moves_values)
+            print(moves.origin)
+            print(moves.lot_id)
+            print("++++++++++++++++++++++++++++==")
             moves._action_confirm()
             picking_id = self.env['stock.picking'].browse(moves[0].picking_id.id)
             if picking_id.origin:
@@ -664,15 +784,28 @@ class StockRule(models.Model):
                     for sol in sale_order.order_line:
                         for move in moves:
                             if sol.product_id.id == move.product_id.id:
-                                move.update({
-                                    'gross_weight': sol.gross_wt * sol.product_uom_qty,
-                                    'pure_weight': sol.pure_wt,
-                                    'purity': sol.purity_id.purity or 1,
-                                    'gold_rate': sol.gold_rate,
-                                    'selling_karat_id':
-                                        sol.product_id.product_template_attribute_value_ids and
-                                        sol.product_id.product_template_attribute_value_ids.mapped(
-                                            'product_attribute_value_id')[0].id or
-                                        False
-                                })
+                                if move.product_id.categ_id.is_scrap:
+                                    move.update({
+                                        'gross_weight': sol.gross_wt,
+                                        'pure_weight': sol.pure_wt,
+                                        'purity': sol.purity_id.purity or 1,
+                                        'gold_rate': sol.gold_rate,
+                                        'selling_karat_id':
+                                            sol.product_id.product_template_attribute_value_ids and
+                                            sol.product_id.product_template_attribute_value_ids.mapped(
+                                                'product_attribute_value_id')[0].id or
+                                            False
+                                    })
+                                else:
+                                    move.update({
+                                        'gross_weight': sol.gross_wt * sol.product_uom_qty,
+                                        'pure_weight': sol.pure_wt,
+                                        'purity': sol.purity_id.purity or 1,
+                                        'gold_rate': sol.gold_rate,
+                                        'selling_karat_id':
+                                            sol.product_id.product_template_attribute_value_ids and
+                                            sol.product_id.product_template_attribute_value_ids.mapped(
+                                                'product_attribute_value_id')[0].id or
+                                            False
+                                    })
         return True

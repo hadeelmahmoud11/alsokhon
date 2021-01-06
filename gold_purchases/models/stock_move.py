@@ -134,31 +134,31 @@ class StockMoveLine(models.Model):
         result = super(StockMoveLine, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
         return result
 
-    @api.onchange('lot_id', 'gross_weight')
-    def change_lot(self):
-        if self.lot_id:
-            if self.lot_id.product_id and self.lot_id.product_id.categ_id.is_scrap:
-                # self.lot_id.write({
-                # 'gross_weight': 0.0,
-                # 'purity': 0.0,
-                # 'selling_making_charge': 0.0
-                # })
-                self.lot_id.write({
-                'gross_weight': self.lot_id.gross_weight + self.gross_weight,
-                'purity': self.purity,
-                'selling_making_charge':self.selling_making_charge
-                })
-            elif self.lot_id.product_id and not self.lot_id.product_id.categ_id.is_scrap:
-                # self.lot_id.write({
-                # 'gross_weight': 0.0,
-                # 'purity': 0.0,
-                # 'selling_making_charge': 0.0
-                # })
-                self.lot_id.write({
-                'gross_weight': self.gross_weight,
-                'purity': self.purity,
-                'selling_making_charge':self.selling_making_charge
-                })
+    # @api.onchange('lot_id', 'gross_weight')
+    # def change_lot(self):
+    #     if self.lot_id:
+    #         if self.lot_id.product_id and self.lot_id.product_id.categ_id.is_scrap:
+    #             # self.lot_id.write({
+    #             # 'gross_weight': 0.0,
+    #             # 'purity': 0.0,
+    #             # 'selling_making_charge': 0.0
+    #             # })
+    #             self.lot_id.write({
+    #             'gross_weight': self.lot_id.gross_weight + self.gross_weight,
+    #             'purity': self.purity,
+    #             'selling_making_charge':self.selling_making_charge
+    #             })
+    #         elif self.lot_id.product_id and not self.lot_id.product_id.categ_id.is_scrap:
+    #             # self.lot_id.write({
+    #             # 'gross_weight': 0.0,
+    #             # 'purity': 0.0,
+    #             # 'selling_making_charge': 0.0
+    #             # })
+    #             self.lot_id.write({
+    #             'gross_weight': self.gross_weight,
+    #             'purity': self.purity,
+    #             'selling_making_charge':self.selling_making_charge
+    #             })
     image = fields.Binary()
     # related='actual_gross_weight',
 
@@ -215,23 +215,24 @@ class StockMoveLine(models.Model):
 
     def write(self, vals):
         res = super(StockMoveLine, self).write(vals)
-        if vals.get('lot_id', False):
-            for move_line in self:
-                if move_line.product_id and move_line.product_id.gold:
-                    lot_rec = self.env['stock.production.lot'].search(
-                        [('id', '=', vals.get('lot_id'))])
-                    lot_rec.gross_weight = move_line.gross_weight
-                    lot_rec.purity = move_line.purity
-                    lot_rec.pure_weight = move_line.pure_weight
-                    lot_rec.item_category_id = move_line.item_category_id.id if \
-                        move_line.item_category_id else False
-                    lot_rec.sub_category_id = move_line.sub_category_id.id if \
-                        move_line.sub_category_id else False
-                    lot_rec.selling_making_charge = \
-                        move_line.selling_making_charge if \
-                            move_line.selling_making_charge else False
-                    lot_rec.selling_karat_id = move_line.selling_karat_id.id if \
-                        move_line.selling_karat_id else False
+        print("WRITEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
+        # if vals.get('lot_id', False):
+        #     for move_line in self:
+        #         if move_line.product_id and move_line.product_id.gold:
+        #             lot_rec = self.env['stock.production.lot'].search(
+        #                 [('id', '=', vals.get('lot_id'))])
+        #             lot_rec.gross_weight = move_line.gross_weight
+        #             lot_rec.purity = move_line.purity
+        #             lot_rec.pure_weight = move_line.pure_weight
+        #             lot_rec.item_category_id = move_line.item_category_id.id if \
+        #                 move_line.item_category_id else False
+        #             lot_rec.sub_category_id = move_line.sub_category_id.id if \
+        #                 move_line.sub_category_id else False
+        #             lot_rec.selling_making_charge = \
+        #                 move_line.selling_making_charge if \
+        #                     move_line.selling_making_charge else False
+        #             lot_rec.selling_karat_id = move_line.selling_karat_id.id if \
+        #                 move_line.selling_karat_id else False
 
         # if vals.get('gross_weight', False):
         #     for move_line_gross in self:
@@ -243,6 +244,26 @@ class StockMoveLine(models.Model):
     @api.model
     def create(self, vals):
         res = super(StockMoveLine, self).create(vals)
+        if res.lot_id.product_id and res.lot_id.product_id.categ_id.is_scrap:
+            res.lot_id.write({
+            'gross_weight': res.lot_id.gross_weight + res.gross_weight,
+            'purity': res.purity,
+            'selling_making_charge':res.selling_making_charge,
+            'pure_weight':res.pure_weight,
+            'item_category_id':res.item_category_id.id,
+            'sub_category_id':res.sub_category_id.id,
+            'selling_karat_id':res.selling_karat_id.id,
+            })
+        elif res.lot_id.product_id and not res.lot_id.product_id.categ_id.is_scrap:
+            res.lot_id.write({
+            'gross_weight': res.gross_weight,
+            'purity': res.purity,
+            'selling_making_charge':res.selling_making_charge,
+            'pure_weight':res.pure_weight,
+            'item_category_id':res.item_category_id.id,
+            'sub_category_id':res.sub_category_id.id,
+            'selling_karat_id':res.selling_karat_id.id,
+            })
         # if vals.get('gross_weight', False):
         #     if vals.get('move_id'):
         #         stock_move = self.env['stock.move'].browse([vals.get('move_id')])

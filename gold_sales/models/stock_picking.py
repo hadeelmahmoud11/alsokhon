@@ -7,18 +7,18 @@ from odoo import api, fields, models , _
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    def read(self, fields=None, load='_classic_read'):
-        res = super(StockPicking, self).read(fields, load)
-        for this in self:
-            if this.origin:
-                if 'S0' in this.origin:
-                    sale_order = this.env['sale.order'].search([('name','=',this.origin)])
-                    if sale_order:
-                        for this_lot_line in this.move_line_ids_without_package:
-                            for sale_lot_line in sale_order.order_line:
-                                if this_lot_line.product_id == sale_lot_line.product_id:
-                                    this_lot_line.lot_id = sale_lot_line.lot_id.id
-        return res
+    # def read(self, fields=None, load='_classic_read'):
+    #     res = super(StockPicking, self).read(fields, load)
+    #     for this in self:
+    #         if this.origin:
+    #             if 'S0' in this.origin:
+    #                 sale_order = this.env['sale.order'].search([('name','=',this.origin)])
+    #                 if sale_order:
+    #                     for this_lot_line in this.move_line_ids_without_package:
+    #                         for sale_lot_line in sale_order.order_line:
+    #                             if this_lot_line.product_id == sale_lot_line.product_id:
+    #                                 this_lot_line.lot_id = sale_lot_line.lot_id.id
+    #     return res
 
     invoice_unfixed = fields.Many2one('account.move')
     sale_type = fields.Selection([('fixed', 'Fixed'),
@@ -26,31 +26,28 @@ class StockPicking(models.Model):
 
     def action_done(self):
         res = super(StockPicking, self).action_done()
-
-        # for rec in self.filtered(lambda x: x.state == 'done'):
-        #     print(rec)
-        #     print(rec.origin)
-
-
-
         for rec in self.filtered(lambda x: x.state == 'done'):
-            if 'S0' in rec.origin:
-                rec.create_gold_journal_entry_sale()
-                if rec.invoice_unfixed :
-                    rec.create_unfixed_journal_entry_sale()
-            if 'POS' in rec.origin:
-                rec.create_gold_journal_entry_sale()
-            if 'P0' in self.group_id.name:
-                rec.create_gold_journal_entry_sale()
-                if rec.bill_unfixed :
-                    rec.create_unfixed_journal_entry_sale()
+            if rec.origin:
+                if 'S0' in rec.origin:
+                    for line in self.move_line_ids_without_package:
+                        if line.product_id.categ_id.is_scrap:
+                            line.lot_id.gross_weight -= line.move_id.product_uom_qty
+                        else:
+                            line.lot_id.gross_weight -= line.move_id.product_uom_qty * line.move_id.gross_weight
 
-
+                    rec.create_gold_journal_entry_sale()
+                    if rec.invoice_unfixed :
+                        rec.create_unfixed_journal_entry_sale()
+                if 'POS' in rec.origin:
+                    rec.create_gold_journal_entry_sale()
+                if 'P0' in self.group_id.name:
+                    rec.create_gold_journal_entry_sale()
+                    if rec.bill_unfixed :
+                        rec.create_unfixed_journal_entry_sale()
         return res
     #
     def create_gold_journal_entry_sale(self):
         self.ensure_one()
-
         if 'POS' in self.origin :
             pos_obj = self.env['pos.order'].search([('name','=',self.origin.split(" - ")[1])])
             moves = self.move_lines.filtered(lambda x: x._is_out() and
@@ -106,6 +103,7 @@ class StockPicking(models.Model):
                         if pos_obj:
                             pos_obj.write({'stock_move_id': new_account_move.id})
         elif 'P0' in self.group_id.name:
+        # if 'P0' in self.group_id.name:
             purchase_obj = self.env['purchase.order'].search([('name','=',self.group_id.name)])
             moves = self.move_lines.filtered(lambda x: x._is_in() and
                                                         x.product_id and
@@ -156,7 +154,7 @@ class StockPicking(models.Model):
                         new_account_move.post()
                         if purchase_obj:
                             purchase_obj.write({'stock_move_id': new_account_move.id})
-        elif 'S0' in self.origin :
+        elif 'S0' in self.origin:
             sale_obj = self.env['sale.order'].search([('name','=',self.origin)])
             moves = self.move_lines.filtered(lambda x: x._is_out() and
                                                         x.product_id and
@@ -207,7 +205,6 @@ class StockPicking(models.Model):
                         new_account_move.post()
                         if sale_obj:
                             sale_obj.write({'stock_move_id': new_account_move.id})
-
     #
     def _prepare_account_move_line(self, product_dict):
         if 'POS' in self.origin:
@@ -240,6 +237,7 @@ class StockPicking(models.Model):
             res = [(0, 0, x) for x in credit_lines + debit_line]
             return res
         elif 'P0' in self.group_id.name:
+        # if 'P0' in self.group_id.name:
             debit_lines = []
             for product_id, value in product_dict.items():
                 if not product_id.categ_id.gold_on_hand_account.id or not product_id.categ_id.gold_stock_input_account.id:
@@ -511,7 +509,6 @@ class StockPicking(models.Model):
         """
         backorders = self.env['stock.picking']
         purchase_order = self.env['purchase.order'].search([('name','=',self.group_id.name)])
-
         if purchase_order:
             gross_wt = 0.00
             pure_wt = 0.00

@@ -145,6 +145,8 @@ class stockGoldMove(models.TransientModel):
                         'move_lines': move_lines,
                         # 'move_line_ids_without_package':move_line_ids_without_package,
                         })
+                picking.action_confirm()
+                picking.action_assign()
                 if account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
                     account_move.write({'unfixed_stock_picking_three': picking.id})
                 if account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
