@@ -95,7 +95,7 @@
       </field>
     </record>
 	
-	<!--<record id="diamond_enhancement_invoice" model="ir.ui.view">
+	<record id="diamond_enhancement_invoice" model="ir.ui.view">
       <field name="name">account.invoice.form.diamond.inherit</field>
       <field name="model">account.move.line</field>
       <field name="inherit_id" ref="account.view_move_line_form"/>
@@ -105,7 +105,7 @@
               <field name="carat_wt"/>
           </xpath>
       </field>
-    </record>-->
+    </record>
 	
   </data>
   
