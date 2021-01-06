@@ -59,8 +59,8 @@
               <field name="carat" />
               <field name="carat_wt"/>
           </xpath>
-      </field>  
-    </record>	
+      </field>
+    </record>
 	
   </data>
   
