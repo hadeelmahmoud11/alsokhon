@@ -2,59 +2,66 @@
 <odoo>
     <data>
       <record id="diamond_enhancement" model="ir.ui.view">
+      <field name="name">gold.purchases.stock.move.tree.inherit</field>
+      <field name="model">stock.move</field>
+      <field name="inherit_id" ref="stock.view_move_tree"/>
+      <field name="arch" type="xml">
+          <field name="qty_done" position="before">
+				<field name="carat" />
+                <field name="carat_wt"/>
+          </field>
+      </field>
+    </record> 
+
+    <record id="diamond_enhancement_line" model="ir.ui.view">
       <field name="name">gold.purchases.stock.move.line.tree.inherit</field>
       <field name="model">stock.move.line</field>
       <field name="inherit_id" ref="stock.view_move_line_tree"/>
       <field name="arch" type="xml">
           <field name="qty_done" position="before">
-<!--             
-			 <field name="gross_weight" readonly="0"/>
-              <field name="pure_weight" readonly="1"/>
-              <field name="purity_id" readonly="1" force_save="1"/>
-              <field name="purity" readonly="1"/>
-              <field name="item_category_id"/>
-              <field name="sub_category_id" attrs="{'invisible': [('item_category_id','=', False)]}"
-                     domain="[('parent_category_id', '=', item_category_id)]"/> -->
-              <field name="selling_karat_id" readonly="1"/>
-              <field name="selling_making_charge"/>
+				<field name="carat" />
+                <field name="carat_wt"/>
           </field>
-           <!--<xpath expr="//field[@name='date']" position="attributes">
-              <attribute name="attrs">{'column_invisible': True}</attribute>
-              <attribute name="force_save">1</attribute>
-          </xpath>
-          <xpath expr="//field[@name='reference']" position="attributes">
-              <attribute name="attrs">{'column_invisible': True}</attribute>
-              <attribute name="force_save">1</attribute>
-          </xpath>
-          <xpath expr="//field[@name='location_id']" position="attributes">
-              <attribute name="attrs">{'column_invisible': True}</attribute>
-              <attribute name="force_save">1</attribute>
-          </xpath>
-          <xpath expr="//field[@name='location_dest_id']" position="attributes">
-              <attribute name="attrs">{'column_invisible': True}</attribute>
-              <attribute name="force_save">1</attribute>
-          </xpath>
--->
       </field>
     </record> 
+	
 	<record id="diamond_enhancement_lot" model="ir.ui.view">
       <field name="name">stock.production.lot.form.diamond.inherit</field>
       <field name="model">stock.production.lot</field>
       <field name="inherit_id" ref="stock.view_production_lot_form"/>
       <field name="arch" type="xml">
           <field name="company_id" position="after">
-<!--             
-			 <field name="gross_weight" readonly="0"/>
-              <field name="pure_weight" readonly="1"/>
-              <field name="purity_id" readonly="1" force_save="1"/>
-              <field name="purity" readonly="1"/>
-              <field name="item_category_id"/>
-              <field name="sub_category_id" attrs="{'invisible': [('item_category_id','=', False)]}"
-                     domain="[('parent_category_id', '=', item_category_id)]"/> -->
-              <field name="selling_karat_id" readonly="1"/>
-              <field name="selling_making_charge"/>
+              <field name="carat" />
+              <field name="carat_wt"/>
           </field>
-      </field>
+      </field>  
     </record> 
+
+
+	<record id="diamond_enhancement_purchase" model="ir.ui.view">
+      <field name="name">purchase.order.form.diamond.inherit</field>
+      <field name="model">purchase.order</field>
+      <field name="inherit_id" ref="purchase.purchase_order_form"/>
+      <field name="arch" type="xml">
+          <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="after">
+              <field name="carat" />
+              <field name="carat_wt"/>
+          </xpath>
+      </field>  
+    </record>
+	
+	<record id="diamond_enhancement_sale" model="ir.ui.view">
+      <field name="name">sale.order.form.diamond.inherit</field>
+      <field name="model">sale.order</field>
+      <field name="inherit_id" ref="sale.sale_order_form"/>
+      <field name="arch" type="xml">
+          <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="after">
+              <field name="carat" />
+              <field name="carat_wt"/>
+          </xpath>
+      </field>  
+    </record>	
+	
   </data>
+  
 </odoo>

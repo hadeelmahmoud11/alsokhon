@@ -15,3 +15,22 @@ class StockProductionLot(models.Model):
 
     carat = fields.Float('Diamond Carat')
     carat_wt = fields.Float('Diamond Carat Wt')
+    
+    
+class SaleOrderLine(models.Model):
+    _inherit = 'sale.order.line'
+
+    carat = fields.Float('Diamond Carat')
+    carat_wt = fields.Float('Diamond Wt')
+
+class StockMove(models.Model):
+    _inherit = 'stock.move'
+
+    carat = fields.Float('Diamond Carat')
+    carat_wt = fields.Float('Diamond Wt')
+
+class StockMove(models.Model):
+    _inherit = 'stock.move.line'
+
+    carat = fields.Float('Diamond Carat')
+    carat_wt = fields.Float('Diamond Wt')
