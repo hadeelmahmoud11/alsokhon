@@ -29,6 +29,12 @@ class StockMove(models.Model):
 
 class StockMove(models.Model):
     _inherit = 'stock.move.line'
-
     carat = fields.Float('Diamond Carat')
     carat_wt = fields.Float('Diamond Wt')
+
+
+class AccountMove(models.Model):
+    _inherit = 'account.move.line'
+    carat = fields.Float('Diamond Carat')
+    carat_wt = fields.Float('Diamond Wt')
+
