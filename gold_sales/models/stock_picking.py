@@ -523,13 +523,15 @@ class StockPicking(models.Model):
                 gross_wt = (gross_wt + rec.gross_wt) * (rec.product_uom_qty)
                 pure_wt =  rec.pure_wt
 # pos edit
-        pos_order = self.env['pos.order'].search([('name','=',self.origin.split(" - ")[1])])
-        if pos_order:
-            gross_wt = 0.00
-            pure_wt = 0.00
-            for rec in sale_order.order_line:
-                gross_wt = (gross_wt + rec.gross_wt) * (rec.product_uom_qty)
-                pure_wt =  rec.pure_wt
+        if self.origin:
+            if 'POS' in self.origin:
+                pos_order = self.env['pos.order'].search([('name','=',self.origin.split(" - ")[1])])
+                if pos_order:
+                    gross_wt = 0.00
+                    pure_wt = 0.00
+                    for rec in sale_order.order_line:
+                        gross_wt = (gross_wt + rec.gross_wt) * (rec.product_uom_qty)
+                        pure_wt =  rec.pure_wt
 
 
         for picking in self:
