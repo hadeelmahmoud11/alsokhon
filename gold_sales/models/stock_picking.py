@@ -39,15 +39,15 @@ class StockPicking(models.Model):
                     # print("self.move_line_ids_without_package")
                     # print(self.move_lines)
 
-                    for line in self.move_lines:
-                        # print(line)
-                        # print(line.lot_id)
-                        if line.lot_id:
-                            # print(line.lot_id.gross_weight , line.product_uom_qty)
-                            if line.product_id.categ_id.is_scrap:
-                                line.lot_id.gross_weight -= line.product_uom_qty
-                            else:
-                                line.lot_id.gross_weight -= line.product_uom_qty * line.gross_weight
+                    # for line in self.move_lines:
+                    #     # print(line)
+                    #     # print(line.lot_id)
+                    #     if line.lot_id:
+                    #         # print(line.lot_id.gross_weight , line.product_uom_qty)
+                    #         if line.product_id.categ_id.is_scrap:
+                    #             line.lot_id.gross_weight -= line.product_uom_qty
+                    #         else:
+                    #             line.lot_id.gross_weight -= line.product_uom_qty * line.gross_weight
                             # print(line.lot_id.gross_weight,line.lot_id.pure_weight)
                     rec.create_gold_journal_entry_sale()
             print(rec)

@@ -288,20 +288,31 @@ class PosOrder(models.Model):
 
             for line in order.lines.filtered(lambda l: l.product_id.type in ['product', 'consu'] and not float_is_zero(l.qty, precision_rounding=l.product_id.uom_id.rounding)):
                 if line.pack_lot_ids:
-                    for lot in line.pack_lot_ids:
-                        lot_id = lot
-                        print(lot_id)
-                        print(lot_id.lot_name)
-                        print(lot_id.product_id)
+
+                    # print(line.lot_id.gross_weight , line.product_uom_qty)
+
+                    for lots in line.pack_lot_ids:
+
+                        lot_id = lots
+                        
                         lot = self.env['stock.production.lot'].search([('name','=',lot_id.lot_name),('product_id','=',lot_id.product_id.id)])
+                        gross_weight = lot.gross_weight
+                        pure_weight = lot.pure_weight
+                        if line.product_id.categ_id.is_scrap:
+                            lot.gross_weight -= line.qty
+                        else:
+                            lot.gross_weight -= line.qty * lot.gross_weight
+
+
+
                         moves |= Move.create({
                             'name': line.name,
                             'product_uom': line.product_id.uom_id.id,
                             'picking_id': order_picking.id if line.qty >= 0 else return_picking.id,
                             'picking_type_id': picking_type.id if line.qty >= 0 else return_pick_type.id,
                             'product_id': line.product_id.id,#   item_category_id sub_category_id selling_karat_id selling_making_charge
-                            'gross_weight': line.gross_weight,
-                            'pure_weight': line.pure_weight,
+                            'gross_weight':gross_weight if (gross_weight-lot.gross_weight)==0 else gross_weight-lot.gross_weight,
+                            'pure_weight':pure_weight if (pure_weight-lot.pure_weight)==0 else pure_weight-lot.pure_weight,
                             'purity': line.purity_id.id,
                             'selling_making_charge': line.make_value,
                             'lot_id': lot.id,
