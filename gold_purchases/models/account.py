@@ -118,9 +118,11 @@ class AccountMove(models.Model):
 
     purchase_type = fields.Selection([('fixed', 'Fixed'),
                                         ('unfixed', 'Unfixed')], string='purchase type')
-    make_value_move = fields.Float( string='make value move',compute="_compute_make_value_move",store=True)
-    pure_wt_value = fields.Float( string='pure value',compute="_compute_make_value_move",store=True, digits=(16, 3))
-    gold_rate_value = fields.Float( string='rate value',compute="_compute_make_value_move",store=True)
+    make_value_move = fields.Float( string='Remainning Make Value',compute="_compute_make_value_move",store=True)
+    pure_wt_value = fields.Float( string='Remainning Pure Value',compute="_compute_make_value_move",store=True, digits=(16, 3))
+    pure_wt_value_perm = fields.Float( string='Pure Value',store=True, digits=(16, 3))
+    pure_wt_value_perm_flag = fields.Boolean(default=False)
+    gold_rate_value = fields.Float( string='Rate Value',compute="_compute_make_value_move",store=True)
     unfixed_move_id = fields.Many2one('account.move')
     unfixed_move_id_two = fields.Many2one('account.move')
     unfixed_move_id_three = fields.Many2one('account.move')
@@ -252,9 +254,12 @@ class AccountMove(models.Model):
                     else:
                         pure = line.pure_wt + line.purity_diff
                         rate = line.gold_rate
-
                 rec.pure_wt_value = pure
                 rec.gold_rate_value = rate
+                if rec.pure_wt_value_perm_flag == False:
+                    rec.pure_wt_value_perm = rec.pure_wt_value
+                    rec.pure_wt_value_perm_flag = True
+
 
                 if rec.amount_by_group:
                     rec.make_value_move = make_value + rec.amount_by_group[0][1]

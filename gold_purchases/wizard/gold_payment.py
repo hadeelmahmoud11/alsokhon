@@ -117,15 +117,15 @@ class stockGoldMove(models.TransientModel):
                     'lot_id': move.id}))
 
             # move.write({'gross_weight': move.gross_weight -  move.paid_gross})
-            # move.write({'pure_weight': move.pure_weight -  move.paid_pure})
+            move.write({'pure_weight': move.pure_weight -  move.paid_pure})
             # move.write({'paid_gross': 0.00 ,'paid_pure' : 0.00})
             # if move.gross_weight <= 0.00 or move.pure_weight <= 0.00:
-            #     move.write({'is_full_paid': True})
+                # move.write({'is_full_paid': True})
         account_move.write({'pure_wt_value': account_move.pure_wt_value - paid_pure })
         # pure_money = account_move.pure_wt_value * account_move.gold_rate_value
         # account_move.write({'make_value_move': account_move.make_value_move - pure_money })
 
-        if account_move.pure_wt_value <= 0.00 and account_move.make_value_move == 0.00:
+        if account_move.pure_wt_value <= 0.00 and account_move.make_value_move <= 0.00:
             account_move.write({'invoice_payment_state': "paid"})
 
         if not purchase_order.order_type.stock_picking_type_id :
