@@ -16,7 +16,7 @@
          </form>
         </field>
      </record>
-     <record id="action_fixing_unfixed_bill_wiz" model="ir.actions.act_window">
+     <record id="gold_purchase.action_fixing_unfixed_bill_wiz" model="ir.actions.act_window">
          <field name="name">Fixing Unfixed Bill</field>
          <field name="res_model">fixing.unfixed.bill</field>
          <field name="view_mode">form</field>
