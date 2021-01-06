@@ -788,7 +788,7 @@ class StockRule(models.Model):
                                     move.update({
                                         'gross_weight': sol.gross_wt,
                                         'pure_weight': sol.pure_wt,
-                                        'purity': sol.purity_id.purity or 1,
+                                        'purity': sol.purity_id.scrap_purity or 1,
                                         'gold_rate': sol.gold_rate,
                                         'selling_karat_id':
                                             sol.product_id.product_template_attribute_value_ids and
