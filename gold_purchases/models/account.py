@@ -108,10 +108,132 @@ class GoldPayment(models.Model):
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
+    def create_gold_unfixing_entry(self,stock_picking,value):
+        self.ensure_one()
+        # purchase_obj = self.env['purchase.order'].search([('name','=',purchase_order.name)])
+        this = stock_picking
+        moves = this.move_lines.filtered(lambda x: x._is_in() and
+                                                   x.product_id and
+                                                   x.product_id.gold and
+                                                   x.product_id.categ_id and
+                                                   x.product_id.categ_id.is_gold and
+                                                   x.product_id.categ_id.gold_on_hand_account and
+                                                   x.product_id.categ_id.gold_fixing_account)
+        if moves:
+            gold_on_hand_account_id = moves[0].product_id.categ_id.gold_on_hand_account.id
+            gold_fixing_account_id = moves[0].product_id.categ_id.gold_fixing_account.id
+            if not moves[0].product_id.categ_id.gold_journal.id:
+                raise ValidationError(_('Please fill gold journal in product Category'))
+            journal_id = moves[0].product_id.categ_id.gold_journal.id
+            move_lines = self._prepare_account_move_line_unfixing(gold_on_hand_account_id,gold_fixing_account_id,value)
+            if move_lines:
+                AccountMove = self.env['account.move'].with_context(
+                    default_journal_id=journal_id)
+                date = self._context.get('force_period_date',
+                                         fields.Date.context_today(self))
+                new_account_move = AccountMove.sudo().create({
+                    'journal_id': journal_id,
+                    'line_ids': move_lines,
+                    'date': date,
+                    'ref': description,
+                    'type': 'entry',
+                    'type_of_action': 'unfixed',
+                })
+                new_account_move.post()
+
+
+    def _prepare_account_move_line_unfixing(self, gold_on_hand_account_id,gold_fixing_account_id,value):
+        if not gold_on_hand_account_id or not gold_fixing_account_id:
+            raise ValidationError(_('Please fill gold accounts in product Category'))
+        if value <= 0:
+            raise ValidationError(_('Please add a value'))
+        debit_line = [{
+            'name': '%s - Unfixing' % (self.name),
+            'ref': '%s - Unfixing' % (self.name),
+            'partner_id': self.partner_id.id,
+            'debit': round(value, 3),
+            'credit': 0,
+            'account_id': gold_fixing_account_id,
+        }]
+        credit_line = [{
+            'name': '%s - Unfixing' % (self.name),
+            'ref': '%s - Unfixing' % (self.name),
+            'partner_id': self.partner_id.id,
+            'debit': 0,
+            'credit': debit_lines[0]['debit'],
+            'account_id': gold_on_hand_account_id,
+        }]
+        res = [(0, 0, x) for x in debit_lines + credit_line]
+        return res
+
+    def create_gold_fixing_entry(self,stock_picking,value):
+        self.ensure_one()
+        # purchase_obj = self.env['purchase.order'].search([('name','=',purchase_order.name)])
+        this = stock_picking
+        moves = this.move_lines.filtered(lambda x: x._is_in() and
+                                                   x.product_id and
+                                                   x.product_id.gold and
+                                                   x.product_id.categ_id and
+                                                   x.product_id.categ_id.is_gold and
+                                                   x.product_id.categ_id.gold_on_hand_account and
+                                                   x.product_id.categ_id.gold_fixing_account)
+        if moves:
+            gold_on_hand_account_id = moves[0].product_id.categ_id.gold_on_hand_account.id
+            gold_fixing_account_id = moves[0].product_id.categ_id.gold_fixing_account.id
+            if not moves[0].product_id.categ_id.gold_journal.id:
+                raise ValidationError(_('Please fill gold journal in product Category'))
+            journal_id = moves[0].product_id.categ_id.gold_journal.id
+            move_lines = self._prepare_account_move_line_fixing(gold_on_hand_account_id,gold_fixing_account_id,value)
+            if move_lines:
+                AccountMove = self.env['account.move'].with_context(
+                    default_journal_id=journal_id)
+                date = self._context.get('force_period_date',
+                                         fields.Date.context_today(self))
+                new_account_move = AccountMove.sudo().create({
+                    'journal_id': journal_id,
+                    'line_ids': move_lines,
+                    'date': date,
+                    'ref': description,
+                    'type': 'entry',
+                    'type_of_action': 'fixed',
+                })
+                new_account_move.post()
+
+
+    def _prepare_account_move_line_fixing(self, gold_on_hand_account_id,gold_fixing_account_id,value):
+        if not gold_on_hand_account_id or not gold_fixing_account_id:
+            raise ValidationError(_('Please fill gold accounts in product Category'))
+        if value <= 0:
+            raise ValidationError(_('Please add a value'))
+        debit_line = [{
+            'name': '%s - Fixing' % (self.name),
+            'ref': '%s - Fixing' % (self.name),
+            'partner_id': self.partner_id.id,
+            'debit': round(value, 3),
+            'credit': 0,
+            'account_id': gold_on_hand_account_id,
+        }]
+        credit_line = [{
+            'name': '%s - Fixing' % (self.name),
+            'ref': '%s - Fixing' % (self.name),
+            'partner_id': self.partner_id.id,
+            'debit': 0,
+            'credit': debit_lines[0]['debit'],
+            'account_id': gold_fixing_account_id,
+        }]
+        res = [(0, 0, x) for x in debit_lines + credit_line]
+        return res
 
 
     def convert_fixed(self):
-        pass
+        if self.invoice_origin and 'P0'in self.invoice_origin:
+            purchase_order = self.env['purchase.order'].search([('name','=',self.invoice_origin)])
+            if purchase_order:
+                stock_picking = self.env['stock.picking'].search([('origin','=',purchase_order.name)])
+                if stock_picking:
+                    self.create_gold_unfixing_entry(stock_picking,value)
+                    self.create_gold_fixing_entry(stock_picking,value)
+
 
     is_gold_entry = fields.Boolean(compute="_compute_is_gold_entry")
     def _compute_is_gold_entry(self):
