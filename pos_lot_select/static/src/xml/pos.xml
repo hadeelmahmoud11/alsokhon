@@ -66,7 +66,7 @@
                                                     </div>
                                                 </td>
                                                 <td id="total_qty">
-                                                    <t t-esc="product_lot.product_qty" />
+                                                    <t t-esc="product_lot.total_qty" />
                                                 </td>
                                                 <td id="gross_weight">
                                                     <t t-esc="product_lot.gross_weight" />

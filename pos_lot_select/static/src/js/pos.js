@@ -16,7 +16,7 @@ odoo.define('pos_lot_select.pos', function(require){
           domain: function(self){
               var from = moment(new Date()).subtract(self.config.lot_expire_days,'d').format('YYYY-MM-DD')+" 00:00:00";
               if(self.config.allow_pos_lot){
-                  return ['&',['create_date','>=',from],['product_qty','>',0]];
+                  return ['&',['create_date','>=',from],['total_qty','>',0]];
               }
               else{
                   return [['id','=',0]];
@@ -68,9 +68,7 @@ odoo.define('pos_lot_select.pos', function(require){
           set_quantity_by_lot: function() {
               if (this.order_line.product.tracking == 'serial' || this.order_line.product.tracking == 'lot') {
                   var valid_lots = this.get_valid_lots();
-                  // console.log("OOOOO");
-                  // console.log(this);
-                  // console.log(this.order_line);
+
                   this.order_line.set_quantity(valid_lots.length);
               }
           }
@@ -120,7 +118,6 @@ odoo.define('pos_lot_select.pos', function(require){
               }
               var valid_product_lot = this.pack_lot_lines.get_valid_lots();
               if (this.pack_lot_lines.models[0]) {
-                console.log( this.get_required_number_of_lots(), this.pack_lot_lines.models[0].quantity);
                 return this.get_required_number_of_lots() === this.pack_lot_lines.models[0].quantity;
               }
               return false;
@@ -132,25 +129,36 @@ odoo.define('pos_lot_select.pos', function(require){
 
       screens.PaymentScreenWidget.include({
 
-        order_is_valid: function(force_validation) {
-            var self = this;
+          order_is_valid: function(force_validation) {
+              var self = this;
 
-            var order = this.pos.get_order();
-            order.orderlines.each(_.bind( function(item) {
-                if(item.pack_lot_lines){
-                item.pack_lot_lines.each(_.bind(function(lot_item){
-                var lot_list = self.pos.list_lot_num;
-                for(var i=0;i<lot_list.length;i++){
-                    if(lot_list[i].name == lot_item.attributes['lot_name']){
-                        lot_list[i].total_qty -= 1;
+              var order = this.pos.get_order();
+
+              order.orderlines.each(_.bind( function(item) {
+
+                  if(item.pack_lot_lines){
+                    item.pack_lot_lines.each(_.bind(function(lot_item){
+
+                      var lot_list = self.pos.list_lot_num;
+                        for(var i=0;i<lot_list.length;i++){
+                            if(lot_list[i].name == lot_item.attributes['lot_name']){
+                              // console.log(lot_list[i].total_qty,item.quantity);
+                              // console.log((item.quantity*lot_list[i].gross_weight)/lot_list[i].total_qty);
+                              // console.log((item.quantity*lot_list[i].pure_weight)/lot_list[i].total_qty);
+                              lot_list[i].gross_weight -= (item.quantity*lot_list[i].gross_weight)/lot_list[i].total_qty;
+                              lot_list[i].pure_weight -= (item.quantity*lot_list[i].pure_weight)/lot_list[i].total_qty;
+                              lot_list[i].total_qty -= item.quantity;
+
+                            }
+                        }
+                      },this)
+                      );
                     }
-                }
-            },this));
-            }
-            },this));
-            return this._super(force_validation)
-            }
-    });
+                  },this)
+                );
+                return this._super(force_validation)
+            },
+        });
 
       var PackLotLinePopupWidget = PopupWidget.extend({
           template: 'PackLotLinePopupWidget',
@@ -167,7 +175,7 @@ odoo.define('pos_lot_select.pos', function(require){
             var self = this;
             var from = moment(new Date()).subtract(self.pos.config.lot_expire_days,'d').format('YYYY-MM-DD')+" 00:00:00";
             if(self.pos.config.allow_pos_lot){
-                return ['&',['create_date','>=',from],['product_qty','>',0]];
+                return ['&',['create_date','>=',from],['total_qty','>',0]];
             }
             else{
                 return [['id','=',0]];
@@ -186,8 +194,11 @@ odoo.define('pos_lot_select.pos', function(require){
             }, {async: true}).then(function(output) {
               output.forEach(function(lot) {
                   product_lot.push(lot);
-                  self.pos.set({'list_lot_num' : product_lot});
+                  // console.log(self.pos.list_lot_num);
               });
+              self.pos.set({'list_lot_num' : product_lot});
+              // console.log(product_lot);
+
             });
       		},
 
@@ -196,11 +207,11 @@ odoo.define('pos_lot_select.pos', function(require){
 
           show: function(options){
               var self = this;
-              // self.get_pos_lots();
+              self.get_pos_lots();
               var product_lots =  self.pos.list_lot_num;
               var product_lot = []
               product_lots.forEach(function(lot) {
-                  if(lot.product_id[0] == options.pack_lot_lines.order_line.product.id && lot.product_qty>0){
+                  if(lot.product_id[0] == options.pack_lot_lines.order_line.product.id && lot.total_qty>0){
                     product_lot.push(lot);
                   }
               });
@@ -208,15 +219,12 @@ odoo.define('pos_lot_select.pos', function(require){
               // self.render_list_lots(product_lot,undefined);
               options.qstr = "";
               options.product_lot = product_lot;
+              // console.log(options);
               this._super(options);
               // this.focus();
           },
           render_list_lots: function(lots, search_input){
       			var self = this;
-      			// console.log("((((orders))))");
-      			// console.log(orders);
-      			// console.log(self.pos.get('all_orders_list'));
-      			// console.log(this.pos);
 
       			var content = this.$el[0].querySelector('.lots-list-contents');
       			content.innerHTML = "";
@@ -225,7 +233,6 @@ odoo.define('pos_lot_select.pos', function(require){
       			if(lots){
       				for(var i = 0, len = Math.min(lots.length,1000); i < len; i++){
       					var lot    = lots[i];
-                // console.log(lot);
       					// current_date =  field_utils.format.datetime(moment(order.date_order), {type: 'datetime'});
       					// var ordersline_html = QWeb.render('OrdersLine',{widget: this, order:orders[i], selected_partner_id: orders[i].partner_id[0],current_date:current_date});
       					// var ordersline = document.createElement('tbody');
@@ -241,7 +248,6 @@ odoo.define('pos_lot_select.pos', function(require){
           renderElement:function(){
               this._super();
               var self = this;
-              // console.log(self.pos);
               $.fn.setCursorToTextEnd = function() {
                   $initialVal = this.val();
                   this.val($initialVal + ' ');
@@ -268,9 +274,9 @@ odoo.define('pos_lot_select.pos', function(require){
                               input_box = $(el)
 
                       });
-                      console.log("input_box");
-                      console.log(self.options);
-                      // console.log(self.options.pack_lot_lines);
+                      // console.log("input_box");
+                      // console.log(self.options);
+
                       if(input_box != undefined){
                           input_box.val(lot);
                           var pack_lot_lines = self.options.pack_lot_lines,
@@ -280,8 +286,7 @@ odoo.define('pos_lot_select.pos', function(require){
                           // console.log(pack_lot_lines);
 
                           var lot_model = pack_lot_lines.get({cid: cid});
-                          // console.log("(((lot_model)))");
-                          // console.log(lot_model);
+
                           lot_model.quantity=parseFloat(lot_count);
                           // console.log(lot_model);
 
@@ -292,11 +297,10 @@ odoo.define('pos_lot_select.pos', function(require){
                           }
 
                           pack_lot_lines.order_line.quantity=parseFloat(lot_count);
-                          console.log(pack_lot_lines.order_line);
                           pack_lot_lines.order_line.quantityStr=lot_count;
                           // pack_lot_lines.order_line.set_quantity(parseFloat(lot_count));
                           // pack_lot_lines.set_quantity_by_lot();
-                          self.change_price(gold_rate,pure_weight);
+                          self.change_price(gold_rate,pure_weight,pack_lot_lines.order_line.quantity,lot_model.total_qty);
                           self.renderElement();
                           self.focus();
                       }
@@ -318,10 +322,9 @@ odoo.define('pos_lot_select.pos', function(require){
               });
           },
 
-          change_price: function(gold_rate,pure_weight){
+          change_price: function(gold_rate,pure_weight,qty,tot_qty){
               var pack_lot_lines = this.options.pack_lot_lines;
               this.options.order_line.price=gold_rate*pure_weight;
-
           },
 
 
@@ -335,8 +338,7 @@ odoo.define('pos_lot_select.pos', function(require){
                   pack_line.set_lot_name(lot_name);
 
               });
-              // console.log("pack_lot_lines");
-              // console.log(pack_lot_lines);
+
               // selected_lot = this.options.order_line.pack_lot_lines.models[0].attributes.lot_name;
               // this.options.product_lot.forEach(function(lot) {
               //   if (lot.name == selected_lot)
@@ -354,16 +356,10 @@ odoo.define('pos_lot_select.pos', function(require){
                   if (lot.name == selected_lot)
                   {
                     var order_line = self.options.order_line
-                    self.change_price(self.pos.config.gold_rate,lot.pure_weight)
+                    self.change_price(self.pos.config.gold_rate,lot.pure_weight,self.options.pack_lot_lines.models[0].quantity,lot.total_qty)
                     if(self.options.order_line.product.making_charge_id){
                       var product = self.pos.db.get_product_by_id(self.options.order_line.product.making_charge_id[0]);
-                      // console.log("product");
-                      // console.log(product);
-                      // console.log(lot);
 
-                      // console.log("hjfghf");
-                      // console.log(product);
-                      // console.log(order_line.quantity * lot.gross_weight * lot.selling_making_charge);
                       self.options.order.add_product(product, {
                         quantity: 1,
                         price: order_line.quantity * lot.gross_weight * lot.selling_making_charge,

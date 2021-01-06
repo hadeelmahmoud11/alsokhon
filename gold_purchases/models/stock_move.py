@@ -42,6 +42,7 @@ class StockMove(models.Model):
     company_currency_id = fields.Many2one('res.currency',
                                           string="Company Currency",
                                           related='company_id.currency_id')
+    lot_id = fields.Many2one('stock.production.lot', string='Lot / Serial Number')
 
 
     def _create_in_svl(self, forced_quantity=None):

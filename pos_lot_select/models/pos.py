@@ -136,6 +136,8 @@ class stock_production_lot(models.Model):
         pos_config = self.env['pos.config'].search([], limit=1)
         pos_location_id = self.env['stock.location'].search([('id','=',pos_config.picking_type_id.default_location_src_id.id)])
         for record in self:
+            # print("record")
+            # print(record)
             move_line = self.env['stock.move.line'].search([('lot_id','=',record.id)])
             record.total_qty = 0.0
             for rec in move_line:
@@ -145,8 +147,10 @@ class stock_production_lot(models.Model):
                 #    record.total_qty -= rec.qty_done
                 if rec.location_dest_id == pos_location_id:
                     record.total_qty += rec.qty_done
+                    # record.gross_weight -= rec.qty_done
                 elif rec.location_id == pos_location_id:
                     record.total_qty -= rec.qty_done
+                    # record.gross_weight -= rec.qty_done
                 else:
                     continue
 
@@ -283,21 +287,54 @@ class PosOrder(models.Model):
 
 
             for line in order.lines.filtered(lambda l: l.product_id.type in ['product', 'consu'] and not float_is_zero(l.qty, precision_rounding=l.product_id.uom_id.rounding)):
-                moves |= Move.create({
-                    'name': line.name,
-                    'product_uom': line.product_id.uom_id.id,
-                    'picking_id': order_picking.id if line.qty >= 0 else return_picking.id,
-                    'picking_type_id': picking_type.id if line.qty >= 0 else return_pick_type.id,
-                    'product_id': line.product_id.id,#   item_category_id sub_category_id selling_karat_id selling_making_charge
-                    'gross_weight': line.gross_weight,
-                    'pure_weight': line.pure_weight,
-                    'purity': line.purity_id.id,
-                    'selling_making_charge': line.make_value,
-                    'product_uom_qty': abs(line.qty),
-                    'state': 'draft',
-                    'location_id': location_id if line.qty >= 0 else destination_id,
-                    'location_dest_id': destination_id if line.qty >= 0 else return_pick_type != picking_type and return_pick_type.default_location_dest_id.id or location_id,
-                })
+                if line.pack_lot_ids:
+                    for lot in line.pack_lot_ids:
+                        lot_id = lot
+                        print(lot_id)
+                        print(lot_id.lot_name)
+                        print(lot_id.product_id)
+                        lot = self.env['stock.production.lot'].search([('name','=',lot_id.lot_name),('product_id','=',lot_id.product_id.id)])
+                        moves |= Move.create({
+                            'name': line.name,
+                            'product_uom': line.product_id.uom_id.id,
+                            'picking_id': order_picking.id if line.qty >= 0 else return_picking.id,
+                            'picking_type_id': picking_type.id if line.qty >= 0 else return_pick_type.id,
+                            'product_id': line.product_id.id,#   item_category_id sub_category_id selling_karat_id selling_making_charge
+                            'gross_weight': line.gross_weight,
+                            'pure_weight': line.pure_weight,
+                            'purity': line.purity_id.id,
+                            'selling_making_charge': line.make_value,
+                            'lot_id': lot.id,
+                            'product_uom_qty': abs(line.qty),
+                            'state': 'draft',
+                            'location_id': location_id if line.qty >= 0 else destination_id,
+                            'location_dest_id': destination_id if line.qty >= 0 else return_pick_type != picking_type and return_pick_type.default_location_dest_id.id or location_id,
+                        })
+                        print(moves)
+                        # print(moves.move_line_ids)
+                        # for value in moves.move_line_ids:
+                        #     print(value)
+                        #     print(value.name)
+                        #     print(value.lot_id)
+                        # return False
+                        # print(moves)
+                else:
+                    moves |= Move.create({
+                        'name': line.name,
+                        'product_uom': line.product_id.uom_id.id,
+                        'picking_id': order_picking.id if line.qty >= 0 else return_picking.id,
+                        'picking_type_id': picking_type.id if line.qty >= 0 else return_pick_type.id,
+                        'product_id': line.product_id.id,#   item_category_id sub_category_id selling_karat_id selling_making_charge
+                        'gross_weight': line.gross_weight,
+                        'pure_weight': line.pure_weight,
+                        'purity': line.purity_id.id,
+                        'selling_making_charge': line.make_value,
+                        # 'lot_id': lot_id,
+                        'product_uom_qty': abs(line.qty),
+                        'state': 'draft',
+                        'location_id': location_id if line.qty >= 0 else destination_id,
+                        'location_dest_id': destination_id if line.qty >= 0 else return_pick_type != picking_type and return_pick_type.default_location_dest_id.id or location_id,
+                    })
 
 
             # prefer associating the regular order picking, not the return

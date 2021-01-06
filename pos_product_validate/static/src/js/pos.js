@@ -118,8 +118,10 @@ odoo.define('pos_product_validate.pos', function(require){
         }, {async: true}).then(function(output) {
           output.forEach(function(lot) {
               product_lot.push(lot);
-              self.pos.set({'list_lot_num' : product_lot});
+              // console.log(product_lot);
           });
+          self.pos.set({'list_lot_num' : product_lot});
+          // console.log(product_lot);
         });
       },
   	});
