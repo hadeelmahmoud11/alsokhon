@@ -12,14 +12,12 @@ class PurchaseOrderLine(models.Model):
 
 class StockProductionLot(models.Model):
     _inherit = 'stock.production.lot'
-
     carat = fields.Float('Diamond Carat')
     carat_wt = fields.Float('Diamond Carat Wt')
     
     
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
-
     carat = fields.Float('Diamond Carat')
     carat_wt = fields.Float('Diamond Wt')
 
