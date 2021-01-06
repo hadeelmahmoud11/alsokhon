@@ -128,7 +128,7 @@
                     <field name="purchase_type" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
                     <field name="make_value_move" invisible="0" />
                     <field name="pure_wt_value"  invisible="0" />
-                    <field name="pure_wt_value_perm"  invisible="0" />
+                    <field name="pure_wt_value_perm"  invisible="0" readonly="1" force_save="1" />
                     <field name="gold_rate_value"  invisible="0" />
 
                 </field>

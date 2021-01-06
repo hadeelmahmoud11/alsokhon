@@ -35,14 +35,19 @@ class StockPicking(models.Model):
                         else:
                             line.lot_id.gross_weight -= line.move_id.product_uom_qty * line.move_id.gross_weight
                     rec.create_gold_journal_entry_sale()
-                if rec.invoice_unfixed :
-                    rec.create_unfixed_journal_entry_sale()
                 if 'POS' in rec.origin:
                     rec.create_gold_journal_entry_sale()
-                if 'P0' in self.group_id.name:
-                    rec.create_gold_journal_entry_sale()
-                if rec.bill_unfixed :
-                    rec.create_unfixed_journal_entry_sale()
+            print(rec)
+            print(rec.group_id)
+            print(rec.group_id.name)
+            if rec.group_id:
+                if rec.group_id.name:
+                    if 'P0' in rec.group_id.name:
+                        rec.create_gold_journal_entry_sale()
+            if rec.invoice_unfixed :
+                rec.create_unfixed_journal_entry_sale()
+            if rec.bill_unfixed :
+                rec.create_unfixed_journal_entry_sale()
         return res
     #
     def create_gold_journal_entry_sale(self):
@@ -301,7 +306,7 @@ class StockPicking(models.Model):
     #
     def create_unfixed_journal_entry_sale(self):
         self.ensure_one()
-        if 'P0' in self.group_id.name:
+        if self.bill_unfixed:
             account_move_obj = self.env['account.move'].search([('id','=',self.bill_unfixed.id)])
             moves = self.move_lines.filtered(lambda x:
                                                        x.product_id and
@@ -355,7 +360,7 @@ class StockPicking(models.Model):
                                 account_move_obj.write({'unfixed_move_id_two': new_account_move.id})
                             if not account_move_obj.unfixed_move_id and not account_move_obj.unfixed_move_id_two and not account_move_obj.unfixed_move_id_three:
                                 account_move_obj.write({'unfixed_move_id': new_account_move.id})
-        elif 'S0' in self.origin:
+        elif self.invoice_unfixed:
             account_move_obj = self.env['account.move'].search([('id','=',self.invoice_unfixed.id)])
             moves = self.move_lines.filtered(lambda x:
                                                        x.product_id and
@@ -412,7 +417,7 @@ class StockPicking(models.Model):
 
 
     def _prepare_account_move_line_unfixed(self, product_dict):
-        if 'P0' in self.group_id.name:
+        if self.bill_unfixed:
             debit_lines = []
             account_move_obj = self.env['account.move'].search([('id','=',self.bill_unfixed.id)])
             for product_id, value in product_dict.items():
@@ -442,7 +447,7 @@ class StockPicking(models.Model):
             }]
             res = [(0, 0, x) for x in debit_lines + credit_line]
             return res
-        elif 'S0' in self.origin:
+        elif self.invoice_unfixed:
             credit_lines = []
             account_move_obj = self.env['account.move'].search([('id','=',self.invoice_unfixed.id)])
             for product_id, value in product_dict.items():
