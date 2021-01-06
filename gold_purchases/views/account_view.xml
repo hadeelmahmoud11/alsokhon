@@ -125,24 +125,26 @@
                     <field name="gold_value" invisible="1"/>
                 </xpath>
                 <xpath expr="//form/sheet/notebook" position="inside">
-                  <group>
-                    <field name="purchase_type" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
-                    <field name="gold_rate_value" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
-                  </group>
-                  <group>
+                  <page string="Unfixed Details" attrs="{'invisible': [('purchase_type', '=', False)]}">
                     <group>
-                      <field name="make_value_move" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
-                      <field name="make_value_move_perm"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" force_save="1" />
-                      <field name="make_value_move_perm_flag" invisible="1"  />
-                      <field name="make_value_move_paid" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" />
+                      <field name="purchase_type" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
+                      <field name="gold_rate_value" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
                     </group>
                     <group>
-                      <field name="pure_wt_value" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" />
-                      <field name="pure_wt_value_perm"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" force_save="1" />
-                      <field name="pure_wt_value_perm_flag"  invisible="1" />
-                      <field name="pure_wt_value_paid"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" />
+                      <group>
+                        <field name="make_value_move" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
+                        <field name="make_value_move_perm"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" force_save="1" />
+                        <field name="make_value_move_perm_flag" invisible="1"  />
+                        <field name="make_value_move_paid" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" />
+                      </group>
+                      <group>
+                        <field name="pure_wt_value" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" />
+                        <field name="pure_wt_value_perm"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" force_save="1" />
+                        <field name="pure_wt_value_perm_flag"  invisible="1" />
+                        <field name="pure_wt_value_paid"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" />
+                      </group>
                     </group>
-                  </group>
+                  </page>
                 </xpath>
                 <xpath expr="//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='price_unit']" position="attributes">
                     <attribute name="attrs">{'readonly': ['|',('parent.purchase_type', '=', "unfixed"),('parent.purchase_type', '=', "fixed")]}</attribute>
