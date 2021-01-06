@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-      <record id="gold_purchases_view_move_line_tree_inherited" model="ir.ui.view">
+      <!-- <record id="diamond_enhancement" model="ir.ui.view">
       <field name="name">gold.purchases.stock.move.line.tree.inherit</field>
       <field name="model">stock.move.line</field>
       <field name="inherit_id" ref="stock.view_move_line_tree"/>
@@ -35,6 +35,6 @@
           </xpath>
 
       </field>
-    </record>
+    </record> -->
   </data>
 </odoo>

@@ -15,8 +15,8 @@ class StockProductionLot(models.Model):
             elif this.product_id and not this.product_id.categ_id.is_scrap:
                 this.scrap_state_read = False
     is_full_paid = fields.Boolean()
-    paid_gross = fields.Float()
-    paid_pure = fields.Float()
+    paid_gross = fields.Float( digits=(16, 3))
+    paid_pure = fields.Float( digits=(16, 3))
     @api.onchange('paid_gross')
     def onchange_paid_gross(self):
         # print("<<<<<<>>>>>>>>>")
