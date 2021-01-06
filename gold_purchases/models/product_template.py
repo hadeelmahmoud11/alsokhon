@@ -113,3 +113,9 @@ class ProductCategory(models.Model):
     gold_fixing_account = fields.Many2one('account.account',
                                             domain="get_account_fixing_type",
                                             string="Fixing Account - Gold")
+    @api.model
+    def get_account_fixing_type(self):
+        asset_type = self.env.ref('account.data_account_type_current_assets')
+        if asset_type:
+            return [('user_type_id', '=', asset_type.id), ('gold', '=', True)]
+        return []

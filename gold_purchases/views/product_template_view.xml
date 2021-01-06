@@ -34,6 +34,7 @@
                         <field name="gold_expense_account" attrs="{'required': [('is_gold', '=', True)]}"/>
                         <field name="gold_journal" domain="[('gold', '=', True)]" attrs="{'required': [('is_gold', '=', True)]}"/>
                         <field name="gold_purchase_journal" domain="[('gold', '=', True)]" attrs="{'required': [('is_gold', '=', True)]}"/>
+                        <field name="gold_fixing_account" domain="[('gold', '=', True)]" attrs="{'required': [('is_gold', '=', True)]}"/>
                     </group>
                 </xpath>
             </field>
