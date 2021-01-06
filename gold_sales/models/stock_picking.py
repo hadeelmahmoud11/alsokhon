@@ -523,7 +523,7 @@ class StockPicking(models.Model):
                 gross_wt = (gross_wt + rec.gross_wt) * (rec.product_uom_qty)
                 pure_wt =  rec.pure_wt
 # pos edit
-        if this.origin:
+        if self.origin:
             if 'POS' in this.origin:
                 pos_order = self.env['pos.order'].search([('name','=',self.origin.split(" - ")[1])])
                 if pos_order:
