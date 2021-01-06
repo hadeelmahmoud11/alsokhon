@@ -524,7 +524,7 @@ class StockPicking(models.Model):
                 pure_wt =  rec.pure_wt
 # pos edit
         if self.origin:
-            if 'POS' in this.origin:
+            if 'POS' in self.origin:
                 pos_order = self.env['pos.order'].search([('name','=',self.origin.split(" - ")[1])])
                 if pos_order:
                     gross_wt = 0.00
