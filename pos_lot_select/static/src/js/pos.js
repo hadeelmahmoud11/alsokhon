@@ -291,7 +291,10 @@ odoo.define('pos_lot_select.pos', function(require){
                               self.focus_model = new_lot_model;
                           }
 
-                          pack_lot_lines.order_line.set_quantity(parseFloat(lot_count));
+                          pack_lot_lines.order_line.quantity=parseFloat(lot_count);
+                          console.log(pack_lot_lines.order_line);
+                          pack_lot_lines.order_line.quantityStr=lot_count;
+                          // pack_lot_lines.order_line.set_quantity(parseFloat(lot_count));
                           // pack_lot_lines.set_quantity_by_lot();
                           self.change_price(gold_rate,pure_weight);
                           self.renderElement();
