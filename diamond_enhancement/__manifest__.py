@@ -10,7 +10,7 @@
     'version': '13.0.0.1',
     # 'depends': ['purchase_stock', 'stock_account','account','po_gold_form','purchase_product_matrix',
     #             'purchase_order_type', 'account_accountant','stock','account_reports'],
-    'depends': ['gold_sales','gold_purchases','sale_stock', 'stock_account','account', 'account_accountant','stock','account_reports','sale_order_type','sale'],
+    'depends': ['stock','purchase','sale','base'],
     'data': [
         'views/views.xml',
     ],
