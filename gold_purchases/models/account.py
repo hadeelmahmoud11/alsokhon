@@ -118,11 +118,23 @@ class AccountMove(models.Model):
 
     purchase_type = fields.Selection([('fixed', 'Fixed'),
                                         ('unfixed', 'Unfixed')], string='purchase type')
-    make_value_move = fields.Float( string='Remainning Make Value',compute="_compute_make_value_move",store=True)
-    pure_wt_value = fields.Float( string='Remainning Pure Value',compute="_compute_make_value_move",store=True, digits=(16, 3))
-    pure_wt_value_perm = fields.Float( string='Pure Value',store=True, digits=(16, 3))
+    gold_rate_value = fields.Float( string='Gold Rate/G',compute="_compute_make_value_move",store=True)
+    make_value_move = fields.Float( string='Remainning Make Charge',compute="_compute_make_value_move",store=True)
+    make_value_move_perm = fields.Float( string='Due Make Charge',store=True)
+    make_value_move_paid = fields.Float( string='Paid Make Charge', compute="compute_gold_paid",store=True)
+    make_value_move_perm_flag = fields.Boolean(default=False)
+    pure_wt_value = fields.Float( string='Remaining Pure Weight',compute="_compute_make_value_move",store=True, digits=(16, 3))
+    pure_wt_value_perm = fields.Float( string='Due Pure Weight',store=True, digits=(16, 3))
+    pure_wt_value_paid = fields.Float( string='Paid Pure Weight', compute="compute_gold_paid",store=True)
     pure_wt_value_perm_flag = fields.Boolean(default=False)
-    gold_rate_value = fields.Float( string='Rate Value',compute="_compute_make_value_move",store=True)
+
+    @api.depends('gold_rate_value','make_value_move','make_value_move_perm','make_value_move_paid','make_value_move_perm_flag','pure_wt_value','pure_wt_value_perm','pure_wt_value_paid','pure_wt_value_perm_flag')
+    def compute_gold_paid(self):
+        for this in self:
+            this.make_value_move_paid = this.make_value_move_perm - this.make_value_move
+            this.pure_wt_value_paid = this.pure_wt_value_perm - this.pure_wt_value
+
+
     unfixed_move_id = fields.Many2one('account.move')
     unfixed_move_id_two = fields.Many2one('account.move')
     unfixed_move_id_three = fields.Many2one('account.move')
@@ -256,15 +268,19 @@ class AccountMove(models.Model):
                         rate = line.gold_rate
                 rec.pure_wt_value = pure
                 rec.gold_rate_value = rate
-                if rec.pure_wt_value_perm_flag == False:
-                    rec.pure_wt_value_perm = rec.pure_wt_value
-                    rec.pure_wt_value_perm_flag = True
-
-
                 if rec.amount_by_group:
                     rec.make_value_move = make_value + rec.amount_by_group[0][1]
                 else:
                     rec.make_value_move = make_value
+                if rec.pure_wt_value_perm_flag == False:
+                    rec.pure_wt_value_perm = rec.pure_wt_value
+                    rec.pure_wt_value_perm_flag = True
+                if rec.make_value_move_perm_flag == False:
+                    rec.make_value_move_perm = rec.make_value_move
+                    rec.make_value_move_perm_flag = True
+
+
+
 
     def button_draft(self):
         res = super(AccountMove, self).button_draft()

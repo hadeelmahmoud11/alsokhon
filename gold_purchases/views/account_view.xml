@@ -124,15 +124,26 @@
                     <field name="gold_rate" invisible="1"/>
                     <field name="gold_value" invisible="1"/>
                 </xpath>
-                <field name="ref" position="after">
+                <xpath expr="//form/sheet/notebook" position="inside">
+                  <group>
                     <field name="purchase_type" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
-                    <field name="make_value_move" invisible="0" />
-                    <field name="pure_wt_value"  invisible="0" />
-                    <field name="pure_wt_value_perm"  invisible="0" readonly="1" force_save="1" />
-                    <field name="gold_rate_value"  invisible="0" />
-
-                </field>
-
+                    <field name="gold_rate_value" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
+                  </group>
+                  <group>
+                    <group>
+                      <field name="make_value_move" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
+                      <field name="make_value_move_perm"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" force_save="1" />
+                      <field name="make_value_move_perm_flag" invisible="1"  />
+                      <field name="make_value_move_paid" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" />
+                    </group>
+                    <group>
+                      <field name="pure_wt_value" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" />
+                      <field name="pure_wt_value_perm"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" force_save="1" />
+                      <field name="pure_wt_value_perm_flag"  invisible="1" />
+                      <field name="pure_wt_value_paid"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" />
+                    </group>
+                  </group>
+                </xpath>
                 <xpath expr="//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='price_unit']" position="attributes">
                     <attribute name="attrs">{'readonly': ['|',('parent.purchase_type', '=', "unfixed"),('parent.purchase_type', '=', "fixed")]}</attribute>
                     <attribute name="force_save">1</attribute>
@@ -179,6 +190,23 @@
                <field name="is_unfixed_wizard" invisible="1" />
                <field name="unfixed_option" attrs="{'invisible': [('is_unfixed_wizard', '=', False)],'required': [('is_unfixed_wizard', '=', True)]}"/>
             </xpath>
+            </field>
+        </record>
+
+        <record id="view_account_payment_register_form_unfixed_attrs" model="ir.ui.view">
+            <field name="name">account.payment.form.register.unfixed.attrs</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_form"/>
+            <field name="arch" type="xml">
+            <field name="amount" position="attributes">
+              <attribute name="context">{'default_amount':0.00}</attribute>
+            </field>
+            <!-- <field name="amount" position="attributes">
+              <attribute name="context">{'default_amount':0.00}</attribute>
+            </field>
+            <xpath expr="//form/sheet/group/group[4]" position="attributes">
+              <attribute name="attrs">{'invisible':[('is_unfixed_wizard','=',True)]}</attribute>
+            </xpath> -->
             </field>
         </record>
 
