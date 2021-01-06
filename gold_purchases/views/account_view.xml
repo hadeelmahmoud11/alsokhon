@@ -201,12 +201,12 @@
             <field name="amount" position="attributes">
               <attribute name="context">{'default_amount':0.00}</attribute>
             </field>
-            <!-- <field name="amount" position="attributes">
-              <attribute name="context">{'default_amount':0.00}</attribute>
+            <field name="communication" position="after">
+              <field name="is_unfixed_wizard" invisible="1" />
             </field>
             <xpath expr="//form/sheet/group/group[4]" position="attributes">
               <attribute name="attrs">{'invisible':[('is_unfixed_wizard','=',True)]}</attribute>
-            </xpath> -->
+            </xpath>
             </field>
         </record>
 
