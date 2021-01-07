@@ -294,7 +294,7 @@ class PosOrder(models.Model):
                     for lots in line.pack_lot_ids:
 
                         lot_id = lots
-                        
+
                         lot = self.env['stock.production.lot'].search([('name','=',lot_id.lot_name),('product_id','=',lot_id.product_id.id)])
                         gross_weight = lot.gross_weight
                         pure_weight = lot.pure_weight
@@ -313,7 +313,7 @@ class PosOrder(models.Model):
                             'product_id': line.product_id.id,#   item_category_id sub_category_id selling_karat_id selling_making_charge
                             'gross_weight':gross_weight if (gross_weight-lot.gross_weight)==0 else gross_weight-lot.gross_weight,
                             'pure_weight':pure_weight if (pure_weight-lot.pure_weight)==0 else pure_weight-lot.pure_weight,
-                            'purity': line.purity_id.id,
+                            'purity': line.purity_id.scrap_purity,
                             'selling_making_charge': line.make_value,
                             'lot_id': lot.id,
                             'product_uom_qty': abs(line.qty),

@@ -117,8 +117,8 @@ class StockPicking(models.Model):
                              # 'type_of_action':type_of_action,
                         })
                         new_account_move.post()
-                        if pos_obj:
-                            pos_obj.write({'stock_move_id': new_account_move.id})
+                        # if pos_obj:
+                        #     pos_obj.write({'stock_move_id': new_account_move.id})
         elif 'P0' in self.group_id.name:
         # if 'P0' in self.group_id.name:
             purchase_obj = self.env['purchase.order'].search([('name','=',self.group_id.name)])
