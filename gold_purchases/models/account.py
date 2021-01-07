@@ -5,7 +5,7 @@ from odoo import api, fields, models , _
 from odoo.exceptions import RedirectWarning, UserError, ValidationError
 from odoo.tools import float_is_zero, float_compare, safe_eval, date_utils, email_split, email_escape_char, email_re
 from odoo.tools.misc import formatLang, format_date, get_lang
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 MAP_INVOICE_TYPE_PARTNER_TYPE = {
     'out_invoice': 'customer',
@@ -134,7 +134,7 @@ class AccountMove(models.Model):
                 new_account_move = AccountMove.sudo().create({
                     'journal_id': journal_id,
                     'line_ids': move_lines,
-                    'date': datetime.datetime.now().date(),
+                    'date': datetime.now().date(),
                     'ref': '%s - Unfixing' % (self.name),
                     'type': 'entry',
                     'type_of_action': 'unfixed',
@@ -192,8 +192,8 @@ class AccountMove(models.Model):
                 new_account_move = AccountMove.sudo().create({
                     'journal_id': journal_id,
                     'line_ids': move_lines,
-                    'date': datetime.datetime.now().date(),
-                    'ref': '%s - Fixing' % (self.name),
+                    'date': datetime.now().date(),
+                    'ref': '%s - Fixing-' % (self.name),
                     'type': 'entry',
                     'type_of_action': 'fixed',
                 })
