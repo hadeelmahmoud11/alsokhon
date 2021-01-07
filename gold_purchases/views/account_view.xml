@@ -127,11 +127,16 @@
                 <xpath expr="//form/sheet/notebook" position="inside">
                   <page string="Unfixed Details" attrs="{'invisible': [('purchase_type', '=', False)]}">
                     <group>
-                      <field name="purchase_type" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
-                      <field name="gold_rate_value" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
-                      <field name="unfixed_stock_picking" string="Stock Operation" readonly="1" />
-                      <field name="unfixed_stock_picking_two" nolabel="1"  attrs="{'invisible': [('unfixed_stock_picking_two', '=', False)],'readonly': True}"/>
-                      <field name="unfixed_stock_picking_three" nolabel="1"  attrs="{'invisible': [('unfixed_stock_picking_three', '=', False)],'readonly': True}"/>
+                      <group>
+                        <field name="purchase_type" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
+                        <field name="gold_rate_value" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
+                        <field name="unfixed_fixed_value" attrs="{'invisible': [('unfixed_fixed_value', '=', 0.00)]}" readonly="1" force_save="1"/>
+                      </group>
+                      <group>
+                        <field name="unfixed_stock_picking" string="Stock Operation" readonly="1" />
+                        <field name="unfixed_stock_picking_two" nolabel="1"  attrs="{'invisible': [('unfixed_stock_picking_two', '=', False)],'readonly': True}"/>
+                        <field name="unfixed_stock_picking_three" nolabel="1"  attrs="{'invisible': [('unfixed_stock_picking_three', '=', False)],'readonly': True}"/>
+                      </group>
                     </group>
                     <group>
                       <group>
