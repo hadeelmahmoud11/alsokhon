@@ -163,6 +163,7 @@ class PurchaseOrderLine(models.Model):
 
     price_unit = fields.Float(string='Unit Price', required=True,
                               digits='Product Price', copy=False, default=lambda self: self.default_price_unit_get())
+    @api.depends('product_id')
     def default_price_unit_get(self):
         for this in self:
             if this.product_id:
