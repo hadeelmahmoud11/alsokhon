@@ -134,8 +134,8 @@ class AccountMove(models.Model):
                 new_account_move = AccountMove.sudo().create({
                     'journal_id': journal_id,
                     'line_ids': move_lines,
-                    'date': date,
-                    'ref': description,
+                    'date': datetime.datetime.now().date(),
+                    'ref': '%s - Unfixing' % (self.name),
                     'type': 'entry',
                     'type_of_action': 'unfixed',
                 })
@@ -192,8 +192,8 @@ class AccountMove(models.Model):
                 new_account_move = AccountMove.sudo().create({
                     'journal_id': journal_id,
                     'line_ids': move_lines,
-                    'date': date,
-                    'ref': description,
+                    'date': datetime.datetime.now().date(),
+                    'ref': '%s - Fixing' % (self.name),
                     'type': 'entry',
                     'type_of_action': 'fixed',
                 })
