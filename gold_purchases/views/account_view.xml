@@ -129,6 +129,9 @@
                     <group>
                       <field name="purchase_type" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
                       <field name="gold_rate_value" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
+                      <field name="unfixed_stock_picking" string="Stock Operation" readonly="1" />
+                      <field name="unfixed_stock_picking_two" nolabel="1"  attrs="{'invisible': [('unfixed_stock_picking_two', '=', False)],'readonly': True}"/>
+                      <field name="unfixed_stock_picking_three" nolabel="1"  attrs="{'invisible': [('unfixed_stock_picking_three', '=', False)],'readonly': True}"/>
                     </group>
                     <group>
                       <group>
@@ -164,7 +167,7 @@
             <field name="arch" type="xml">
                     <xpath expr="//header" position="inside">
                         <button  name="%(action_stock_moves)d" type="action" context="{'pure_weight': pure_wt_value_perm}" groups="account.group_account_invoice" attrs="{'invisible': ['|', '|','|','|',('pure_wt_value','=',0.00),('state', '!=', 'posted'),('invoice_payment_state', '!=', 'not_paid'),('purchase_type', '!=', 'unfixed'),('type', 'not in', ('in_invoice'))]}"  string="Register Gold" class="oe_highlight"/>
-                        <button  name="open_wizard_for_fixing" type="object" context="{'value': pure_wt_value}" string="Convert Into Fixed" class="oe_highlight" attrs="{'invisible': ['|', '|','|','|',('pure_wt_value','=',0.00),('state', '!=', 'posted'),('invoice_payment_state', '!=', 'not_paid'),('purchase_type', '!=', 'unfixed'),('type', 'not in', ('in_invoice'))]}"/>
+                        <button  name="%(gold_purchases.action_fixing_unfixed_bill_wiz)d" type="action" context="{'value': pure_wt_value}" string="Convert Into Fixed" class="oe_highlight" attrs="{'invisible': ['|', '|','|','|',('pure_wt_value','=',0.00),('state', '!=', 'posted'),('invoice_payment_state', '!=', 'not_paid'),('purchase_type', '!=', 'unfixed'),('type', 'not in', ('in_invoice'))]}"/>
                     </xpath>
 
                     <xpath expr="//field[@name='fiscal_position_id']" position="after">
@@ -174,9 +177,7 @@
                     <field name="unfixed_move_id_two" nolabel="1"  string="unfixed move two" attrs="{'invisible': [('unfixed_move_id_two', '=', False)],'readonly': True}" />
                     <field name="unfixed_move_id_three" nolabel="1"  string="unfixed move three" attrs="{'invisible': [('unfixed_move_id_three', '=', False)],'readonly': True}" />
 
-                    <field name="unfixed_stock_picking" string="Stock Operation" readonly="1" />
-                    <field name="unfixed_stock_picking_two" nolabel="1"  attrs="{'invisible': [('unfixed_stock_picking_two', '=', False)],'readonly': True}"/>
-                    <field name="unfixed_stock_picking_three" nolabel="1"  attrs="{'invisible': [('unfixed_stock_picking_three', '=', False)],'readonly': True}"/>
+
 
 
                     </xpath>

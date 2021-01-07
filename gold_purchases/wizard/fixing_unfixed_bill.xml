@@ -1,6 +1,6 @@
 <odoo>
   <data>
-    <record model="ir.ui.view" id="fixing_unfixed_bill_form">
+    <record model="ir.ui.view" id="gold_purchases.fixing_unfixed_bill_form">
         <field name="name">fixing_unfixed_bill_form.form</field>
         <field name="model">fixing.unfixed.bill</field>
         <field name="type">form</field>
@@ -20,7 +20,7 @@
          <field name="name">Fixing Unfixed Bill</field>
          <field name="res_model">fixing.unfixed.bill</field>
          <field name="view_mode">form</field>
-         <field name="view_id" ref="fixing_unfixed_bill_form"/>
+         <field name="view_id" ref="gold_purchases.fixing_unfixed_bill_form"/>
          <field name="context">{'default_value': context.get('pure_wt_value', False),}</field>
          <field name="target">new</field>
      </record>
