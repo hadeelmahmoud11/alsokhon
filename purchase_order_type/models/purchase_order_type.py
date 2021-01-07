@@ -31,11 +31,12 @@ class PurchaseOrderType(models.Model):
     is_fixed = fields.Boolean('Is Fixed')
     is_unfixed = fields.Boolean('Is Unfixed')
     gold = fields.Boolean('Gold')
+    diamond = fields.Boolean('Diamond')
     stock_picking_type_id = fields.Many2one(
         comodel_name='stock.picking.type', string='picking type')
-    
 
-    @api.constrains('stock_picking_type_id') 
+
+    @api.constrains('stock_picking_type_id')
     def _check_stock_picking_type_id(self):
         for check in self:
             if not check.stock_picking_type_id.default_location_src_id or not  check.stock_picking_type_id.default_location_dest_id:

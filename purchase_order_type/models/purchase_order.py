@@ -17,16 +17,22 @@ class PurchaseOrder(models.Model):
     is_fixed = fields.Boolean(string='Fixed', compute='get_is_fixed')
     is_unfixed = fields.Boolean(string='unFixed', compute='get_is_unfixed')
     gold = fields.Boolean(string='gold', compute='get_is_gold')
+    diamond = fields.Boolean(string='diamond', compute='get_is_diamond')
 
     @api.depends('order_type')
     def get_is_fixed(self):
         for rec in self:
             rec.is_fixed = rec.order_type and rec.order_type.is_fixed and True or False
-    
+
     @api.depends('order_type')
     def get_is_unfixed(self):
         for rec in self:
             rec.is_unfixed = rec.order_type and rec.order_type.is_unfixed and True or False
+
+    @api.depends('order_type')
+    def get_is_diamond(self):
+        for rec in self:
+            rec.diamond = rec.order_type and rec.order_type.diamond and True or False
 
     @api.depends('order_type')
     def get_is_gold(self):

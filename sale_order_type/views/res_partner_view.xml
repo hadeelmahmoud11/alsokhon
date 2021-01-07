@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <page name="sales_purchases" position="inside">
                 <group colspan="2" col="2">
-                    <separator string="Purchase Order Type" colspan="2"/>
+                    <separator string="Sale Order Type" colspan="2"/>
                     <field name="sale_type"/>
                 </group>
             </page>

@@ -162,7 +162,17 @@ class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
     price_unit = fields.Float(string='Unit Price', required=True,
-                              digits='Product Price', copy=False, default=0)
+                              digits='Product Price', copy=False, default=default_price_unit_get)
+    def default_price_unit_get(self):
+        for this in self:
+            if this.product_id:
+                if this.order_id.diamond:
+                    return this.product_id.list_price
+                else:
+                    return 0.00
+            else:
+                return 0.00
+
     gross_wt = fields.Float('Gross Wt', digits=(16, 3))
     total_gross_wt = fields.Float('Total Gross', compute='_get_gold_rate' ,digits=(16, 3))
     received_gross_wt = fields.Float('received Gross Wt', digits=(16, 3))

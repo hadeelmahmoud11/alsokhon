@@ -21,6 +21,7 @@ class SaleOrder(models.Model):
     is_fixed = fields.Boolean(string='Fixed', compute='get_is_fixed')
     is_unfixed = fields.Boolean(string='unFixed', compute='get_is_unfixed')
     gold = fields.Boolean(string='gold', compute='get_is_gold')
+    diamond = fields.Boolean(string='diamond', compute='get_is_diamond')
 
     @api.depends('order_type')
     def get_is_fixed(self):
@@ -36,6 +37,11 @@ class SaleOrder(models.Model):
     def get_is_gold(self):
         for rec in self:
             rec.gold = rec.order_type and rec.order_type.gold and True or False
+
+    @api.depends('order_type')
+    def get_is_diamond(self):
+        for rec in self:
+            rec.diamond = rec.order_type and rec.order_type.diamond and True or False
 
     @api.onchange('partner_id')
     def onchange_partner_id(self):
