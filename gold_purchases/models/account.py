@@ -225,7 +225,7 @@ class AccountMove(models.Model):
         return res
 
 
-    def convert_fixed(self):
+    def convert_fixed(self,value):
         if self.invoice_origin and 'P0'in self.invoice_origin:
             purchase_order = self.env['purchase.order'].search([('name','=',self.invoice_origin)])
             if purchase_order:
