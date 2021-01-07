@@ -160,10 +160,10 @@ class AccountMove(models.Model):
             'ref': '%s - Unfixing' % (self.name),
             'partner_id': self.partner_id.id,
             'debit': 0,
-            'credit': debit_lines[0]['debit'],
+            'credit': debit_line[0]['debit'],
             'account_id': gold_on_hand_account_id,
         }]
-        res = [(0, 0, x) for x in debit_lines + credit_line]
+        res = [(0, 0, x) for x in debit_line + credit_line]
         return res
 
     def create_gold_fixing_entry(self,stock_picking,value):
@@ -218,10 +218,10 @@ class AccountMove(models.Model):
             'ref': '%s - Fixing' % (self.name),
             'partner_id': self.partner_id.id,
             'debit': 0,
-            'credit': debit_lines[0]['debit'],
+            'credit': debit_line[0]['debit'],
             'account_id': gold_fixing_account_id,
         }]
-        res = [(0, 0, x) for x in debit_lines + credit_line]
+        res = [(0, 0, x) for x in debit_line + credit_line]
         return res
 
 
