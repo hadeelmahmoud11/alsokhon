@@ -233,6 +233,7 @@ class AccountMove(models.Model):
                 if stock_picking:
                     self.create_gold_unfixing_entry(stock_picking,value)
                     self.create_gold_fixing_entry(stock_picking,value)
+                    self.pure_wt_value -= value
 
     def open_wizard_for_fixing(self):
         return self.env.ref('gold_purchases.action_fixing_unfixed_bill_wiz')
