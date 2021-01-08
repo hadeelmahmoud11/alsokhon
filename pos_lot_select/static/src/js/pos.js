@@ -228,6 +228,7 @@ odoo.define('pos_lot_select.pos', function(require){
               var product_lots =  self.pos.list_lot_num;
               var product_lot = []
               product_lots.forEach(function(lot) {
+                console.log(lot.product_id[0] == options.pack_lot_lines.order_line.product.id, lot.total_qty>0,lot.total_qty);
                   if(lot.product_id[0] == options.pack_lot_lines.order_line.product.id && lot.total_qty>0){
                     product_lot.push(lot);
                   }
