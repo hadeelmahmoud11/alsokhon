@@ -227,8 +227,16 @@ odoo.define('pos_lot_select.pos', function(require){
               self.get_pos_lots();
               var product_lots =  self.pos.list_lot_num;
               var product_lot = []
+              var product_lot_d = []
+              console.log(product_lots);
+              // product_lots.forEach(function(lot) {
+              //   console.log(lot.product_id ,options.pack_lot_lines.order_line.product, lot.total_qty>0,lot.total_qty);
+              //     if(lot.product_id. ){
+              //       product_lot_d.push(lot);
+              //     }
+              // });
               product_lots.forEach(function(lot) {
-                console.log(lot.product_id , options.pack_lot_lines.order_line,options.pack_lot_lines.order_line.product, lot.total_qty>0,lot.total_qty);
+                console.log(lot.product_id ,options.pack_lot_lines.order_line.product, lot.total_qty>0,lot.total_qty);
                   if(lot.product_id[0] == options.pack_lot_lines.order_line.product.id && lot.total_qty>0){
                     product_lot.push(lot);
                   }
