@@ -236,7 +236,7 @@ odoo.define('pos_lot_select.pos', function(require){
               // self.render_list_lots(product_lot,undefined);
               options.qstr = "";
               options.product_lot = product_lot;
-              // console.log(options);
+              console.log(options);
               this._super(options);
               // this.focus();
           },
