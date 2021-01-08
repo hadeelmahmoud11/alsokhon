@@ -379,7 +379,7 @@ odoo.define('pos_lot_select.pos', function(require){
                       console.log(lot.purity_id[0]);
                       var scrap_purity = self.pos.list_gold_purity[lot.purity_id[0]].scrap_purity/1000;
                       console.log(scrap_purity);
-                      pure_weight = scrap_purity/1000;
+                      pure_weight = scrap_purity;
                     }
                     console.log(self.pos.config.gold_rate,pure_weight);
                     self.change_price(self.pos.config.gold_rate,pure_weight)
