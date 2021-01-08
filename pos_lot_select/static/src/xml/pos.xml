@@ -38,7 +38,7 @@
                                 </div>
                                 <div style="height: 360px;overflow: scroll;">
                                     <table >
-                                        <colgroup>
+                                        <colgroup >
                                             <!-- <col width='20%' />
                                             <col width='15%' />
                                             <col width='15%' />
@@ -48,18 +48,23 @@
                                             <col width='15%' /> -->
                                             <td>Lot</td>
                                             <td>Quantity</td>
-                                            <td>Gross Weight</td>
-                                            <td>Purity</td>
-                                            <td>Pure Weight</td>
-                                            <td>Making Charge</td>
-                                            <td>Gold Rate</td>
-
-
+                                            <!-- <td><t t-esc="widget.options.order_line.product.categ.is_diamond" /></td> -->
+                                            <t t-if="!widget.options.order_line.product.categ.is_diamond">
+                                              <td>Gross Weight</td>
+                                              <td>Purity</td>
+                                              <td>Pure Weight</td>
+                                              <td>Making Charge</td>
+                                              <td>Gold Rate</td>
+                                            </t>
+                                            <t t-else="">
+                                              <td>Diamond Carat</td>
+                                              <td>Diamond Wt</td>
+                                            </t>
                                         </colgroup>
+
                                         <t t-foreach="widget.options.product_lot" t-as="product_lot">
                                             <tr style="font-size: 12px;">
                                               <t t-set="making_charge" t-value="product_lot.selling_making_charge*product_lot.gross_weight"/>
-
                                                 <td>
                                                     <div t-att-value="product_lot.id">
                                                         <t t-esc="product_lot.name" />
@@ -68,24 +73,34 @@
                                                 <td id="total_qty">
                                                     <t t-esc="product_lot.total_qty" />
                                                 </td>
-                                                <td id="gross_weight">
-                                                    <t t-esc="product_lot.gross_weight" />
-                                                </td>
-                                                <td id="purity_id">
-                                                    <t t-esc="product_lot.purity_id[1]" />
-                                                </td>
-                                                <td id="pure_weight">
-                                                    <t t-esc="product_lot.pure_weight"/>
-                                                </td>
-                                                <td id="selling_making_charge">
-                                                    <t t-esc="making_charge" />
-                                                </td>
-                                                <!-- <td id="selling_making">
-                                                    <t t-esc="product_lot.selling_making_charge" />
-                                                </td> -->
-                                                <td id="gold_rate">
-                                                    <t t-esc="widget.pos.config.gold_rate" />
-                                                </td>
+                                                <t t-if="!widget.options.order_line.product.categ.is_diamond">
+                                                  <td id="gross_weight">
+                                                      <t t-esc="product_lot.gross_weight" />
+                                                  </td>
+                                                  <td id="purity_id">
+                                                      <t t-esc="product_lot.purity_id[1]" />
+                                                  </td>
+                                                  <td id="pure_weight">
+                                                      <t t-esc="product_lot.pure_weight"/>
+                                                  </td>
+                                                  <td id="selling_making_charge">
+                                                      <t t-esc="making_charge" />
+                                                  </td>
+                                                  <!-- <td id="selling_making">
+                                                      <t t-esc="product_lot.selling_making_charge" />
+                                                  </td> -->
+                                                  <td id="gold_rate">
+                                                      <t t-esc="widget.pos.config.gold_rate" />
+                                                  </td>
+                                                </t>
+                                                <t t-else="">
+                                                  <td id="carat">
+                                                      <t t-esc="product_lot.carat" />
+                                                  </td>
+                                                  <td id="carat_wt">
+                                                      <t t-esc="product_lot.carat_wt" />
+                                                  </td>
+                                      					</t>
                                                 <!-- <span id="gold_rate" ><t t-esc="product_lot.gold_rate" class="display:none;"/></span> -->
                                                 <td>
                                                     <input type="text" value="1" style="font-size: 15px;width: 52px;min-height: 9px;height: 25px;padding: -1px;"/>

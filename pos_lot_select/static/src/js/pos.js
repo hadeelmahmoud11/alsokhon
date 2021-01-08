@@ -10,7 +10,7 @@ odoo.define('pos_lot_select.pos', function(require){
       var PosBaseWidget = require('point_of_sale.BaseWidget');
 
       models.load_fields('product.product',['making_charge_id']);
-      models.load_fields('product.category',['is_scrap']);
+      models.load_fields('product.category',['is_scrap','is_diamond']);
       models.load_models({
           model: 'stock.production.lot',
           fields: [],
@@ -152,7 +152,7 @@ odoo.define('pos_lot_select.pos', function(require){
 
               order.orderlines.each(_.bind( function(item) {
 
-                  if(item.pack_lot_lines){
+                  if(item.pack_lot_lines ){
                     item.pack_lot_lines.each(_.bind(function(lot_item){
 
                       var lot_list = self.pos.list_lot_num;
@@ -161,8 +161,10 @@ odoo.define('pos_lot_select.pos', function(require){
                               // console.log(lot_list[i].total_qty,item.quantity);
                               // console.log((item.quantity*lot_list[i].gross_weight)/lot_list[i].total_qty);
                               // console.log((item.quantity*lot_list[i].pure_weight)/lot_list[i].total_qty);
-                              lot_list[i].gross_weight -= (item.quantity*lot_list[i].gross_weight)/lot_list[i].total_qty;
-                              lot_list[i].pure_weight -= (item.quantity*lot_list[i].pure_weight)/lot_list[i].total_qty;
+                              if (!item.product.categ.is_diamond) {
+                                lot_list[i].gross_weight -= (item.quantity*lot_list[i].gross_weight)/lot_list[i].total_qty;
+                                lot_list[i].pure_weight -= (item.quantity*lot_list[i].pure_weight)/lot_list[i].total_qty;
+                              }
                               lot_list[i].total_qty -= item.quantity;
 
                             }
@@ -267,13 +269,19 @@ odoo.define('pos_lot_select.pos', function(require){
               $(".search_lot").setCursorToTextEnd();
 
               $(".add_lot_number").click(function(){
-
-                  var lot_count = $(this).closest("tr").find("input").val();
+                var lot_count = $(this).closest("tr").find("input").val();
+                console.log(self.options);
+                // console.log(self.options.order_line);
+                // console.log(self.options.order_line.product);
+                if (!self.options.order_line.product.categ.is_diamond) {
                   var selling_making_charge= $(this).closest("tr").find("#selling_making_charge")[0].innerText;
                   var pure_weight= $(this).closest("tr").find("#pure_weight")[0].innerText;
                   var gross_weight= $(this).closest("tr").find("#gross_weight")[0].innerText;
                   var purity_id= $(this).closest("tr").find("#purity_id")[0].innerText;
                   var gold_rate= self.pos.config.gold_rate;
+                }
+
+
                   // var gold_rate= $(this).closest("tr").find("#gold_rate")[0].innerText;
 
                   // for(var i=0;i<lot_count;i++){
