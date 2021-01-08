@@ -193,8 +193,7 @@ odoo.define('pos_lot_select.pos', function(require){
             var self = this;
             var from = moment(new Date()).subtract(self.pos.config.lot_expire_days,'d').format('YYYY-MM-DD')+" 00:00:00";
             if(self.pos.config.allow_pos_lot){
-              return [['total_qty','>',0]];
-                // return ['&',['create_date','>=',from],['total_qty','>',0]];
+                return ['&',['create_date','>=',from],['total_qty','>',0]];
             }
             else{
                 return [['id','=',0]];
@@ -228,16 +227,7 @@ odoo.define('pos_lot_select.pos', function(require){
               self.get_pos_lots();
               var product_lots =  self.pos.list_lot_num;
               var product_lot = []
-              var product_lot_d = []
-              console.log(product_lots);
-              // product_lots.forEach(function(lot) {
-              //   console.log(lot.product_id ,options.pack_lot_lines.order_line.product, lot.total_qty>0,lot.total_qty);
-              //     if(lot.product_id. ){
-              //       product_lot_d.push(lot);
-              //     }
-              // });
               product_lots.forEach(function(lot) {
-                console.log(lot.product_id ,options.pack_lot_lines.order_line.product, lot.total_qty>0,lot.total_qty);
                   if(lot.product_id[0] == options.pack_lot_lines.order_line.product.id && lot.total_qty>0){
                     product_lot.push(lot);
                   }
@@ -246,7 +236,7 @@ odoo.define('pos_lot_select.pos', function(require){
               // self.render_list_lots(product_lot,undefined);
               options.qstr = "";
               options.product_lot = product_lot;
-              console.log(options);
+              // console.log(options);
               this._super(options);
               // this.focus();
           },
