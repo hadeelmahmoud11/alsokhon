@@ -237,13 +237,13 @@ class AccountMove(models.Model):
                     self.write({'unfixed_fixed_gold': self.unfixed_fixed_gold+value})
                     self.write({'unfixed_fixed_remain': self.unfixed_fixed_remain+self.unfixed_fixed_value})
 
-    unfixed_fixed_gold = fields.Float('Unfixed -> Fixed Gold')
-    unfixed_fixed_value = fields.Float('Unfixed -> Fixed Due', compute="compute_unfixed_fixed_value")
-    unfixed_fixed_paid = fields.Float('Unfixed -> Fixed Paid', compute="compute_unfixed_fixed_paid")
+    unfixed_fixed_gold = fields.Float('Unfixed -> Fixed Gold', digits=(16, 3))
+    unfixed_fixed_value = fields.Float('Unfixed -> Fixed Due', compute="compute_unfixed_fixed_value", digits=(16, 3))
+    unfixed_fixed_paid = fields.Float('Unfixed -> Fixed Paid', compute="compute_unfixed_fixed_paid", digits=(16, 3))
     def compute_unfixed_fixed_paid(self):
         for this in self:
             this.unfixed_fixed_paid = this.unfixed_fixed_value - this.unfixed_fixed_remain
-    unfixed_fixed_remain = fields.Float('Unfixed -> Fixed Remaining')
+    unfixed_fixed_remain = fields.Float('Unfixed -> Fixed Remaining', digits=(16, 3))
     fixed_not_paid = fields.Boolean(default=True)
 
     # compute="compute_unfixed_fixed_remain"
@@ -278,14 +278,14 @@ class AccountMove(models.Model):
 
     purchase_type = fields.Selection([('fixed', 'Fixed'),
                                         ('unfixed', 'Unfixed')], string='purchase type')
-    gold_rate_value = fields.Float( string='Gold Rate/G',compute="_compute_make_value_move",store=True)
-    make_value_move = fields.Float( string='Remainning Make Charge',compute="_compute_make_value_move",store=True)
-    make_value_move_perm = fields.Float( string='Due Make Charge',store=True)
-    make_value_move_paid = fields.Float( string='Paid Make Charge', compute="compute_gold_paid",store=True)
+    gold_rate_value = fields.Float( string='Gold Rate/G',compute="_compute_make_value_move",store=True, digits=(16, 3))
+    make_value_move = fields.Float( string='Remainning Make Charge',compute="_compute_make_value_move",store=True, digits=(16, 3))
+    make_value_move_perm = fields.Float( string='Due Make Charge',store=True, digits=(16, 3))
+    make_value_move_paid = fields.Float( string='Paid Make Charge', compute="compute_gold_paid",store=True, digits=(16, 3))
     make_value_move_perm_flag = fields.Boolean(default=False)
     pure_wt_value = fields.Float( string='Remaining Pure Weight',compute="_compute_make_value_move",store=True, digits=(16, 3))
     pure_wt_value_perm = fields.Float( string='Due Pure Weight',store=True, digits=(16, 3))
-    pure_wt_value_paid = fields.Float( string='Paid Pure Weight', compute="compute_gold_paid",store=True)
+    pure_wt_value_paid = fields.Float( string='Paid Pure Weight', compute="compute_gold_paid",store=True, digits=(16, 3))
     pure_wt_value_perm_flag = fields.Boolean(default=False)
 
     @api.depends('gold_rate_value','make_value_move','make_value_move_perm','make_value_move_paid','make_value_move_perm_flag','pure_wt_value','pure_wt_value_perm','pure_wt_value_paid','pure_wt_value_perm_flag')
