@@ -3,6 +3,19 @@ from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 from odoo.tools import float_compare, float_round, float_is_zero
 
+class ProductCategory(models.Model):
+    _inherit = 'product.category'
+
+    is_diamond = fields.Boolean('Diamond')
+
+
+class ProductTemplate(models.Model):
+    _inherit = "product.template"
+
+    diamond = fields.Boolean(string='Gold')
+
+
+
 
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
