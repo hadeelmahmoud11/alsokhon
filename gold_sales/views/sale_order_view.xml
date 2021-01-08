@@ -82,21 +82,20 @@
                 </xpath>
                 <xpath expr="//form/sheet/notebook/page/field[@name='order_line']/form/group/group/div[@name='ordered_qty']"
                        position="after">
-                    <field name="scrap_state_read" invisible="1"/>
-                    <field name="gross_wt" force_save="1" attrs="{'readonly':[('scrap_state_read','=',True)]}"/>
-                    <field name="total_gross_wt" force_save="1" attrs="{'readonly':[('scrap_state_read','=',True)]}"/>
-                    <field name="received_gross_wt" readonly="1"/>
-                    <field name="purity_id"/>
-                    <field name="pure_wt"/>
-                    <field name="purity_hall" />
-                    <field name="purity_diff"/>
-                    <field name="stock"/>
-                    <field name="make_rate"/>
-                    <field name="make_value"/>
-                    <field name="gold_rate"/>
-                    <field name="gold_value"/>
-                    <field name="is_make_value" invisible="1"/>
-
+                       <field name="scrap_state_read" invisible="1"/>
+                       <field name="gross_wt" width="12%" force_save="1" readonly="1"/>
+                       <field name="total_gross_wt" width="10%"  force_save="1" readonly="1"/>
+                       <field name="received_gross_wt" width="10%"  force_save="1" readonly="1"/>
+                       <field name="purity_id" width="10%"  force_save="1" readonly="1"/>
+                       <field name="pure_wt" width="10%"  force_save="1" readonly="1"/>
+                       <field name="purity_hall" width="10%"/>
+                       <field name="purity_diff" width="10%"  force_save="1" readonly="1"/>
+                       <field name="stock" width="10%" invisible="1"/>
+                       <field name="make_rate" width="15%"  force_save="1" readonly="1"/>
+                       <field name="make_value" width="12%"   force_save="1" readonly="1"/>
+                       <field name="gold_rate" width="12%"   force_save="1" readonly="1"/>
+                       <field name="gold_value" width="12%"   force_save="1" readonly="1"/>
+                       <field name="is_make_value"  width="10%"  invisible="1"/>
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='price_unit']" position="attributes">
                     <attribute name="attrs">{'readonly': ['|','|',('is_make_value', '=', True),('parent.is_gold_fixed', '=', True),('lot_id','!=',False)]}</attribute>
@@ -114,27 +113,6 @@
                     <attribute name="attrs">{'readonly': ['|',('is_make_value', '=', True),('state', 'in', ['sale','done','cancel'])]}</attribute>
                     <attribute name="force_save">1</attribute>
                 </xpath>
-                <xpath expr="//field[@name='order_line']/tree/field[@name='gross_wt']" position="attributes">
-                    <attribute name="attrs">{'readonly': ['|','|',('is_make_value', '=', True),('state', 'in', ['sale','done','cancel']),('lot_id','!=',False)]}</attribute>
-                    <attribute name="force_save">1</attribute>
-                </xpath>
-                <xpath expr="//field[@name='order_line']/tree/field[@name='purity_id']" position="attributes">
-                  <!-- <attribute name="attrs">{'readonly': ['|','|',('is_make_value', '=', True),('state', 'in', ['sale','done','cancel']),('lot_id','!=',False)]}</attribute> -->
-                    <attribute name="attrs">{'readonly': ['|',('is_make_value', '=', True),('state', 'in', ['sale','done','cancel'])]}</attribute>
-                    <attribute name="force_save">1</attribute>
-                </xpath>
-                <xpath expr="//field[@name='order_line']/tree/field[@name='purity_hall']" position="attributes">
-                    <attribute name="attrs">{'readonly': ['|',('is_make_value', '=', True),('state', 'in', ['sale','done','cancel'])]}</attribute>
-                    <attribute name="force_save">1</attribute>
-                </xpath>
-                <xpath expr="//field[@name='order_line']/tree/field[@name='purity_diff']" position="attributes">
-                    <attribute name="attrs">{'readonly': True}</attribute>
-                    <attribute name="force_save">1</attribute>
-                </xpath>
-                 <xpath expr="//field[@name='order_line']/tree/field[@name='make_rate']" position="attributes">
-                    <attribute name="attrs">{'readonly': ['|','|',('is_make_value', '=', True),('state', 'in', ['sale','done','cancel']),('lot_id','!=',False)]}</attribute>
-                    <attribute name="force_save">1</attribute>
-                </xpath>
                  <xpath expr="//form/sheet/notebook/page/field[@name='order_line']/tree/field[@name='qty_delivered']" position="attributes">
                     <attribute name="attrs">{'readonly': ['|',('is_make_value', '=', True),('parent.is_gold_fixed', '=', True)]}</attribute>
                     <attribute name="force_save">1</attribute>
@@ -147,12 +125,6 @@
                     <attribute name="attrs">{'readonly': ['|',('is_make_value', '=', True),('state', 'in', ['sale','done','cancel'])]}</attribute>
                     <attribute name="force_save">1</attribute>
                 </xpath>
-                <xpath expr="//field[@name='order_line']/tree/field[@name='gold_rate']" position="attributes">
-                    <attribute name="attrs">{'invisible': [('is_make_value', '=', True)]}</attribute>
-                    <attribute name="force_save">1</attribute>
-                </xpath>
-
-
                 <xpath expr="//notebook/page[@name='other_information']/group/group[@name='sale_info']"
                        position="inside">
                     <field name="stock_move_id" readonly="1"/>

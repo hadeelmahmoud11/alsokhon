@@ -234,9 +234,34 @@ class AccountMove(models.Model):
                     self.create_gold_unfixing_entry(stock_picking,value)
                     self.create_gold_fixing_entry(stock_picking,value)
                     self.pure_wt_value -= value
-                    self.unfixed_fixed_value += value
+                    self.write({'unfixed_fixed_gold': self.unfixed_fixed_gold+value})
+                    self.write({'unfixed_fixed_remain': self.unfixed_fixed_remain+self.unfixed_fixed_value})
 
-    unfixed_fixed_value = fields.Float('Unfixed -> Fixed Value')
+    unfixed_fixed_gold = fields.Float('Unfixed -> Fixed Gold')
+    unfixed_fixed_value = fields.Float('Unfixed -> Fixed Due', compute="compute_unfixed_fixed_value")
+    unfixed_fixed_paid = fields.Float('Unfixed -> Fixed Paid', compute="compute_unfixed_fixed_paid")
+    def compute_unfixed_fixed_paid(self):
+        for this in self:
+            this.unfixed_fixed_paid = this.unfixed_fixed_value - this.unfixed_fixed_remain
+    unfixed_fixed_remain = fields.Float('Unfixed -> Fixed Remaining')
+    fixed_not_paid = fields.Boolean(default=True)
+
+    # compute="compute_unfixed_fixed_remain"
+
+    # def compute_unfixed_fixed_remain(self):
+    #     for this in self:
+    #         if this.unfixed_fixed_paid > 0.00:
+    #             this.unfixed_fixed_remain = this.unfixed_fixed_value - this.unfixed_fixed_paid
+    #         else:
+    #             this.unfixed_fixed_remain = this.unfixed_fixed_value
+
+    def compute_unfixed_fixed_value(self):
+        for this in self:
+            if this.gold_rate_value and this.unfixed_fixed_gold > 0.00:
+                this.unfixed_fixed_value = this.gold_rate_value * this.unfixed_fixed_gold
+            else:
+                this.unfixed_fixed_value = 0.0
+
 
     def open_wizard_for_fixing(self):
         return self.env.ref('gold_purchases.action_fixing_unfixed_bill_wiz')
@@ -267,7 +292,7 @@ class AccountMove(models.Model):
     def compute_gold_paid(self):
         for this in self:
             this.make_value_move_paid = this.make_value_move_perm - this.make_value_move
-            this.pure_wt_value_paid = this.pure_wt_value_perm - this.pure_wt_value
+            this.pure_wt_value_paid = this.pure_wt_value_perm - this.pure_wt_value - this.unfixed_fixed_gold
 
 
     unfixed_move_id = fields.Many2one('account.move')
@@ -360,7 +385,7 @@ class AccountMove(models.Model):
             move.amount_tax = sign * (total_tax_currency if len(currencies) == 1 else total_tax)
             move.amount_total = sign * (total_currency if len(currencies) == 1 else total)
             if move.purchase_type == "unfixed":
-                if  move.make_value_move == 0.00 and move.pure_wt_value <= 0.00:
+                if  move.make_value_move <= 0.00 and move.pure_wt_value <= 0.00 and move.unfixed_fixed_remain <= 0.00:
                     move.amount_residual = 0.00
                 else:
                     move.amount_residual = -sign * (total_residual_currency if len(currencies) == 1 else total_residual)
@@ -374,16 +399,37 @@ class AccountMove(models.Model):
 
             currency = len(currencies) == 1 and currencies.pop() or move.company_id.currency_id
             is_paid = currency and currency.is_zero(move.amount_residual) or not move.amount_residual
-
+            print(is_paid)
+            # print("HERE COMPUTE")
             # Compute 'invoice_payment_state'.
+
+            print("++++++++++++++++++++++++++++++++++++++++++++++=")
+            print(move.state == 'posted')
+            print(is_paid)
+            print(move.unfixed_fixed_remain <= 0.00)
+            print("++++++++++++++++++++++++++++++++++++++++++++++=")
+
             if move.type == 'entry':
+                # print("ifentry")
                 move.invoice_payment_state = False
-            elif move.state == 'posted' and is_paid:
+
+            elif move.state == 'posted' and is_paid  and move.fixed_not_paid == False:
+                # print("elif")
                 if move.id in in_payment_set:
+                    # print("ifinpaymet")
                     move.invoice_payment_state = 'in_payment'
                 else:
+                    # print('***************8')
+                    # print('***************8')
+                    # print('***************8')
+                    # print('***************8')
+                    # if move.unfixed_fixed_remain > 0.00:
+                    #     pass
+                    # else:
+                    print("PAID COMPUTE")
                     move.invoice_payment_state = 'paid'
             else:
+                print("elsenot")
                 move.invoice_payment_state = 'not_paid'
 
 
@@ -614,18 +660,20 @@ class Account_Payment_Inherit(models.Model):
     _inherit = 'account.payment'
 
     is_unfixed_wizard = fields.Boolean('is_unfixed')
-    unfixed_option = fields.Selection([('make_tax', 'make value + tax'), ('pay_gold_value', 'pay gold value')],
-        string='Unfixed Option')
+    unfixed_option = fields.Selection([('make_tax', 'make value + tax'), ('pay_gold_value', 'pay gold value')],string='Unfixed Option')
 
     @api.onchange('unfixed_option')
     def _onchange_unfixed_option(self):
         active_ids = self._context.get('active_ids') or self._context.get('active_id')
         account_move = self.env['account.move'].browse(active_ids)
+        if self.unfixed_option and self.unfixed_option == 'pay_gold_value':
+            if account_move.unfixed_fixed_value == 0.00:
+                raise ValidationError(_('You Should Convert This Bill To Fixed Gold First'))
         if self.unfixed_option:
            if self.unfixed_option == "make_tax" :
                self.write({'amount': account_move.make_value_move})
-           elif account_move.pure_wt_value > 0.00  :
-               self.write({'amount': account_move.pure_wt_value * account_move.gold_rate_value })
+           else:
+               self.write({'amount': account_move.unfixed_fixed_remain })
 
 
     @api.model
@@ -692,23 +740,35 @@ class Account_Payment_Inherit(models.Model):
         AccountMove = self.env['account.move'].with_context(default_type='entry')
         for rec in self:
             if rec.invoice_ids:
+                print("+++++++++++++++++++++++++++++++++++++++++")
                 if rec.invoice_ids.purchase_type == 'unfixed':
+                    print("***********************")
                     if rec.amount > rec.invoice_ids.make_value_move and rec.unfixed_option != "pay_gold_value":
                         raise UserError(_("unfixed bill you can pay" + "" + str(rec.invoice_ids.make_value_move)))
                     if rec.unfixed_option != "pay_gold_value" and rec.invoice_ids.make_value_move == 0.00:
                         raise UserError(_("make value and tax paid !!"))
 
                     if rec.invoice_ids.make_value_move <= 0.00 and rec.unfixed_option == "pay_gold_value":
+                        print("------------------------------")
                         if rec.invoice_ids.pure_wt_value <= (rec.amount / rec.invoice_ids.gold_rate_value ):
                             rec.invoice_ids.write({'pure_wt_value': 0.00})
 
-                    if rec.invoice_ids.pure_wt_value <= 0.00 and rec.invoice_ids.make_value_move == 0.00:
+                    if rec.unfixed_option == "make_tax":
+                        rec.invoice_ids.write({'make_value_move':rec.invoice_ids.make_value_move - rec.amount })
+
+                    if rec.unfixed_option == "pay_gold_value":
+                        print("*********************************")
+                        rec.invoice_ids.write({'unfixed_fixed_remain': rec.invoice_ids.unfixed_fixed_remain - rec.amount,'fixed_not_paid':False })
+                        print(rec.invoice_ids.unfixed_fixed_paid)
+                        print(rec.invoice_ids.unfixed_fixed_remain)
+
+                    if rec.invoice_ids.pure_wt_value <= 0.00 and rec.invoice_ids.make_value_move <= 0.00 and rec.invoice_ids.unfixed_fixed_remain <= 0.00 and rec.invoice_ids.unfixed_fixed_paid > 0.00:
+                        print("paid in payment")
                         rec.invoice_ids.write({'invoice_payment_state': "paid"})
 
 
 
-                    if rec.unfixed_option == "make_tax":
-                        rec.invoice_ids.write({'make_value_move':rec.invoice_ids.make_value_move - rec.amount })
+
 
             if rec.state != 'draft':
                 raise UserError(_("Only a draft payment can be posted."))

@@ -808,6 +808,8 @@ class StockRule(models.Model):
                                     })
                                 else:
                                     move.update({
+                                        'carat': sol.carat,
+                                        'carat_wt': sol.carat_wt,
                                         'gross_weight': sol.gross_wt * sol.product_uom_qty,
                                         'pure_weight': sol.pure_wt,
                                         'purity': sol.purity_id.purity or 1,

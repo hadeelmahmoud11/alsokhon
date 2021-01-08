@@ -39,7 +39,8 @@ class GoldPosition(models.Model):
                 debit = credit = 0.0
                 for line in self.env['account.move.line'].search(
                         [('account_id', '=', account.id),
-                         ('move_id.state', '=', 'posted')]):
+                         ('move_id.state', '=', 'posted'),
+                         ('move_id.type_of_action', '=', 'fixed')]):
                     if line.debit:
                         debit += abs(line.debit)
                     elif line.credit:

@@ -58,10 +58,12 @@ class stockGoldMove(models.TransientModel):
 
     @api.depends('move_ids')
     def get_pure_weight_remain(self):
-        pure = 0.00
+        pure_in_form = 0.00
+        active_ids = self._context.get('active_ids') or self._context.get('active_id')
+        account_move = self.env['account.move'].browse(active_ids)
         for rec in self.move_ids:
-            pure = pure + rec.paid_pure
-        self.pure_remainning = self.pure_weight - pure
+            pure_in_form = pure_in_form + rec.paid_pure
+        self.pure_remainning = self.pure_weight - account_move.pure_wt_value_paid - pure_in_form
 
 
     def compute_sheet(self):

@@ -362,6 +362,8 @@ class PurchaseOrderLine(models.Model):
         res = super(PurchaseOrderLine, self)._prepare_stock_moves(picking)
         if self.product_id and self.product_id.categ_id.is_scrap:
             res and res[0].update({
+                'carat': self.carat,
+                'carat_wt': self.carat_wt,
                 'gross_weight': self.gross_wt,
                 'pure_weight': self.pure_wt,
                 'purity': self.purity_id.scrap_purity or 1,
