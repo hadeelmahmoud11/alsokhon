@@ -8,5 +8,12 @@
           </span>
         </t>
     </t>
+    <t t-extend="Chrome">
+          <t t-jquery='.pos-branding' t-operation='replace'>
+            <div class="pos-branding">
+                <img class="pos-logo" src="/pos_product_validate/static/src/img/Sukhon.png" alt="Logo"/>
+            </div>
+          </t>
+      </t>
 
 </templates>
