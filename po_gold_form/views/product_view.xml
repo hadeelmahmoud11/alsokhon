@@ -9,6 +9,7 @@
                 <xpath expr="//field[@name='parent_id']" position="after">
                     <field name="is_gold"/>
                     <field name="is_scrap"/>
+                    <field name="is_diamond"/>
                 </xpath>
             </field>
         </record>

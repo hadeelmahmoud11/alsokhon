@@ -9,6 +9,7 @@
                 <field name="type" position="after">
                     <field name="gold" attrs="{'invisible': [('type', '!=', 'product')]}" force_save="1"/>
                     <field name="scrap" attrs="{'invisible': [('type', '!=', 'product')]}" force_save="1"/>
+                    <field name="diamond" attrs="{'invisible': [('type', '!=', 'product')]}" force_save="1"/>
                     <field name="is_making_charges" attrs="{'invisible': [('type', '!=', 'service')]}" force_save="1"/>
                     <field name="making_charge_id"  domain="[('is_making_charges', '=', True)]" attrs="{'invisible': ['|','|',('gold', '!=', True),('is_making_charges', '=', True),('scrap', '=', True)], 'required': [('gold', '=', True),('scrap', '=', False)]}"/>
                     <field name="origin"/>
