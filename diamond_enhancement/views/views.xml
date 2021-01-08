@@ -9,7 +9,7 @@
           <field name="product_uom_qty" position="before">
 				<field name="carat" />
                 <field name="carat_wt"/>
-				
+
 				<!--<xpath expr="//field[@name='date']" position="attributes">
               <attribute name="attrs">{'column_invisible': True}</attribute>
               <attribute name="force_save">1</attribute>
@@ -28,7 +28,7 @@
           </xpath>-->
           </field>
       </field>
-    </record> 
+    </record>
 
     <record id="diamond_enhancement_line" model="ir.ui.view">
       <field name="name">gold.purchases.stock.move.line.tree.inherit</field>
@@ -56,8 +56,8 @@
               <attribute name="force_save">1</attribute>
           </xpath>-->
       </field>
-    </record> 
-	
+    </record>
+
 	<record id="diamond_enhancement_lot" model="ir.ui.view">
       <field name="name">stock.production.lot.form.diamond.inherit</field>
       <field name="model">stock.production.lot</field>
@@ -67,8 +67,8 @@
               <field name="carat" />
               <field name="carat_wt"/>
           </field>
-      </field>  
-    </record> 
+      </field>
+    </record>
 
 
 	<record id="diamond_enhancement_purchase" model="ir.ui.view">
@@ -80,9 +80,9 @@
               <field name="carat" />
               <field name="carat_wt"/>
           </xpath>
-      </field>  
+      </field>
     </record>
-	
+
 	<record id="diamond_enhancement_sale" model="ir.ui.view">
       <field name="name">sale.order.form.diamond.inherit</field>
       <field name="model">sale.order</field>
@@ -94,9 +94,9 @@
           </xpath>
       </field>
     </record>
-	
 
-	
+
+
   </data>
-  
+
 </odoo>
