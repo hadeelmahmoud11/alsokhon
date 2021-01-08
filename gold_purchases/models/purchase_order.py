@@ -376,6 +376,8 @@ class PurchaseOrderLine(models.Model):
             })
         else:
             res and res[0].update({
+                'carat': self.carat,
+                'carat_wt': self.carat_wt,
                 'gross_weight': self.gross_wt * self.product_qty,
                 'pure_weight': self.pure_wt,
                 'purity': self.purity_id.purity or 1,
