@@ -17,7 +17,7 @@
 
         <record id="view_moves_show" model="ir.ui.view">
             <field name="name">stock_move_gold</field>
-            <field name="model">stock.move.gold</field>
+            <field name="model">stock.move.gold.sale</field>
             <field name="arch" type="xml">
                 <form string="moves">
                     <header>
