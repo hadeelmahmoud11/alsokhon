@@ -21,24 +21,42 @@ class SaleOrder(models.Model):
     def create(self, values):
         res = super(SaleOrder, self).create(values)
         total_make_rate = 0
+        total_qty = 0
         for line in res.order_line:
             if line.make_rate > 0.00 and line.make_value > 0.00:
                 total_make_rate += line.make_value
+                total_qty += line.product_uom_qty
 
         if total_make_rate > 0:
-            make_value_product = self.env['product.product'].search([('is_making_charges','=',True)], limit=1)
-            uom = self.env.ref('uom.product_uom_unit')
-            make = self.env['sale.order.line'].create({
-                                    'product_id': make_value_product.id,
-                                    'name': make_value_product.name,
-                                    'product_uom_qty': 1,
-                                    'price_unit': total_make_rate,
-                                    'product_uom': uom.id,
-                                    'order_id':res.id,
-                                    # 'date_planned': datetime.today() ,
-                                    'is_make_value': True,
-                                    'price_subtotal': total_make_rate,
-                                })
+            if not self.order_type.diamond:
+
+                make_value_product = self.env['product.product'].search([('is_making_charges','=',True)], limit=1)
+                uom = self.env.ref('uom.product_uom_unit')
+                make = self.env['sale.order.line'].create({
+                                        'product_id': make_value_product.id,
+                                        'name': make_value_product.name,
+                                        'product_uom_qty': 1,
+                                        'price_unit': total_make_rate,
+                                        'product_uom': uom.id,
+                                        'order_id':res.id,
+                                        # 'date_planned': datetime.today() ,
+                                        'is_make_value': True,
+                                        'price_subtotal': total_make_rate,
+                                    })
+            else:
+                make_value_product = self.env['product.product'].search([('is_diamond_making_charges','=',True)], limit=1)
+                uom = self.env.ref('uom.product_uom_unit')
+                make = self.env['sale.order.line'].create({
+                                        'product_id': make_value_product.id,
+                                        'name': make_value_product.name,
+                                        'product_uom_qty': 1,
+                                        'price_unit': total_make_rate*total_qty,
+                                        'product_uom': uom.id,
+                                        'order_id':res.id,
+                                        # 'date_planned': datetime.today() ,
+                                        'is_make_value': True,
+                                        'price_subtotal': total_make_rate,
+                                    })
         return res
 
     def write(self, values):
