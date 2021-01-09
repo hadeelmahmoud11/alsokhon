@@ -18,7 +18,7 @@
         'views/sale_order_view.xml',
         'views/stock_picking_view.xml',
         'views/stock_quant.xml',
-        'wizard/fixing_unfixed_inv.xml'
+        # 'wizard/fixing_unfixed_inv.xml'
     ],
 
 }
