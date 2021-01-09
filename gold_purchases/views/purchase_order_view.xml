@@ -72,8 +72,8 @@
                     <field name="purity_hall" width="10%" force_save="1" attrs="{'readonly': ['|',('is_make_value', '=', True),('state', 'in', ['purchase','done','cancel'])],'column_invisible':[('parent.gold','!=',True)]}"/>
                     <field name="purity_diff" width="10%" readonly="1" force_save="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
                     <field name="stock" width="10%"/>
-                    <field name="make_rate" attrs="{'readonly': ['|',('is_make_value', '=', True),('state', 'in', ['purchase','done','cancel'])]/>
-                    <field name="make_value" width="12%"/>
+                    <field name="make_rate" attrs="{'readonly': ['|',('is_make_value', '=', True),('state', 'in', ['purchase','done','cancel'])]"/>
+                    <field name="make_value" width="12%" />
                     <!-- 'invisible': [('is_make_value', '=', True)], -->
                     <field name="gold_rate" attrs="{'column_invisible':[('parent.gold','!=',True)]}" force_save="1"/>
                     <field name="gold_value"  attrs="{'column_invisible':[('parent.gold','!=',True)]}" width="12%"/>
