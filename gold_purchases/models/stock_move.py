@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 from odoo.tools import float_compare, float_round, float_is_zero
@@ -255,6 +255,8 @@ class StockMoveLine(models.Model):
     @api.model
     def create(self, vals):
         res = super(StockMoveLine, self).create(vals)
+        print(res.lot_id.product_id)
+        print(res.lot_id.product_id.categ_id.is_scrap)
         if res.lot_id.product_id and res.lot_id.product_id.categ_id.is_scrap:
             res.lot_id.write({
             'gross_weight': res.lot_id.gross_weight + res.gross_weight,
@@ -267,8 +269,8 @@ class StockMoveLine(models.Model):
             })
         elif res.lot_id.product_id and not res.lot_id.product_id.categ_id.is_scrap:
             res.lot_id.write({
-            'carat': self.carat,
-            'carat_wt': self.carat_wt,
+            'carat': res.carat,
+            'carat_wt': res.carat_wt,
             'gross_weight': res.gross_weight,
             'purity': res.purity,
             'selling_making_charge':res.selling_making_charge,
