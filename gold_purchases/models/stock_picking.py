@@ -7,6 +7,21 @@ from odoo import api, fields, models , _
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
+    gold = fields.Boolean(string="Gold", compute="_compute_gold_state")
+    diamond = fields.Boolean(string="Diamond", compute="_compute_gold_state")
+    def _compute_gold_state(self):
+        for this in self:
+            this.gold = False
+            for line in this.move_ids_without_package:
+                if line.product_id.categ_id.is_gold:
+                    this.gold = True
+                    this.diamond = False
+                    break
+                else:
+                    this.gold = False
+                    this.diamond = True
+
+
     period_from = fields.Float('Period From')
     period_to = fields.Float('Period To')
     period_uom_id = fields.Many2one('uom.uom', 'Period UOM')

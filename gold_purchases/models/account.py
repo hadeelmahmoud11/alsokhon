@@ -108,6 +108,18 @@ class GoldPayment(models.Model):
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
+
+    diamond = fields.Boolean(string="Diamond", compute="_compute_gold_state")
+    gold = fields.Boolean(string="Gold", compute="_compute_gold_state")
+    def _compute_gold_state(self):
+        for this in self:
+            if this.journal_id.gold:
+                this.gold = True
+                this.diamond = False
+            else:
+                this.gold = False
+                this.diamond = True
+
     def create_gold_unfixing_entry(self,stock_picking,value):
         self.ensure_one()
         # purchase_obj = self.env['purchase.order'].search([('name','=',purchase_order.name)])
@@ -414,6 +426,21 @@ class AccountMove(models.Model):
                 move.invoice_payment_state = False
 
             elif move.state == 'posted' and is_paid  and move.fixed_not_paid == False:
+                # print("elif")
+                if move.id in in_payment_set:
+                    # print("ifinpaymet")
+                    move.invoice_payment_state = 'in_payment'
+                else:
+                    # print('***************8')
+                    # print('***************8')
+                    # print('***************8')
+                    # print('***************8')
+                    # if move.unfixed_fixed_remain > 0.00:
+                    #     pass
+                    # else:
+                    print("PAID COMPUTE")
+                    move.invoice_payment_state = 'paid'
+            elif move.state == 'posted' and is_paid  and move.purchase_type == 'fixed':
                 # print("elif")
                 if move.id in in_payment_set:
                     # print("ifinpaymet")

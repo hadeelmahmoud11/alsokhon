@@ -5,6 +5,17 @@ from odoo.exceptions import ValidationError
 class StockProductionLot(models.Model):
     _inherit = 'stock.production.lot'
 
+    gold = fields.Boolean(string="Gold", compute="_compute_gold_state")
+    diamond = fields.Boolean(string="Diamond", compute="_compute_gold_state")
+    def _compute_gold_state(self):
+        for this in self:
+            if this.product_id.categ_id.is_gold:
+                this.gold = True
+                this.diamond = False
+            else:
+                this.gold = False
+                this.diamond = True
+
     gross_weight = fields.Float(string="Gross Weight")
     purity_id = fields.Many2one('gold.purity', string="Purity Karat", compute="_compute_purity_id")
     def _compute_purity_id(self):

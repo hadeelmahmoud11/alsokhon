@@ -34,6 +34,13 @@ class SaleOrderLine(models.Model):
     carat = fields.Char('Diamond Carat')
     carat_wt = fields.Char('Diamond Wt')
 
+class StockQuant(models.Model):
+    _inherit = 'stock.quant'
+
+    carat = fields.Char('Diamond Carat')
+    carat_wt = fields.Char('Diamond Wt')
+
+
 class StockMove(models.Model):
     _inherit = 'stock.move'
 

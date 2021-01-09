@@ -19,10 +19,15 @@
         <field name="inherit_id" ref="stock.view_stock_quant_tree_editable"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='product_uom_id']" position="after">
-                <field name="gross_weight"/>
-                <field name="pure_weight"/>
-                <field name="purity_id" readonly="1" force_save="1"/>
-                <field name="purity"/>
+              <field name="diamond" invisible="1"/>
+              <field name="gold" invisible="1"/>
+              <field name="carat" invisible="1" attrs="{'column_invisible':[('diamond','!=',True)]}"/>
+              <field name="carat_wt" invisible="1" attrs="{'column_invisible':[('diamond','!=',True)]}"/>
+
+                <field name="gross_weight" attrs="{'column_invisible':[('gold','!=',True)]}"/>
+                <field name="pure_weight" attrs="{'column_invisible':[('gold','!=',True)]}"/>
+                <field name="purity_id" readonly="1" force_save="1" attrs="{'column_invisible':[('gold','!=',True)]}"/>
+                <field name="purity" attrs="{'column_invisible':[('gold','!=',True)]}"/>
                 <field name="item_category_id"/>
                 <field name="sub_category_id"/>
                 <field name="selling_karat_id"/>

@@ -59,13 +59,13 @@ class StockPicking(models.Model):
                         rec.create_gold_journal_entry_sale()
             if rec.invoice_unfixed :
                 rec.create_unfixed_journal_entry_sale()
+            if rec.bill_unfixed :
+                rec.create_unfixed_journal_entry_sale()
                 for line in rec.move_line_ids_without_package:
                     if line.product_id.categ_id.is_scrap:
                         line.lot_id.gross_weight -= line.move_id.product_uom_qty
                     else:
                         line.lot_id.gross_weight -= line.move_id.product_uom_qty * line.move_id.gross_weight
-            if rec.bill_unfixed :
-                rec.create_unfixed_journal_entry_sale()
         return res
     #
     def create_gold_journal_entry_sale(self):

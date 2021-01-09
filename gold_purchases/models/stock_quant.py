@@ -11,6 +11,17 @@ class StockQuant(models.Model):
     """ init object stock.quant """
     _inherit = 'stock.quant'
 
+
+    diamond = fields.Boolean(string="Diamond", compute="_compute_gold_state")
+    gold = fields.Boolean(string="Gold", compute="_compute_gold_state")
+    def _compute_gold_state(self):
+        for this in self:
+            if this.product_id.categ_id.is_gold:
+                this.gold = True
+                this.diamond = False
+            else:
+                this.gold = False
+                this.diamond = True
     move_line_id = fields.Many2one(comodel_name="stock.move.line",
                                    compute="_compute_move_line_values",
                                    string="Move Line", )

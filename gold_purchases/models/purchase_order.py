@@ -411,6 +411,8 @@ class PurchaseOrderLine(models.Model):
                     new_pure = total_pure_weight / self.product_qty
                     new_purity_diff =  self.purity_diff / self.product_qty
                     res.update({
+                        'carat':self.carat,
+                        'carat_wt':self.carat_wt,
                         'gross_wt': self.received_gross_wt ,
                         'pure_wt': new_pure - new_purity_diff ,
                         'purity_id': self.purity_id and self.purity_id.id or False,
@@ -423,6 +425,8 @@ class PurchaseOrderLine(models.Model):
                     })
                 else:
                     res.update({
+                        'carat':self.carat,
+                        'carat_wt':self.carat_wt,
                         'gross_wt': self.gross_wt,
                         'pure_wt': self.pure_wt,
                         'purity_id': self.purity_id and self.purity_id.id or False,
@@ -456,6 +460,8 @@ class PurchaseOrderLine(models.Model):
                 #     })
                 # else:
                 res.update({
+                    'carat':self.carat,
+                    'carat_wt':self.carat_wt,
                     'gross_wt': self.gross_wt,
                     'pure_wt': self.pure_wt,
                     'purity_id': self.purity_id and self.purity_id.id or False,

@@ -27,6 +27,16 @@ class SubCategory(models.Model):
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
+    gold = fields.Boolean(string="Gold", compute="_compute_gold_state")
+    diamond = fields.Boolean(string="Gold", compute="_compute_gold_state")
+    def _compute_gold_state(self):
+        for this in self:
+            if this.product_id.categ_id.is_gold:
+                this.gold = True
+                this.diamond = False
+            else:
+                this.gold = False
+                this.diamond = True
     gross_weight = fields.Float(string='Gross Weight', digits=(16, 3))
     pure_weight = fields.Float('Pure Weight', digits=(16, 3))
     purity = fields.Float(string="Purity", digits=(16, 3))
