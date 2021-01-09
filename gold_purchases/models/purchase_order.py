@@ -402,13 +402,23 @@ class PurchaseOrderLine(models.Model):
         if product_object.gold:
             if product_object.purchase_method == "receive":
                 if self.received_gross_wt < (self.gross_wt * self.product_qty):
-                    total_pure_weight = self.received_gross_wt * (self.purity_id and (
-                        self.purity_id.purity / 1000.000) or 1)
+                    total_pure_weight = 0.0
+                    if self.product_id.categ_id.is_scrap == False:
+                        total_pure_weight = self.received_gross_wt * (self.purity_id and (
+                            self.purity_id.purity / 1000.000) or 1)
+                    else:
+                        total_pure_weight = self.received_gross_wt * (self.purity_id and (
+                            self.purity_id.scrap_purity / 1000.000) or 1)
                     try:
                         diff_gross =  (self.gross_wt * self.product_qty) / self.received_gross_wt
                     except:
                         raise UserError(_('You Should Receive Quantities First'))
-                    new_pure = total_pure_weight / self.product_qty
+                    new_pure = 0.0
+                    if self.product_id.categ_id.is_scrap:
+                        new_pure = total_pure_weight
+                    else:
+                        new_pure = total_pure_weight / self.product_qty
+
                     new_purity_diff =  self.purity_diff / self.product_qty
                     res.update({
                         'carat':self.carat,
