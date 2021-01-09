@@ -11,7 +11,9 @@
                     <field name="scrap" attrs="{'invisible': [('type', '!=', 'product')]}" force_save="1"/>
                     <field name="diamond" attrs="{'invisible': [('type', '!=', 'product')]}" force_save="1"/>
                     <field name="is_making_charges" attrs="{'invisible': [('type', '!=', 'service')]}" force_save="1"/>
-                    <field name="making_charge_id"  domain="[('is_making_charges', '=', True)]" attrs="{'invisible': ['|','|',('gold', '!=', True),('is_making_charges', '=', True),('scrap', '=', True)], 'required': [('gold', '=', True),('scrap', '=', False)]}"/>
+                    <field name="is_diamond_making_charges" attrs="{'invisible': [('type', '!=', 'service')]}" force_save="1" string="Diomand Making Charges"/>
+                    <field name="making_charge_id"  domain="[('is_making_charges', '=', True)]" attrs="{'invisible': ['|','|',('gold', '!=', True),('is_making_charges', '=', True)], 'required': [('gold', '=', True),('scrap', '=', False),('type', '==', 'product')]}"/>
+                    <field name="making_charge_diamond_id"  domain="[('is_diamond_making_charges', '=', True)]" attrs="{'invisible': ['|','|',('diamond', '!=', True),('is_diamond_making_charges', '=', True)], 'required': [('diamond', '=', True),('gold', '=', False),('scrap', '=', False),('type', '=', 'product')]}"/>
                     <field name="origin"/>
                 </field>
                 <field name="uom_id" position="attributes">

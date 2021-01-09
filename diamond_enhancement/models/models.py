@@ -13,6 +13,12 @@ class ProductTemplate(models.Model):
     _inherit = "product.template"
 
     diamond = fields.Boolean(string='Gold')
+    is_diamond_making_charges = fields.Boolean(string='Is Making Charges')
+    making_charge_diamond_id = fields.Many2one('product.product', 'Making Charges product')
+
+
+
+
 
 
 
