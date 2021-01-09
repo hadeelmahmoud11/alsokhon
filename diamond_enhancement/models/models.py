@@ -28,6 +28,7 @@ class PurchaseOrderLine(models.Model):
 
     carat = fields.Char('Diamond Carat')
     carat_wt = fields.Char('Diamond Wt')
+    d_make_value = fields.Char('Diamond Making Charges')
 
 class StockProductionLot(models.Model):
     _inherit = 'stock.production.lot'
@@ -39,6 +40,7 @@ class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
     carat = fields.Char('Diamond Carat')
     carat_wt = fields.Char('Diamond Wt')
+    d_make_value = fields.Char('Diamond Making Charges')
 
 class StockQuant(models.Model):
     _inherit = 'stock.quant'
