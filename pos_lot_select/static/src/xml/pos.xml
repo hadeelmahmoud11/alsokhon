@@ -59,6 +59,7 @@
                                             <t t-else="">
                                               <td>Diamond Carat</td>
                                               <td>Diamond Wt</td>
+                                              <td>Making Charge</td>
                                             </t>
                                         </colgroup>
 
@@ -99,6 +100,9 @@
                                                   </td>
                                                   <td id="carat_wt">
                                                       <t t-esc="product_lot.carat_wt" />
+                                                  </td>
+                                                  <td id="selling_making">
+                                                      <t t-esc="product_lot.selling_making_charge" />
                                                   </td>
                                       					</t>
                                                 <!-- <span id="gold_rate" ><t t-esc="product_lot.gold_rate" class="display:none;"/></span> -->

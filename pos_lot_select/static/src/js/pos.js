@@ -9,7 +9,7 @@ odoo.define('pos_lot_select.pos', function(require){
       var rpc = require('web.rpc');
       var PosBaseWidget = require('point_of_sale.BaseWidget');
 
-      models.load_fields('product.product',['making_charge_id']);
+      models.load_fields('product.product',['making_charge_id','making_charge_diamond_id']);
       models.load_fields('product.category',['is_scrap','is_diamond']);
       models.load_models({
           model: 'stock.production.lot',
@@ -390,6 +390,8 @@ odoo.define('pos_lot_select.pos', function(require){
                       pure_weight = scrap_purity;
                     }
                     console.log(self.pos.config.gold_rate,pure_weight);
+                    console.log(order_line.product.categ);
+                    console.log(order_line.product);
                     self.change_price(self.pos.config.gold_rate,pure_weight)
                     if(!order_line.product.categ.is_scrap && order_line.product.making_charge_id ){
                       var product = self.pos.db.get_product_by_id(self.options.order_line.product.making_charge_id[0]);
@@ -397,6 +399,15 @@ odoo.define('pos_lot_select.pos', function(require){
                       self.options.order.add_product(product, {
                         quantity: 1,
                         price: order_line.quantity * lot.gross_weight * lot.selling_making_charge,
+                      });
+                    }
+                    if(order_line.product.categ.is_diamond && order_line.product.making_charge_diamond_id ){
+                      var product = self.pos.db.get_product_by_id(self.options.order_line.product.making_charge_diamond_id[0]);
+                      console.log(product);
+
+                      self.options.order.add_product(product, {
+                        quantity: 1,
+                        price: order_line.quantity * lot.selling_making_charge,
                       });
                     }
                   }

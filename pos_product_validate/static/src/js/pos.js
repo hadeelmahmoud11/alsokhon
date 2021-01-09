@@ -175,33 +175,33 @@ odoo.define('pos_product_validate.pos', function(require){
       },
   	});
 
-    screens.ProductListWidget.include({
-
-      renderElement: function() {
-          var el_str  = QWeb.render(this.template, {widget: this});
-          var el_node = document.createElement('div');
-              el_node.innerHTML = el_str;
-              el_node = el_node.childNodes[1];
-          if(this.el && this.el.parentNode){
-              this.el.parentNode.replaceChild(el_node,this.el);
-          }
-          this.el = el_node;
-          var list_container = el_node.querySelector('.product-list');
-          // console.log("((this.product_lsadasdasdasdsist))");
-          // console.log(this.product_list);
-          for(var i = 0, len = this.product_list.length; i < len; i++){
-              var product_node = this.render_product(this.product_list[i]);
-              var product_qty_available = this.product_list[i].qty_available;
-              if(product_qty_available<1){
-                continue;
-              }
-              product_node.addEventListener('click',this.click_product_handler);
-              product_node.addEventListener('keypress',this.keypress_product_handler);
-              list_container.appendChild(product_node);
-          }
-      },
-
-  	});
+    // screens.ProductListWidget.include({
+    //
+    //   renderElement: function() {
+    //       var el_str  = QWeb.render(this.template, {widget: this});
+    //       var el_node = document.createElement('div');
+    //           el_node.innerHTML = el_str;
+    //           el_node = el_node.childNodes[1];
+    //       if(this.el && this.el.parentNode){
+    //           this.el.parentNode.replaceChild(el_node,this.el);
+    //       }
+    //       this.el = el_node;
+    //       var list_container = el_node.querySelector('.product-list');
+    //       // console.log("((this.product_lsadasdasdasdsist))");
+    //       // console.log(this.product_list);
+    //       for(var i = 0, len = this.product_list.length; i < len; i++){
+    //           var product_node = this.render_product(this.product_list[i]);
+    //           var product_qty_available = this.product_list[i].qty_available;
+    //           if(product_qty_available<1){
+    //             continue;
+    //           }
+    //           product_node.addEventListener('click',this.click_product_handler);
+    //           product_node.addEventListener('keypress',this.keypress_product_handler);
+    //           list_container.appendChild(product_node);
+    //       }
+    //   },
+    //
+  	// });
 
 
     screens.ClientListScreenWidget.include({
