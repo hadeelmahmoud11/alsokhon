@@ -23,9 +23,13 @@
                         <t t-if="widget.pos.config.allow_pos_lot">
                             <t t-if="widget.options.product_lot">
                                 <div >
-                                  <!-- background: url(/point_of_sale/static/src/css/../img/search.png) no-repeat 15px; -->
+                                  <span style="width: 5%;">
+                                    Is Return Product:
+                                    <i class="is_return_bt"  style="color: green;font-size: 25px;cursor: pointer" >False</i>
 
-                                    <input placeholder="Search Lot" style="width: 160px;
+                                    <!-- <input type="checkbox" id="checkbox" style="width: 4%;min-height: 20px;cursor: pointer;" /> -->
+                                  </span>
+                                  <input placeholder="Search Lot" style="width: 160px;
                                         border: 1px solid #cecbcb;
                                         padding: 10px 20px;
                                         padding-left: 38px;
@@ -35,6 +39,14 @@
                                         font-family: Helvetica, Verdana, Arial;
                                         font-size: 13px;" class="search_lot" t-att-value="widget.options.qstr"/>
                                     <span class="search-clear search_lot"></span>
+
+                                  <!-- background: url(/point_of_sale/static/src/css/../img/search.png) no-repeat 15px; -->
+
+
+
+                                    <!-- <input type="checkbox" id="oe_import_trackingaa" />
+                                    <input type="checkbox" id="oe_import_trackingaas" class="fa fa-check"  /> -->
+                                    <!-- class="fa fa-check" -->
                                 </div>
                                 <div style="height: 360px;overflow: scroll;">
                                     <table >
@@ -58,7 +70,7 @@
                                             </t>
                                             <t t-else="">
                                               <td>Diamond Carat</td>
-                                              <td>Diamond Wt</td>
+                                              <!-- <td>Diamond Wt</td> -->
                                               <td>Making Charge</td>
                                             </t>
                                         </colgroup>
@@ -98,9 +110,9 @@
                                                   <td id="carat">
                                                       <t t-esc="product_lot.carat" />
                                                   </td>
-                                                  <td id="carat_wt">
+                                                  <!-- <td id="carat_wt">
                                                       <t t-esc="product_lot.carat_wt" />
-                                                  </td>
+                                                  </td> -->
                                                   <td id="selling_making">
                                                       <t t-esc="product_lot.selling_making_charge" />
                                                   </td>

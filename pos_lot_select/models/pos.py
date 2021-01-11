@@ -38,6 +38,7 @@ class pos_order_line(models.Model):
                     line[2]['pure_weight'] = lot.pure_weight
                     line[2]['make_value'] = lot.selling_making_charge
                     line[2]['gold_rate'] = lot.gold_rate
+                    line[2]['carat'] = lot.carat
         if line and 'name' not in line[2]:
             session = self.env['pos.session'].browse(session_id).exists() if session_id else None
             if session and session.config_id.sequence_line_id:
@@ -298,12 +299,21 @@ class PosOrder(models.Model):
                         lot = self.env['stock.production.lot'].search([('name','=',lot_id.lot_name),('product_id','=',lot_id.product_id.id)])
                         gross_weight = lot.gross_weight
                         pure_weight = lot.pure_weight
+                        carat = lot.carat
+#                         print("BJKBJH")
+# # 97.0 1.0 97.0
+#                         print(lot.carat,line.qty,lot.total_qty)
                         if line.product_id.categ_id.is_scrap:
                             lot.gross_weight -= line.qty
+                        elif line.product_id.categ_id.is_diamond:
+                            if lot.total_qty==1:
+                                lot.carat-=0
+                            else:
+                                # print("jkhj")
+                                lot.carat-=line.qty
                         else:
                             lot.gross_weight -= line.qty * lot.gross_weight
-
-
+                        # print(lot.carat)
 
                         moves |= Move.create({
                             'name': line.name,
@@ -313,6 +323,7 @@ class PosOrder(models.Model):
                             'product_id': line.product_id.id,#   item_category_id sub_category_id selling_karat_id selling_making_charge
                             'gross_weight':gross_weight if (gross_weight-lot.gross_weight)==0 else gross_weight-lot.gross_weight,
                             'pure_weight':pure_weight if (pure_weight-lot.pure_weight)==0 else pure_weight-lot.pure_weight,
+                            'carat': carat-lot.carat,
                             'purity': line.purity_id.scrap_purity,
                             'selling_making_charge': line.make_value,
                             'lot_id': lot.id,
