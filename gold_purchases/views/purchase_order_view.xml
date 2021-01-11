@@ -89,7 +89,7 @@
                        position="before">
                     <field name="scrap_state_read" invisible="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
                     <field name="gross_wt" width="12%" attrs="{'readonly': ['|','|',('is_make_value', '=', True),('scrap_state_read','=',True),('state', 'in', ['purchase','done','cancel'])],'column_invisible':[('parent.gold','!=',True)]}" force_save="1"/>
-                    <field name="total_gross_wt" force_save="1" attrs="{'readonly':['|',('is_make_value', '=', True),('state', 'in', ['purchase','done','cancel'])]"/>
+                    <field name="total_gross_wt" force_save="1" attrs="{'readonly':['|',('is_make_value', '=', True),('state', 'in', ['purchase','done','cancel'])]}"/>
                     <field name="received_gross_wt" readonly="1" attrs="{'column_invisible':[('parent.diamond','=',True)]}"/>
                     <field name="purity_id" width="10%" force_save="1" attrs="{'readonly': ['|',('is_make_value', '=', True),('state', 'in', ['purchase','done','cancel'])]}"/>
                     <field name="pure_wt" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
