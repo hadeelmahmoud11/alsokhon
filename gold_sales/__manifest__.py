@@ -10,7 +10,7 @@
     'version': '13.0.0.1',
     # 'depends': ['purchase_stock', 'stock_account','account','po_gold_form','purchase_product_matrix',
     #             'purchase_order_type', 'account_accountant','stock','account_reports'],
-    'depends': ['sale_stock', 'stock_account','account', 'account_accountant','stock','account_reports','sale_order_type','sale','product'],
+    'depends': ['sale_stock', 'stock_account','account', 'account_accountant','stock','account_reports','sale_order_type','sale'],
     'data': [
         'views/res_partner_view.xml',
         'views/account_view.xml',
@@ -18,7 +18,7 @@
         'views/sale_order_view.xml',
         'views/stock_picking_view.xml',
         'views/stock_quant.xml',
-        'wizard/fixing_unfixed_inv.xml'
+        # 'wizard/fixing_unfixed_inv.xml'
     ],
 
 }

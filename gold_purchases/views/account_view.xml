@@ -100,6 +100,7 @@
               </field>
                 <xpath expr="//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='product_uom_id']" position="after">
                   <field name="carat" readonly="1"  />
+                  <field name="carat_wt" readonly="1"  />
                     <field name="gross_wt" readonly="1"  />
                     <field name="purity_id" readonly="1"  />
                     <field name="pure_wt" readonly="1"  />
@@ -111,6 +112,7 @@
                 </xpath>
                 <xpath expr="//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/form/sheet/group/field[@name='product_uom_id']" position="after">
                   <field name="carat" readonly="1"  />
+                  <field name="carat_wt" readonly="1"  />
                     <field name="gross_wt" readonly="1"  />
                     <field name="purity_id" readonly="1"  />
                     <field name="pure_wt" readonly="1"  />
@@ -122,6 +124,7 @@
                 </xpath>
                 <xpath expr="//notebook/page[@id='aml_tab']/field[@name='line_ids']/tree/field[@name='product_id']" position="after">
                   <field name="carat" readonly="1"  />
+                  <field name="carat_wt" readonly="1"  />
                     <field name="gross_wt" invisible="1"  />
                     <field name="purity_id" invisible="1"  />
                     <field name="pure_wt" invisible="1"  />
