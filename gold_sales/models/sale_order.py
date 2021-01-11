@@ -19,7 +19,7 @@ class SaleOrder(models.Model):
 
     order_category = fields.Selection([('whole_sale','Whole-sale'),('retail','Retail')])
 
-    
+
 
     @api.model
     def create(self, values):
@@ -334,7 +334,7 @@ class SaleOrderLine(models.Model):
     stock = fields.Float('Stock', compute='_get_gold_stock', digits=(16, 3))
     make_rate = fields.Monetary('Make Rate/G', digits=(16, 3))
     make_value = fields.Monetary('Make Value', compute='_get_gold_rate',
-                                 digits=(16, 3))
+                                 digits=(16, 3), default=0.00)
     gold_rate = fields.Float('Gold Rate/G', compute='_get_gold_rate',
                              digits=(16, 3))
     gold_value = fields.Monetary('Gold Value', compute='_get_gold_rate',
