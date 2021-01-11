@@ -15,9 +15,10 @@ odoo.define('pos_lot_select.pos', function(require){
           model: 'stock.production.lot',
           fields: [],
           domain: function(self){
-              var from = moment(new Date()).subtract(self.config.lot_expire_days,'d').format('YYYY-MM-DD')+" 00:00:00";
+            console.log();
+              // var from = moment(new Date()).subtract(self.config.lot_expire_days,'d').format('YYYY-MM-DD')+" 00:00:00";
               if(self.config.allow_pos_lot){
-                  return ['&',['create_date','>=',from],['total_qty','>',0]];
+                  return [['total_qty','>',0]];
               }
               else{
                   return [['id','=',0]];
