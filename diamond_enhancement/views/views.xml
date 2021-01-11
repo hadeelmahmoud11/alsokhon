@@ -8,7 +8,7 @@
       <field name="arch" type="xml">
           <field name="product_uom_qty" position="before">
 				<field name="carat" attrs="{'column_invisible':[('product_id.categ_id.is_diamond','!=',True)]}"/>
-                <field name="carat_wt" attrs="{'column_invisible':[('product_id.categ_id.is_diamond','!=',True)]}"/> -->
+                <field name="carat_ds" attrs="{'column_invisible':[('product_id.categ_id.is_diamond','!=',True)]}"/> -->
 
 				<!--<xpath expr="//field[@name='date']" position="attributes">
               <attribute name="attrs">{'column_invisible': True}</attribute>
@@ -37,7 +37,7 @@
       <field name="arch" type="xml">
           <field name="qty_done" position="before">
 				<field name="carat" attrs="{'column_invisible':[('product_id.categ_id.is_diamond','!=',True)]}"/>
-                <field name="carat_wt" attrs="{'column_invisible':[('product_id.categ_id.is_diamond','!=',True)]}"/>
+                <field name="carat_ds" attrs="{'column_invisible':[('product_id.categ_id.is_diamond','!=',True)]}"/>
           </field> -->
 		<!--  <xpath expr="//field[@name='date']" position="attributes">
               <attribute name="attrs">{'column_invisible': True}</attribute>
@@ -65,7 +65,7 @@
       <field name="arch" type="xml">
           <field name="company_id" position="after">
               <field name="carat"  attrs="{'column_invisible':[('product_id.categ_id.is_diamond','!=',True)]}"/>
-              <field name="carat_wt" attrs="{'column_invisible':[('product_id.categ_id.is_diamond','!=',True)]}"/>
+              <field name="carat_ds" attrs="{'column_invisible':[('product_id.categ_id.is_diamond','!=',True)]}"/>
           </field>
       </field>
     </record> -->
@@ -78,7 +78,7 @@
       <field name="arch" type="xml">
           <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="after">
               <field name="carat" attrs="{'column_invisible':[('parent.diamond','!=',True)]}" />
-              <field name="carat_wt" attrs="{'column_invisible':[('parent.diamond','!=',True)]}"/>
+              <field name="carat_ds" attrs="{'column_invisible':[('parent.diamond','!=',True)]}"/>
           </xpath>
       </field>
     </record> -->
@@ -90,7 +90,7 @@
       <field name="arch" type="xml">
           <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="after">
               <field name="carat"  attrs="{'column_invisible':[('parent.diamond','!=',True)]}"/>
-              <field name="carat_wt" attrs="{'column_invisible':[('parent.diamond','!=',True)]}"/>
+              <field name="carat_ds" attrs="{'column_invisible':[('parent.diamond','!=',True)]}"/>
           </xpath>
       </field>
     </record> -->

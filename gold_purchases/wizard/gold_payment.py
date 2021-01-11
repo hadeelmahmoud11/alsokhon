@@ -153,7 +153,7 @@ class stockGoldMove(models.TransientModel):
                 for this in picking:
                     for this_lot_line in this.move_line_ids_without_package:
                         this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
-                # picking.buttom_validate()
+                picking.buttom_validate()
 
                 if account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
                     account_move.write({'unfixed_stock_picking_three': picking.id})

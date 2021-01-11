@@ -255,6 +255,8 @@ class PurchaseOrderLine(models.Model):
     def update_gross(self):
         if self.product_id and self.product_id.categ_id.is_scrap and self.product_qty:
             self.gross_wt = self.product_qty
+        elif  self.product_id and self.product_id.categ_id.is_diamond and self.product_qty:
+            self.carat = self.product_qty
     # @api.model
     # def create(self, vals):
     #     res = super(PurchaseOrderLine, self).create(vals)
@@ -282,6 +284,9 @@ class PurchaseOrderLine(models.Model):
     #     return res
 
 
+    # @api.onchange('d_make_value')
+    # def _compute_total_with_d_make(self):
+    #     pass
 
     @api.depends('product_id', 'product_qty', 'price_unit', 'gross_wt',
                  'purity_id', 'purity_diff', 'make_rate',
@@ -302,15 +307,22 @@ class PurchaseOrderLine(models.Model):
             # new_pure_wt = rec.pure_wt + rec.purity_diff
             # rec.stock = (rec.product_id and rec.product_id.available_gold or
             #              0.00) + new_pure_wt
-            if rec.product_id.categ_id.is_scrap:
-                rec.make_value = rec.gross_wt * rec.make_rate
+            if rec.order_id.diamond:
+                pass
             else:
-                rec.make_value = rec.product_qty * rec.gross_wt * rec.make_rate
-            rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
-            rec.gold_value = rec.gold_rate and (
-                    rec.total_pure_weight * rec.gold_rate) or 0
+                if rec.product_id.categ_id.is_scrap:
+                    rec.make_value = rec.gross_wt * rec.make_rate
+                else:
+                    rec.make_value = rec.product_qty * rec.gross_wt * rec.make_rate
+            if rec.order_id.gold:
+                rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
+                rec.gold_value = rec.gold_rate and (
+                        rec.total_pure_weight * rec.gold_rate) or 0
+            else:
+                rec.gold_rate = 0.00
+                rec.gold_value = 0.00
             if rec.product_id.categ_id.is_scrap:
-                rec.total_gross_wt = rec.product_qty
+                rec.total_gross_wt = rec.gross_wt
             else:
                 rec.total_gross_wt = rec.gross_wt * rec.product_qty
 
@@ -328,8 +340,7 @@ class PurchaseOrderLine(models.Model):
                  'order_id.state', 'order_id.order_type.gold')
     def _compute_amount(self):
         for line in self:
-            if line.order_id and (line.order_id.order_type.is_fixed or line.order_id.order_type.gold) and \
-                    line.product_id.gold:
+            if line.order_id and (line.order_id.order_type.is_fixed or line.order_id.order_type.gold) and line.product_id.gold:
                 taxes = line.taxes_id.compute_all(
                     line.gold_value,
                     line.order_id.currency_id,
@@ -341,7 +352,19 @@ class PurchaseOrderLine(models.Model):
                         t.get('amount', 0.0) for t in taxes.get('taxes', [])),
                     'price_total': taxes['total_included'],
                     'price_subtotal': taxes['total_excluded'],
-                    'price_unit': 0
+                })
+            elif line.order_id.diamond:
+                taxes = line.taxes_id.compute_all(
+                    (line.price_unit * line.product_qty) - ((line.price_unit * line.discount / 100) * line.product_qty),
+                    line.order_id.currency_id,
+                    1,
+                    line.product_id,
+                    line.order_id.partner_id)
+                line.update({
+                    'price_tax': sum(
+                        t.get('amount', 0.0) for t in taxes.get('taxes', [])),
+                    'price_total': taxes['total_included'],
+                    'price_subtotal': taxes['total_excluded'],
                 })
             else:
                 vals = line._prepare_compute_all_values()
@@ -350,7 +373,7 @@ class PurchaseOrderLine(models.Model):
                     vals['currency_id'],
                     vals['product_qty'],
                     vals['product'],
-                    vals['partner'])
+                    vals['partner'],)
                 line.update({
                     'price_tax': sum(
                         t.get('amount', 0.0) for t in taxes.get('taxes', [])),
@@ -363,7 +386,6 @@ class PurchaseOrderLine(models.Model):
         if self.product_id and self.product_id.categ_id.is_scrap:
             res and res[0].update({
                 'carat': self.carat,
-                'carat_wt': self.carat_wt,
                 'gross_weight': self.gross_wt,
                 'pure_weight': self.pure_wt,
                 'purity': self.purity_id.scrap_purity or 1,
@@ -377,7 +399,6 @@ class PurchaseOrderLine(models.Model):
         else:
             res and res[0].update({
                 'carat': self.carat,
-                'carat_wt': self.carat_wt,
                 'gross_weight': self.gross_wt * self.product_qty,
                 'pure_weight': self.pure_wt,
                 'purity': self.purity_id.purity or 1,
@@ -422,7 +443,6 @@ class PurchaseOrderLine(models.Model):
                     new_purity_diff =  self.purity_diff / self.product_qty
                     res.update({
                         'carat':self.carat,
-                        'carat_wt':self.carat_wt,
                         'gross_wt': self.received_gross_wt ,
                         'pure_wt': new_pure - new_purity_diff ,
                         'purity_id': self.purity_id and self.purity_id.id or False,
@@ -431,12 +451,12 @@ class PurchaseOrderLine(models.Model):
                         'make_rate': self.make_rate,
                         'make_value': self.make_value / diff_gross ,
                         'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
-                        'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0 ,
+                        'price_unit': 0 ,
+                        'price_subtotal': self.gold_rate and (new_pure * self.gold_rate) or 0,
                     })
                 else:
                     res.update({
                         'carat':self.carat,
-                        'carat_wt':self.carat_wt,
                         'gross_wt': self.gross_wt,
                         'pure_wt': self.pure_wt,
                         'purity_id': self.purity_id and self.purity_id.id or False,
@@ -445,7 +465,8 @@ class PurchaseOrderLine(models.Model):
                         'make_rate': self.make_rate,
                         'make_value': self.make_value,
                         'gold_value': self.gold_value,
-                        'price_unit': self.gold_value / self.product_qty   ,
+                        'price_unit': 0  ,
+                        'price_subtotal': self.gold_rate and (new_pure * self.gold_rate) or 0,
                     })
             else:
                 # if self.product_qty < (self.gross_wt * self.product_qty):
@@ -471,7 +492,6 @@ class PurchaseOrderLine(models.Model):
                 # else:
                 res.update({
                     'carat':self.carat,
-                    'carat_wt':self.carat_wt,
                     'gross_wt': self.gross_wt,
                     'pure_wt': self.pure_wt,
                     'purity_id': self.purity_id and self.purity_id.id or False,
@@ -480,7 +500,8 @@ class PurchaseOrderLine(models.Model):
                     'make_rate': self.make_rate,
                     'make_value': self.make_value,
                     'gold_value': self.gold_value,
-                    'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0 ,
+                    'price_unit': 0,
+                    'price_subtotal': self.gold_rate and (new_pure * self.gold_rate) or 0,
                 })
         product_object = self.env['product.product'].browse([res.get('product_id')])
         make_value_product = product_object.making_charge_id

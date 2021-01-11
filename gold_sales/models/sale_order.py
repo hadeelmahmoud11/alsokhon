@@ -22,40 +22,79 @@ class SaleOrder(models.Model):
         res = super(SaleOrder, self).create(values)
         total_make_rate = 0
         total_qty = 0
+        product_charge_gold_list = []
+        product_charge_diamond_list = []
         for line in res.order_line:
-            if line.make_rate > 0.00 and line.make_value > 0.00:
-                total_make_rate += line.make_value
-                total_qty += line.product_uom_qty
+            if line.product_id and line.product_id.categ_id.is_gold:
+                product_charge_gold_list.append(line.product_id.making_charge_id.id)
+            elif line.product_id and line.product_id.categ_id.is_diamond:
+                product_charge_diamond_list.append(line.product_id.making_charge_diamond_id.id)
+        done_gold_product = []
+        total_charge_gold = []
+        for line in product_charge_gold_list:
+            if line in done_gold_product:
+                continue
+            products_for_this_make = self.env['product.product'].search([('making_charge_id','=',line)])
+            order_lines_in_this_order = self.env['sale.order.line'].search([('product_id','in',products_for_this_make.ids)])
+            for sol in order_lines_in_this_order:
+                total_charge_gold.append((sol.make_value,sol.product_id.making_charge_id.id))
+            done_gold_product.append(line)
 
-        if total_make_rate > 0:
-            if not self.order_type.diamond:
+        done_diamond_product = []
+        total_charge_diamond = []
+        for line in product_charge_diamond_list:
+            if line in done_diamond_product:
+                continue
+            products_for_this_make = self.env['product.product'].search([('making_charge_diamond_id','=',line)])
+            order_lines_in_this_order = self.env['sale.order.line'].search([('product_id','in',products_for_this_make.ids)])
+            for sol in order_lines_in_this_order:
+                total_charge_diamond.append((sol.d_make_value,sol.product_id.making_charge_diamond_id.id))
+            done_diamond_product.append(line)
 
-                make_value_product = self.env['product.product'].search([('is_making_charges','=',True)], limit=1)
+        apply_gold_charge = []
+        apply_diamond_charge = []
+        gold_charge = False
+        diamond_charge = False
+
+        for tup in total_charge_gold:
+            if tup[0] > 0.00:
+                gold_charge = True
+                apply_gold_charge.append(tup)
+
+        for tup in total_charge_diamond:
+            if tup[0] > 0.00:
+                diamond_charge = True
+                apply_diamond_charge.append(tup)
+
+        if gold_charge:
+            for pro in apply_gold_charge:
+                make_value_product = self.env['product.product'].browse(pro[1])
                 uom = self.env.ref('uom.product_uom_unit')
                 make = self.env['sale.order.line'].create({
                                         'product_id': make_value_product.id,
                                         'name': make_value_product.name,
                                         'product_uom_qty': 1,
-                                        'price_unit': total_make_rate,
+                                        'price_unit': pro[0],
                                         'product_uom': uom.id,
                                         'order_id':res.id,
                                         # 'date_planned': datetime.today() ,
                                         'is_make_value': True,
-                                        'price_subtotal': total_make_rate,
+                                        'price_subtotal': pro[0],
                                     })
-            else:
-                make_value_product = self.env['product.product'].search([('is_diamond_making_charges','=',True)], limit=1)
+        if diamond_charge:
+            for pro in apply_diamond_charge:
+                make_value_product = self.env['product.product'].browse(pro[1])
                 uom = self.env.ref('uom.product_uom_unit')
                 make = self.env['sale.order.line'].create({
                                         'product_id': make_value_product.id,
                                         'name': make_value_product.name,
                                         'product_uom_qty': 1,
-                                        'price_unit': total_make_rate*total_qty,
+                                        'price_unit': pro[0],
                                         'product_uom': uom.id,
                                         'order_id':res.id,
                                         # 'date_planned': datetime.today() ,
                                         'is_make_value': True,
-                                        'price_subtotal': total_make_rate,
+                                        'price_subtotal': pro[0],
                                     })
         return res
 
@@ -63,27 +102,83 @@ class SaleOrder(models.Model):
         res = super(SaleOrder, self).write(values)
         making_order_line = self.env['sale.order.line'].search([('order_id','=',self.id),('is_make_value','=',True)])
         if self.state not in  ['done','sale']:
-            making_order_line.unlink()
             total_make_rate = 0
+            total_qty = 0
+            product_charge_gold_list = []
+            product_charge_diamond_list = []
             for line in self.order_line:
-                if line.make_rate > 0.00 and line.make_value > 0.00:
-                    total_make_rate += line.make_value
+                if line.product_id and line.product_id.categ_id.is_gold:
+                    product_charge_gold_list.append(line.product_id.making_charge_id.id)
+                elif line.product_id and line.product_id.categ_id.is_diamond:
+                    product_charge_diamond_list.append(line.product_id.making_charge_diamond_id.id)
+            done_gold_product = []
+            total_charge_gold = []
+            for line in product_charge_gold_list:
+                if line in done_gold_product:
+                    continue
+                products_for_this_make = self.env['product.product'].search([('making_charge_id','=',line)])
+                order_lines_in_this_order = self.env['sale.order.line'].search([('product_id','in',products_for_this_make.ids)])
+                for sol in order_lines_in_this_order:
+                    total_charge_gold.append((sol.make_value,sol.product_id.making_charge_id.id))
+                done_gold_product.append(line)
 
-            if total_make_rate > 0:
-                make_value_product = self.env['product.product'].search([('is_making_charges','=',True)], limit=1)
-                uom = self.env.ref('uom.product_uom_unit')
-                make = self.env['purchase.order.line'].create({
-                                        'product_id': make_value_product.id,
-                                        'name': make_value_product.name,
-                                        'product_uom_qty': 1,
-                                        'price_unit': total_make_rate,
-                                        'product_uom': uom.id,
-                                        'order_id':self.id,
-                                        # 'date_planned': datetime.today() ,
-                                        'is_make_value': True,
-                                        'price_subtotal': total_make_rate,
-                                    })
-        return res
+            done_diamond_product = []
+            total_charge_diamond = []
+            for line in product_charge_diamond_list:
+                if line in done_diamond_product:
+                    continue
+                products_for_this_make = self.env['product.product'].search([('making_charge_diamond_id','=',line)])
+                order_lines_in_this_order = self.env['sale.order.line'].search([('product_id','in',products_for_this_make.ids)])
+                for sol in order_lines_in_this_order:
+                    total_charge_diamond.append((sol.d_make_value,sol.product_id.making_charge_diamond_id.id))
+                done_diamond_product.append(line)
+
+            apply_gold_charge = []
+            apply_diamond_charge = []
+            gold_charge = False
+            diamond_charge = False
+
+            for tup in total_charge_gold:
+                if tup[0] > 0.00:
+                    gold_charge = True
+                    apply_gold_charge.append(tup)
+
+            for tup in total_charge_diamond:
+                if tup[0] > 0.00:
+                    diamond_charge = True
+                    apply_diamond_charge.append(tup)
+
+            if gold_charge:
+                for pro in apply_gold_charge:
+                    make_value_product = self.env['product.product'].browse(pro[1])
+                    uom = self.env.ref('uom.product_uom_unit')
+                    make = self.env['sale.order.line'].create({
+                                            'product_id': make_value_product.id,
+                                            'name': make_value_product.name,
+                                            'product_uom_qty': 1,
+                                            'price_unit': pro[0],
+                                            'product_uom': uom.id,
+                                            'order_id':self.id,
+                                            # 'date_planned': datetime.today() ,
+                                            'is_make_value': True,
+                                            'price_subtotal': pro[0],
+                                        })
+            if diamond_charge:
+                for pro in apply_diamond_charge:
+                    make_value_product = self.env['product.product'].browse(pro[1])
+                    uom = self.env.ref('uom.product_uom_unit')
+                    make = self.env['sale.order.line'].create({
+                                            'product_id': make_value_product.id,
+                                            'name': make_value_product.name,
+                                            'product_uom_qty': 1,
+                                            'price_unit': pro[0],
+                                            'product_uom': uom.id,
+                                            'order_id':self.id,
+                                            # 'date_planned': datetime.today() ,
+                                            'is_make_value': True,
+                                            'price_subtotal': pro[0],
+                                        })
+            return res
 
     total_gold_vale_order = fields.Float('Total Gold Value', compute="_compute_total_gold_value_order")
     def _compute_total_gold_value_order(self):
@@ -183,7 +278,7 @@ class SaleOrderLine(models.Model):
             self.carat = self.lot_id.carat
             self.carat_wt = self.lot_id.carat_wt
             self.price_unit = 0
-            # print(self.lot_id.gross_weight)
+            self.carat = self.lot_id.carat
             # print(self.lot_id.pure_weight)
             self.gross_wt = self.lot_id.gross_weight
             self.pure_wt = self.lot_id.pure_weight
@@ -320,6 +415,8 @@ class SaleOrderLine(models.Model):
     def update_gross(self):
         if self.product_id and self.product_id.categ_id.is_scrap and self.product_uom_qty:
             self.gross_wt = self.product_uom_qty
+        elif  self.product_id and self.product_id.categ_id.is_diamond and self.product_qty:
+            self.carat = self.product_qty
 
 
     @api.depends('product_id', 'product_uom_qty', 'price_unit', 'gross_wt',
@@ -338,18 +435,25 @@ class SaleOrderLine(models.Model):
                         rec.purity_id.purity / 1000.000) or 0)
             rec.total_pure_weight = rec.pure_wt + rec.purity_diff
             # NEED TO ADD PURITY DIFF + rec.purity_diff
-            new_pure_wt = rec.pure_wt + rec.purity_diff
+            # new_pure_wt = rec.pure_wt + rec.purity_diff
             # rec.stock = (rec.product_id and rec.product_id.available_gold or
             #              0.00) + new_pure_wt
-            if rec.product_id.categ_id.is_scrap:
-                rec.make_value = rec.gross_wt * rec.make_rate
+            if rec.order_id.diamond:
+                pass
             else:
-                rec.make_value = rec.product_uom_qty * rec.gross_wt * rec.make_rate
-            rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
-            rec.gold_value = rec.gold_rate and (
-                    rec.total_pure_weight * rec.gold_rate) or 0
+                if rec.product_id.categ_id.is_scrap:
+                    rec.make_value = rec.gross_wt * rec.make_rate
+                else:
+                    rec.make_value = rec.product_uom_qty * rec.gross_wt * rec.make_rate
+            if rec.order_id.gold:
+                rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
+                rec.gold_value = rec.gold_rate and (
+                        rec.total_pure_weight * rec.gold_rate) or 0
+            else:
+                rec.gold_rate = 0.00
+                rec.gold_value = 0.00
             if rec.product_id.categ_id.is_scrap:
-                rec.total_gross_wt = rec.product_uom_qty
+                rec.total_gross_wt = rec.gross_wt
             else:
                 rec.total_gross_wt = rec.gross_wt * rec.product_uom_qty
 
@@ -372,6 +476,17 @@ class SaleOrderLine(models.Model):
                 price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
                 # taxes = line.tax_id.compute_all(price, line.order_id.currency_id, line.product_uom_qty, product=line.product_id, partner=line.order_id.partner_shipping_id)
                 taxes = line.tax_id.compute_all(line.gold_value, line.order_id.currency_id, 1, product=line.product_id, partner=line.order_id.partner_id)
+                line.update({
+                    'price_tax': sum(t.get('amount', 0.0) for t in taxes.get('taxes', [])),
+                    'price_total': taxes['total_included'],
+                    'price_subtotal': taxes['total_excluded'],
+                })
+                if self.env.context.get('import_file', False) and not self.env.user.user_has_groups('account.group_account_manager'):
+                    line.tax_id.invalidate_cache(['invoice_repartition_line_ids'], [line.tax_id.id])
+            elif line.order_id.diamond:
+                # price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
+                price = (line.price_unit * line.product_uom_qty) - ((line.price_unit * line.discount / 100) * line.product_uom_qty),
+                taxes = line.tax_id.compute_all(price, line.order_id.currency_id, line.product_uom_qty, product=line.product_id, partner=line.order_id.partner_shipping_id)
                 line.update({
                     'price_tax': sum(t.get('amount', 0.0) for t in taxes.get('taxes', [])),
                     'price_total': taxes['total_included'],
@@ -829,7 +944,6 @@ class StockRule(models.Model):
                                 else:
                                     move.update({
                                         'carat': sol.carat,
-                                        'carat_wt': sol.carat_wt,
                                         'gross_weight': sol.gross_wt * sol.product_uom_qty,
                                         'pure_weight': sol.pure_wt,
                                         'purity': sol.purity_id.purity or 1,
