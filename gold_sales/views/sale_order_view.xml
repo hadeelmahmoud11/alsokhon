@@ -19,6 +19,9 @@
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
+              <field name="partner_id" position="after">
+                <field name="order_category" requiered="1"/>
+              </field>
                 <xpath expr="//notebook/page[@name='other_information']/group" position="inside">
                     <group string="Period Details">
                         <div class="o_row">
