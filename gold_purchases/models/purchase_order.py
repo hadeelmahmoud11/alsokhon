@@ -307,6 +307,7 @@ class PurchaseOrderLine(models.Model):
             # new_pure_wt = rec.pure_wt + rec.purity_diff
             # rec.stock = (rec.product_id and rec.product_id.available_gold or
             #              0.00) + new_pure_wt
+            rec.make_value = 0.00
             if rec.order_id.diamond:
                 pass
             else:
