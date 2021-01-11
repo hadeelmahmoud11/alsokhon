@@ -454,7 +454,7 @@ class PurchaseOrderLine(models.Model):
                         'make_rate': self.make_rate,
                         'make_value': self.make_value / diff_gross ,
                         'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
-                        'price_unit': 0 ,
+                        'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0,
                         'price_subtotal': self.gold_rate and (new_pure * self.gold_rate) or 0,
                     })
                 else:
@@ -468,7 +468,7 @@ class PurchaseOrderLine(models.Model):
                         'make_rate': self.make_rate,
                         'make_value': self.make_value,
                         'gold_value': self.gold_value,
-                        'price_unit': 0  ,
+                        'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0,
                         'price_subtotal': self.gold_rate and (new_pure * self.gold_rate) or 0,
                     })
             else:
@@ -503,7 +503,7 @@ class PurchaseOrderLine(models.Model):
                     'make_rate': self.make_rate,
                     'make_value': self.make_value,
                     'gold_value': self.gold_value,
-                    'price_unit': 0,
+                    'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0,
                     'price_subtotal': self.gold_rate and (new_pure * self.gold_rate) or 0,
                 })
         product_object = self.env['product.product'].browse([res.get('product_id')])
