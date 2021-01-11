@@ -26,35 +26,35 @@ class ProductTemplate(models.Model):
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
-    carat = fields.Char('Diamond Carat')
-    d_make_value = fields.Char('Diamond Labor Charges')
+    carat = fields.Float('Diamond Carat', default=1.0)
+    d_make_value = fields.Float('Diamond Labor Charges')
 
 class StockProductionLot(models.Model):
     _inherit = 'stock.production.lot'
-    carat = fields.Char('Diamond Carat')
+    carat = fields.Float('Diamond Carat')
 
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
-    carat = fields.Char('Diamond Carat')
-    d_make_value = fields.Char('Diamond Labor Charges')
+    carat = fields.Float('Diamond Carat', default=1.0)
+    d_make_value = fields.Float('Diamond Labor Charges')
 
 class StockQuant(models.Model):
     _inherit = 'stock.quant'
 
-    carat = fields.Char('Diamond Carat')
+    carat = fields.Float('Diamond Carat')
 
 
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
-    carat = fields.Char('Diamond Carat')
+    carat = fields.Float('Diamond Carat')
 
 class StockMove(models.Model):
     _inherit = 'stock.move.line'
-    carat = fields.Char('Diamond Carat')
+    carat = fields.Float('Diamond Carat')
 
 
 class AccountMove(models.Model):
     _inherit = 'account.move.line'
-    carat = fields.Char('Diamond Carat')
+    carat = fields.Float('Diamond Carat')

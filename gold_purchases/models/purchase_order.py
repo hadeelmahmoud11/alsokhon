@@ -468,8 +468,8 @@ class PurchaseOrderLine(models.Model):
                         'make_rate': self.make_rate,
                         'make_value': self.make_value,
                         'gold_value': self.gold_value,
-                        'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0,
-                        'price_subtotal': self.gold_rate and (new_pure * self.gold_rate) or 0,
+                        'price_unit': self.gold_value,
+                        'price_subtotal': self.gold_value,
                     })
             else:
                 # if self.product_qty < (self.gross_wt * self.product_qty):
@@ -503,8 +503,8 @@ class PurchaseOrderLine(models.Model):
                     'make_rate': self.make_rate,
                     'make_value': self.make_value,
                     'gold_value': self.gold_value,
-                    'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0,
-                    'price_subtotal': self.gold_rate and (new_pure * self.gold_rate) or 0,
+                    'price_unit': self.gold_value,
+                    'price_subtotal': self.gold_value,
                 })
         product_object = self.env['product.product'].browse([res.get('product_id')])
         make_value_product = product_object.making_charge_id
@@ -552,5 +552,5 @@ class PurchaseOrderLine(models.Model):
                     res.update({'price_unit': price_un, 'quantity': 1.00,'gold_rate':0.00})
 
 
-
+        print(res)
         return res
