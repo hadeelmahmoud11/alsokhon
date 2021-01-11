@@ -422,6 +422,9 @@ class PurchaseOrderLine(models.Model):
             price_un = res.get('price_unit')
         if product_object.gold:
             if product_object.purchase_method == "receive":
+                new_pure = 0.0
+                total_pure_weight = 0.0
+                diff_gross = 0.0
                 if self.received_gross_wt < (self.gross_wt * self.product_qty):
                     total_pure_weight = 0.0
                     if self.product_id.categ_id.is_scrap == False:
@@ -466,7 +469,7 @@ class PurchaseOrderLine(models.Model):
                         'make_value': self.make_value,
                         'gold_value': self.gold_value,
                         'price_unit': 0  ,
-                        'price_subtotal': self.gold_rate and (total_pure_weight / self.product_qty * self.gold_rate) or 0,
+                        'price_subtotal': self.gold_rate and (new_pure * self.gold_rate) or 0,
                     })
             else:
                 # if self.product_qty < (self.gross_wt * self.product_qty):
