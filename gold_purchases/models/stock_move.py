@@ -270,7 +270,6 @@ class StockMoveLine(models.Model):
         elif res.lot_id.product_id and not res.lot_id.product_id.categ_id.is_scrap:
             res.lot_id.write({
             'carat': res.carat,
-            'carat_wt': res.carat_wt,
             'gross_weight': res.gross_weight,
             'purity': res.purity,
             'selling_making_charge':res.selling_making_charge,
