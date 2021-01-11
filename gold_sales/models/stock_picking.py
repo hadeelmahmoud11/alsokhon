@@ -29,12 +29,16 @@ class StockPicking(models.Model):
         for rec in self.filtered(lambda x: x.state == 'done'):
             if rec.origin:
                 if 'S0' in rec.origin:
-                    for line in rec.move_line_ids_without_package:
-                        if line.product_id.categ_id.is_scrap:
-                            line.lot_id.gross_weight -= line.move_id.product_uom_qty
-                        else:
-                            line.lot_id.gross_weight -= line.move_id.product_uom_qty * line.move_id.gross_weight
-                    rec.create_gold_journal_entry_sale()
+                    if self.env['sale.order'].search([('name','=',rec.origin)]).diamond:
+                        for line in rec.move_line_ids_without_package:
+                            line.lot_id.carat -= line.move_id.carat
+                    else:
+                        for line in rec.move_line_ids_without_package:
+                            if line.product_id.categ_id.is_scrap:
+                                line.lot_id.gross_weight -= line.move_id.product_uom_qty
+                            else:
+                                line.lot_id.gross_weight -= line.move_id.product_uom_qty * line.move_id.gross_weight
+                        rec.create_gold_journal_entry_sale()
                 if 'POS' in rec.origin:
                     # print("self.move_line_ids_without_package")
                     # print(self.move_lines)

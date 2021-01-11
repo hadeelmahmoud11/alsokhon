@@ -269,7 +269,6 @@ class StockMoveLine(models.Model):
             })
         elif res.lot_id.product_id and not res.lot_id.product_id.categ_id.is_scrap:
             res.lot_id.write({
-            'carat': res.carat,
             'gross_weight': res.gross_weight,
             'purity': res.purity,
             'selling_making_charge':res.selling_making_charge,
@@ -278,6 +277,19 @@ class StockMoveLine(models.Model):
             'sub_category_id':res.sub_category_id.id,
             'selling_karat_id':res.selling_karat_id.id,
             })
+        elif res.lot_id.product_id and res.lot_id.product_id.categ_id.is_diamond:
+            res.lot_id.write({
+            'carat': res.lot_id.carat + res.carat,
+            'gross_weight': res.lot_id.gross_weight + res.gross_weight,
+            'purity': res.purity,
+            'selling_making_charge':res.selling_making_charge,
+            'pure_weight':res.pure_weight,
+            'item_category_id':res.item_category_id.id,
+            'sub_category_id':res.sub_category_id.id,
+            'selling_karat_id':res.selling_karat_id.id,
+            })
+
+
         # if vals.get('gross_weight', False):
         #     if vals.get('move_id'):
         #         stock_move = self.env['stock.move'].browse([vals.get('move_id')])

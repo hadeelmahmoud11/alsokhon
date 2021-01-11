@@ -17,6 +17,10 @@ _logger = logging.getLogger(__name__)
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    order_category = fields.Selection([('whole_sale','Whole-sale'),('retail','Retail')])
+
+    
+
     @api.model
     def create(self, values):
         res = super(SaleOrder, self).create(values)
