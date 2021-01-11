@@ -466,7 +466,7 @@ class PurchaseOrderLine(models.Model):
                         'make_value': self.make_value,
                         'gold_value': self.gold_value,
                         'price_unit': 0  ,
-                        'price_subtotal': self.gold_rate and (new_pure * self.gold_rate) or 0,
+                        'price_subtotal': self.gold_rate and (total_pure_weight / self.product_qty * self.gold_rate) or 0,
                     })
             else:
                 # if self.product_qty < (self.gross_wt * self.product_qty):
