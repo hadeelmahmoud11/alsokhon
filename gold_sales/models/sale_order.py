@@ -180,6 +180,8 @@ class SaleOrderLine(models.Model):
                 self.product_uom_qty = self.lot_id.product_qty
             self.purity_id = self.lot_id.purity_id.id
             self.make_rate = self.lot_id.selling_making_charge
+            self.carat = self.lot_id.carat
+            self.carat_wt = self.lot_id.carat_wt
             self.price_unit = 0
             # print(self.lot_id.gross_weight)
             # print(self.lot_id.pure_weight)
