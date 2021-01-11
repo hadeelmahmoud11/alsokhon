@@ -206,7 +206,7 @@ class PurchaseOrderLine(models.Model):
     gold_value = fields.Monetary('Gold Value', compute='_get_gold_rate',
                                  digits=(16, 3))
     is_make_value = fields.Boolean(string='is_make_value')
-
+    discount = fields.Float()
     total_with_make = fields.Float('Total Value + Make Value', compute="_compute_total_with_make")
     scrap_state_read = fields.Boolean(compute="_compute_scrap_state_read")
     @api.onchange('product_id')
