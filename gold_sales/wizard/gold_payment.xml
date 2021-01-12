@@ -15,12 +15,12 @@
           </field>
         </record> -->
 
-        <record id="view_moves_show" model="ir.ui.view">
-            <field name="name">stock_move_gold</field>
-            <field name="model">stock.move.gold</field>
+        <record id="view_moves_show_sale" model="ir.ui.view">
+            <field name="name">stock_move_gold_sale</field>
+            <field name="model">stock.move.gold.sale</field>
             <field name="arch" type="xml">
                 <form string="moves">
-                    <header>
+                    <!-- <header>
 
                     </header>
                     <group>
@@ -35,8 +35,8 @@
                         <newline/>
                         <field name="move_ids" nolabel="1"  context="{'group_by':'product_id'}" >
                         <tree editable="bottom" >
-                          <!-- <field name="incoming_flag" invisible="1"/> -->
-                          <!-- <field name="scrap_state_read" invisible="1"/> -->
+                           <field name="incoming_flag" invisible="1"/>
+                           <field name="scrap_state_read" invisible="1"/>
                             <field name="name" readonly="1"/>
                             <field name="product_id" readonly="1"/>
                             <field name="product_qty" string="quantity" readonly="1"/>
@@ -46,7 +46,7 @@
                             <field name="paid_pure" readonly="1" force_save = "1" />
                         </tree>
                         </field>
-                <button icon="fa-cogs" string="Generate" name="compute_sheet" type="object" class="oe_highlight"  />
+                <button icon="fa-cogs" string="Generate" name="compute_sheet" type="object" class="oe_highlight"  /> -->
                </form>
             </field>
         </record>
@@ -55,8 +55,8 @@
             <field name="name">Generate gold payment sale</field>
             <field name="res_model">stock.move.gold.sale</field>
             <field name="view_mode">form</field>
-            <field name="view_id" ref="view_moves_show"/>
-            <field name="context">{'default_pure_weight': context.get('pure_weight', False),}</field>
+            <field name="view_id" ref="view_moves_show_sale"/>
+            <!-- <field name="context">{'default_pure_weight': context.get('pure_weight', False),}</field> -->
             <field name="target">new</field>
         </record>
 
@@ -71,11 +71,6 @@
                        <button  name="%(action_stock_moves_sale)d" type="action" context="{'pure_weight': pure_wt_value_perm}" groups="account.group_account_invoice" attrs="{'invisible': ['|', '|','|','|',('pure_wt_value','=',0.00),('state', '!=', 'posted'),('invoice_payment_state', '!=', 'not_paid'),('sale_type', '!=', 'unfixed'),('type', 'not in', ('out_invoice'))]}"  string="Register Gold Sales" class="oe_highlight"/>
                        <button  name="%(gold_sales.action_fixing_unfixed_inv_wiz_s)d" type="action" string="Convert Into Fixed" class="oe_highlight" attrs="{'invisible': ['|', '|','|','|',('pure_wt_value','=',0.00),('state', '!=', 'posted'),('invoice_payment_state', '!=', 'not_paid'),('sale_type', '!=', 'unfixed'),('type', 'not in', ('out_invoice'))]}"/>
                         <!-- context="{'value': pure_wt_value}" -->
-                   </xpath>
-                   <xpath expr="//field[@name='fiscal_position_id']" position="after">
-                   <field name="unfixed_move_id"  string="unfixed move" readonly="1" />
-                   <field name="unfixed_move_id_two" nolabel="1"  string="unfixed move two" attrs="{'invisible': [('unfixed_move_id_two', '=', False)],'readonly': True}" />
-                   <field name="unfixed_move_id_three" nolabel="1"  string="unfixed move three" attrs="{'invisible': [('unfixed_move_id_three', '=', False)],'readonly': True}" />
                    </xpath>
            </field>
        </record>

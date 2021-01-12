@@ -39,7 +39,7 @@ class SaleOrder(models.Model):
             if line in done_gold_product:
                 continue
             products_for_this_make = self.env['product.product'].search([('making_charge_id','=',line)])
-            order_lines_in_this_order = self.env['sale.order.line'].search([('product_id','in',products_for_this_make.ids)])
+            order_lines_in_this_order = self.env['sale.order.line'].search([('order_id','=',res.id),('product_id','in',products_for_this_make.ids)])
             for sol in order_lines_in_this_order:
                 total_charge_gold.append((sol.make_value,sol.product_id.making_charge_id.id))
             done_gold_product.append(line)
@@ -50,7 +50,7 @@ class SaleOrder(models.Model):
             if line in done_diamond_product:
                 continue
             products_for_this_make = self.env['product.product'].search([('making_charge_diamond_id','=',line)])
-            order_lines_in_this_order = self.env['sale.order.line'].search([('product_id','in',products_for_this_make.ids)])
+            order_lines_in_this_order = self.env['sale.order.line'].search([('order_id','=',res.id),('product_id','in',products_for_this_make.ids)])
             for sol in order_lines_in_this_order:
                 total_charge_diamond.append((sol.d_make_value,sol.product_id.making_charge_diamond_id.id))
             done_diamond_product.append(line)
@@ -69,7 +69,8 @@ class SaleOrder(models.Model):
             if tup[0] > 0.00:
                 diamond_charge = True
                 apply_diamond_charge.append(tup)
-
+        print(apply_gold_charge)
+        print(apply_diamond_charge)
         if gold_charge:
             for pro in apply_gold_charge:
                 make_value_product = self.env['product.product'].browse(pro[1])
@@ -106,6 +107,8 @@ class SaleOrder(models.Model):
         res = super(SaleOrder, self).write(values)
         making_order_line = self.env['sale.order.line'].search([('order_id','=',self.id),('is_make_value','=',True)])
         if self.state not in  ['done','sale']:
+            if making_order_line:
+                making_order_line.unlink()
             total_make_rate = 0
             total_qty = 0
             product_charge_gold_list = []
@@ -121,7 +124,7 @@ class SaleOrder(models.Model):
                 if line in done_gold_product:
                     continue
                 products_for_this_make = self.env['product.product'].search([('making_charge_id','=',line)])
-                order_lines_in_this_order = self.env['sale.order.line'].search([('product_id','in',products_for_this_make.ids)])
+                order_lines_in_this_order = self.env['sale.order.line'].search([('order_id','=',self.id),('product_id','in',products_for_this_make.ids)])
                 for sol in order_lines_in_this_order:
                     total_charge_gold.append((sol.make_value,sol.product_id.making_charge_id.id))
                 done_gold_product.append(line)
@@ -132,7 +135,7 @@ class SaleOrder(models.Model):
                 if line in done_diamond_product:
                     continue
                 products_for_this_make = self.env['product.product'].search([('making_charge_diamond_id','=',line)])
-                order_lines_in_this_order = self.env['sale.order.line'].search([('product_id','in',products_for_this_make.ids)])
+                order_lines_in_this_order = self.env['sale.order.line'].search([('order_id','=',self.id),('product_id','in',products_for_this_make.ids)])
                 for sol in order_lines_in_this_order:
                     total_charge_diamond.append((sol.d_make_value,sol.product_id.making_charge_diamond_id.id))
                 done_diamond_product.append(line)
@@ -141,7 +144,9 @@ class SaleOrder(models.Model):
             apply_diamond_charge = []
             gold_charge = False
             diamond_charge = False
-
+            print("______________________________")
+            print(total_charge_gold)
+            print(total_charge_diamond)
             for tup in total_charge_gold:
                 if tup[0] > 0.00:
                     gold_charge = True
@@ -152,6 +157,9 @@ class SaleOrder(models.Model):
                     diamond_charge = True
                     apply_diamond_charge.append(tup)
 
+            print("****************************")
+            print(apply_gold_charge)
+            print(apply_diamond_charge)
             if gold_charge:
                 for pro in apply_gold_charge:
                     make_value_product = self.env['product.product'].browse(pro[1])
@@ -655,6 +663,7 @@ class SaleOrderLine(models.Model):
                         'make_value': self.make_value / diff_gross ,
                         'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
                         'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0 ,
+                        'discount': self.discount ,
                     })
                 else:
                     res.update({
@@ -667,6 +676,7 @@ class SaleOrderLine(models.Model):
                         'make_value': self.make_value,
                         'gold_value': self.gold_value,
                         'price_unit': self.gold_value / self.product_uom_qty   ,
+                        'discount': self.discount ,
                     })
             else:
                 # if self.received_gross_wt < (self.gross_wt * self.product_uom_qty):
@@ -700,6 +710,7 @@ class SaleOrderLine(models.Model):
                     'make_value': self.make_value,
                     'gold_value': self.gold_value,
                     'price_unit': self.gold_value / self.product_uom_qty   ,
+                    'discount': self.discount ,
                 })
         product_object = self.env['product.product'].browse([res.get('product_id')])
         make_value_product = product_object.making_charge_id

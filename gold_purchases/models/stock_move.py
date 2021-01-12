@@ -267,9 +267,10 @@ class StockMoveLine(models.Model):
             'sub_category_id':res.sub_category_id.id,
             'selling_karat_id':res.selling_karat_id.id,
             })
-        elif res.lot_id.product_id and not res.lot_id.product_id.categ_id.is_scrap:
+        elif res.lot_id.product_id and res.lot_id.product_id.categ_id.is_diamond:
             res.lot_id.write({
-            'gross_weight': res.gross_weight,
+            'carat': res.lot_id.carat + res.carat,
+            'gross_weight': res.lot_id.gross_weight + res.gross_weight,
             'purity': res.purity,
             'selling_making_charge':res.selling_making_charge,
             'pure_weight':res.pure_weight,
@@ -277,10 +278,9 @@ class StockMoveLine(models.Model):
             'sub_category_id':res.sub_category_id.id,
             'selling_karat_id':res.selling_karat_id.id,
             })
-        elif res.lot_id.product_id and res.lot_id.product_id.categ_id.is_diamond:
+        elif res.lot_id.product_id and not res.lot_id.product_id.categ_id.is_scrap:
             res.lot_id.write({
-            'carat': res.lot_id.carat + res.carat,
-            'gross_weight': res.lot_id.gross_weight + res.gross_weight,
+            'gross_weight': res.gross_weight,
             'purity': res.purity,
             'selling_making_charge':res.selling_making_charge,
             'pure_weight':res.pure_weight,
