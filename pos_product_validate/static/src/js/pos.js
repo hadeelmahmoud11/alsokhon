@@ -100,7 +100,8 @@ odoo.define('pos_product_validate.pos', function(require){
         var self = this;
         var from = moment(new Date()).subtract(self.pos.config.lot_expire_days,'d').format('YYYY-MM-DD')+" 00:00:00";
         if(self.pos.config.allow_pos_lot){
-            return ['&',['create_date','>=',from],['total_qty','>',0]];
+          // return ['&',['create_date','>=',from],['total_qty','>',0]];
+            return [['total_qty','>',0]];
         }
         else{
             return [['id','=',0]];
