@@ -426,8 +426,8 @@ class SaleOrderLine(models.Model):
     def update_gross(self):
         if self.product_id and self.product_id.categ_id.is_scrap and self.product_uom_qty:
             self.gross_wt = self.product_uom_qty
-        elif  self.product_id and self.product_id.categ_id.is_diamond and self.product_qty:
-            self.carat = self.product_qty
+        elif  self.product_id and self.product_id.categ_id.is_diamond and self.product_uom_qty:
+            self.carat = self.product_uom_qty
 
 
     @api.depends('product_id', 'product_uom_qty', 'price_unit', 'gross_wt',
@@ -731,7 +731,7 @@ class SaleOrderLine(models.Model):
                             new_product_qty = line.product_uom_qty
                             new_received_gross_wt = line.received_gross_wt
                     else:
-                        if line.gross_wt > 0.00 and line.product_qty > 0.00:
+                        if line.gross_wt > 0.00 and line.product_uom_qty > 0.00:
                             new_gross_wt = line.gross_wt
                             new_product_qty = line.product_uom_qty
                             new_received_gross_wt = line.received_gross_wt
