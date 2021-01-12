@@ -81,7 +81,7 @@ class StockMove(models.Model):
             elif move.product_id.diamond:
                 purchase_order = self.env['purchase.order']
                 if 'P0' in move.origin:
-                    stock_picking = self.env['stock.picking'].search(['name','=',move.origin])
+                    stock_picking = self.env['stock.picking'].search([('name','=',move.origin)])
                     purchase_order.search([('name','=',stock_picking.origin)])
                     if len(purchase_order) > 0:
                         pol = self.env['purchase.order.line'].search([('order_id','=',purchase_order.id),('product_id','=',move.product_id.id)])
