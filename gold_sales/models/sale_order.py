@@ -496,8 +496,8 @@ class SaleOrderLine(models.Model):
                     line.tax_id.invalidate_cache(['invoice_repartition_line_ids'], [line.tax_id.id])
             elif line.order_id.diamond:
                 # price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
-                price = 0
-                if line.price_unit and line.product_uom_qty:
+                price = line.product_id.list_price
+                if line.product_uom_qty > 0:
                     price = (line.price_unit * line.product_uom_qty) - ((line.price_unit * line.discount / 100) * line.product_uom_qty),
                 else:
                     pass
