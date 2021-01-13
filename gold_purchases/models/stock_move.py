@@ -77,7 +77,7 @@ class StockMove(models.Model):
             # cost, qty
             if move.product_id.gold:
                 svl_vals = move.product_id._prepare_in_svl_vals(
-                    move.pure_weight, move.gold_rate)
+                    move.pure_weight, (move.gold_rate + move.selling_making_charge))
             elif move.product_id.diamond:
                 purchase_order = self.env['purchase.order']
                 if 'P0' in move.origin:
@@ -85,7 +85,7 @@ class StockMove(models.Model):
                     if len(purchase_order) > 0:
                         pol = self.env['purchase.order.line'].search([('order_id','=',purchase_order.id),('product_id','=',move.product_id.id)])
                         svl_vals = move.product_id._prepare_in_svl_vals(
-                            pol.carat, (pol.price_subtotal + pol.d_make_value))
+                            pol.carat, (pol.price_unit + pol.d_make_value / pol.carat))
             else:
                 svl_vals = move.product_id._prepare_in_svl_vals(
                     forced_quantity or valued_quantity, unit_cost)
