@@ -1,6 +1,6 @@
 <odoo>
   <data>
-    <record model="ir.ui.view" id="gold_sales.fixing_unfixed_inv_form">
+    <record model="ir.ui.view" id="gold_sales.fixing_unfixed_inv_forms">
         <field name="name">fixing_unfixed_inv_form.form</field>
         <field name="model">fixing.unfixed.inv</field>
         <field name="type">form</field>
@@ -10,18 +10,19 @@
                   <span colspan="4" nolabel="1">Fixing Unfixed inv</span>
               </group>
               <group>
+                  <field name="gold_rate"/>
                   <field name="value"/>
               </group>
               <button icon="fa-cogs" string="Generate" name="process_fixing" type="object" class="oe_highlight"  />
          </form>
         </field>
      </record>
-     <record id="gold_sales.action_fixing_unfixed_inv_wiz" model="ir.actions.act_window">
+     <record id="gold_sales.action_fixing_unfixed_inv_wiz_ss" model="ir.actions.act_window">
          <field name="name">Fixing Unfixed inv</field>
          <field name="res_model">fixing.unfixed.inv</field>
          <field name="view_mode">form</field>
-         <field name="view_id" ref="gold_sales.fixing_unfixed_inv_form"/>
-         <!-- <field name="context">{'default_value': context.get('pure_wt_value', False),}</field> -->
+         <field name="view_id" ref="gold_sales.fixing_unfixed_inv_forms"/>
+         <field name="context">{'default_gold_rate': context.get('gold_rate', False),}</field>
          <field name="target">new</field>
      </record>
 

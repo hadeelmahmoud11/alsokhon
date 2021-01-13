@@ -496,8 +496,10 @@ class SaleOrderLine(models.Model):
                     line.tax_id.invalidate_cache(['invoice_repartition_line_ids'], [line.tax_id.id])
             elif line.order_id.diamond:
                 # price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
-                price = (line.price_unit * line.product_uom_qty) - ((line.price_unit * line.discount / 100) * line.product_uom_qty),
-                taxes = line.tax_id.compute_all(price[0], line.order_id.currency_id, line.product_uom_qty, product=line.product_id, partner=line.order_id.partner_shipping_id)
+                price = ((line.price_unit * line.product_uom_qty) - ((line.price_unit * line.discount / 100) * line.product_uom_qty))
+                print(price)
+                taxes = line.tax_id.compute_all(price, line.order_id.currency_id, 1, product=line.product_id, partner=line.order_id.partner_shipping_id)
+                print(taxes)
                 line.update({
                     'price_tax': sum(t.get('amount', 0.0) for t in taxes.get('taxes', [])),
                     'price_total': taxes['total_included'],

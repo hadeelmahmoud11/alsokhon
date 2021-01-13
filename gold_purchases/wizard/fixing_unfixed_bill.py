@@ -11,6 +11,7 @@ class fixing_unfixed_bill(models.Model):
     _description = 'Fixing Unfixed Bill'
 
     value = fields.Float()
+    gold_rate = fields.Float()
 
     @api.onchange('value')
     def check_limit(self):
@@ -24,4 +25,5 @@ class fixing_unfixed_bill(models.Model):
     def process_fixing(self):
         active_ids = self._context.get('active_ids') or self._context.get('active_id')
         account_move = self.env['account.move'].browse(active_ids)
+        account_move.gold_rate_value = self.gold_rate
         account_move.convert_fixed(self.value)

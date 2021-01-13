@@ -12,6 +12,25 @@ class stockGoldMove(models.TransientModel):
     purity_id = fields.Many2one('gold.purity')
     gross_weight = fields.Float(digits=(16, 3))
     pure_weight = fields.Float(compute="_compute_pure_weight" ,digits=(16, 3))
+    required_pure = fields.Float(compute="_compute_required_pure" ,digits=(16, 3))
+    def _compute_required_pure(self):
+        for this in self:
+            print("KNKNKNKNKNKNKNNKN")
+            print("KNKNKNKNKNKNKNNKN")
+            print("KNKNKNKNKNKNKNNKN")
+            print("KNKNKNKNKNKNKNNKN")
+            print("KNKNKNKNKNKNKNNKN")
+            print("KNKNKNKNKNKNKNNKN")
+            print("KNKNKNKNKNKNKNNKN")
+            print("KNKNKNKNKNKNKNNKN")
+            self.required_pure = 0.0
+            if self.env.context.get('active_id'):
+                print('IFFFFFFFFFFFFFFFFFFF')
+                account_move = self.env['account.move'].browse(int(self.env.context.get('active_id')))
+                print(account_move)
+                if account_move:
+                    self.required_pure = account_move.pure_wt_value
+    @api.onchange('gross_weight','purity_id')
     def _compute_pure_weight(self):
         for this in self:
             if this.gross_weight and this.purity_id:
@@ -72,7 +91,7 @@ class stockGoldMove(models.TransientModel):
             # move.write({'paid_gross': 0.00 ,'paid_pure' : 0.00})
             # if move.gross_weight <= 0.00 or move.pure_weight <= 0.00:
                 # move.write({'is_full_paid': True})
-        account_move.write({'pure_wt_value': account_move.pure_wt_value - paid_pure })
+        account_move.write({'pure_wt_value': account_move.pure_wt_value - self.pure_weight })
         # pure_money = account_move.pure_wt_value * account_move.gold_rate_value
         # account_move.write({'make_value_move': account_move.make_value_move - pure_money })
 
@@ -80,32 +99,31 @@ class stockGoldMove(models.TransientModel):
             account_move.write({'invoice_payment_state': "paid"})
 
         if not sale_order.order_type.stock_picking_type_id :
-            raise UserError(_("fill picking type field in po purhcase type"))
+            raise UserError(_("fill picking type field in so purhcase type"))
         if self.pure_weight > 0.00:
-            if remain >= 0:
-                picking = self.env['stock.picking'].create({
-                        'location_id': sale_order.order_type.stock_picking_type_id.default_location_src_id.id,
-                        'location_dest_id': sale_order.order_type.stock_picking_type_id.default_location_dest_id.id,
-                        'picking_type_id': sale_order.order_type.stock_picking_type_id.id,
-                        'bill_unfixed': account_move.id,
-                        'immediate_transfer': False,
-                        'move_lines': move_lines,
-                        # 'move_line_ids_without_package':move_line_ids_without_package,
-                        })
+            picking = self.env['stock.picking'].create({
+                    'location_id': sale_order.order_type.stock_picking_type_id.default_location_src_id.id,
+                    'location_dest_id': sale_order.order_type.stock_picking_type_id.default_location_dest_id.id,
+                    'picking_type_id': sale_order.order_type.stock_picking_type_id.id,
+                    'bill_unfixed': account_move.id,
+                    'immediate_transfer': False,
+                    'move_lines': move_lines,
+                    # 'move_line_ids_without_package':move_line_ids_without_package,
+                    })
                 # picking.action_confirm()
                 # picking.action_assign()
                 # for this in picking:
                 #     for this_lot_line in this.move_line_ids_without_package:
                 #         this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
 
-                if account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
-                    account_move.write({'unfixed_stock_picking_three': picking.id})
-                if account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
-                    account_move.write({'unfixed_stock_picking_two': picking.id})
-                if not account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
-                    account_move.write({'unfixed_stock_picking': picking.id})
-            elif remain < 0:
-                raise UserError(_("Sorry please review your inputs , you are trying to deliver quant more than you have "))
+            if account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
+                account_move.write({'unfixed_stock_picking_three': picking.id})
+            if account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
+                account_move.write({'unfixed_stock_picking_two': picking.id})
+            if not account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
+                account_move.write({'unfixed_stock_picking': picking.id})
+            # elif remain < 0:
+            #     raise UserError(_("Sorry please review your inputs , you are trying to deliver quant more than you have "))
             # else:
             #     Move = self.env['stock.move'].create({
             #                     'name': "unfixed move",

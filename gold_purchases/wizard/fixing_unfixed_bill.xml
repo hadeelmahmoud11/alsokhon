@@ -10,7 +10,8 @@
                   <span colspan="4" nolabel="1">Fixing Unfixed Bill</span>
               </group>
               <group>
-                  <field name="value"/>
+                <field name="value"/>
+                  <field name="gold_rate"/>
               </group>
               <button icon="fa-cogs" string="Generate" name="process_fixing" type="object" class="oe_highlight"  />
          </form>

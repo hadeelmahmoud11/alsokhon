@@ -109,6 +109,12 @@ class AccountMove(models.Model):
     _inherit = 'account.move'
 
 
+    is_unfixed = fields.Boolean(default=False, compute="_compute_unfixed_state")
+    def _compute_unfixed_state(self):
+        for this in self:
+            this.is_unfixed = False
+            if this.purchase_type == 'unfixed' or this.sale_type == 'unfixed':
+                this.is_unfixed = True
     diamond = fields.Boolean(string="Diamond", compute="_compute_gold_state")
     gold = fields.Boolean(string="Gold", compute="_compute_gold_state")
     def _compute_gold_state(self):
@@ -153,8 +159,64 @@ class AccountMove(models.Model):
                 })
                 new_account_move.post()
 
+    def create_gold_unfixing_entry_sale(self,stock_picking,value):
+        self.ensure_one()
+        # purchase_obj = self.env['purchase.order'].search([('name','=',purchase_order.name)])
+        this = stock_picking
+        moves = this.move_lines.filtered(lambda x: x._is_in() and
+                                                   x.product_id and
+                                                   x.product_id.gold and
+                                                   x.product_id.categ_id and
+                                                   x.product_id.categ_id.is_gold and
+                                                   x.product_id.categ_id.gold_on_hand_account and
+                                                   x.product_id.categ_id.gold_fixing_account)
+        if moves:
+            gold_on_hand_account_id = moves[0].product_id.categ_id.gold_on_hand_account.id
+            gold_fixing_account_id = moves[0].product_id.categ_id.gold_fixing_account.id
+            if not moves[0].product_id.categ_id.gold_journal.id:
+                raise ValidationError(_('Please fill gold journal in product Category'))
+            journal_id = moves[0].product_id.categ_id.gold_journal.id
+            move_lines = self._prepare_account_move_line_unfixing_sale(gold_on_hand_account_id,gold_fixing_account_id,value)
+            if move_lines:
+                AccountMove = self.env['account.move'].with_context(
+                    default_journal_id=journal_id)
+                date = self._context.get('force_period_date',
+                                         fields.Date.context_today(self))
+                new_account_move = AccountMove.sudo().create({
+                    'journal_id': journal_id,
+                    'line_ids': move_lines,
+                    'date': datetime.now().date(),
+                    'ref': '%s - Unfixing' % (self.name),
+                    'type': 'entry',
+                    'type_of_action': 'unfixed',
+                })
+                new_account_move.post()
+
 
     def _prepare_account_move_line_unfixing(self, gold_on_hand_account_id,gold_fixing_account_id,value):
+        if not gold_on_hand_account_id or not gold_fixing_account_id:
+            raise ValidationError(_('Please fill gold accounts in product Category'))
+        if value <= 0:
+            raise ValidationError(_('Please add a value'))
+        debit_line = [{
+            'name': '%s - Unfixing' % (self.name),
+            'ref': '%s - Unfixing' % (self.name),
+            'partner_id': self.partner_id.id,
+            'debit': round(value, 3),
+            'credit': 0,
+            'account_id': gold_fixing_account_id,
+        }]
+        credit_line = [{
+            'name': '%s - Unfixing' % (self.name),
+            'ref': '%s - Unfixing' % (self.name),
+            'partner_id': self.partner_id.id,
+            'debit': 0,
+            'credit': debit_line[0]['debit'],
+            'account_id': gold_on_hand_account_id,
+        }]
+        res = [(0, 0, x) for x in debit_line + credit_line]
+        return res
+    def _prepare_account_move_line_unfixing_sale(self, gold_on_hand_account_id,gold_fixing_account_id,value):
         if not gold_on_hand_account_id or not gold_fixing_account_id:
             raise ValidationError(_('Please fill gold accounts in product Category'))
         if value <= 0:
@@ -210,6 +272,38 @@ class AccountMove(models.Model):
                     'type_of_action': 'fixed',
                 })
                 new_account_move.post()
+    def create_gold_fixing_entry_sale(self,stock_picking,value):
+        self.ensure_one()
+        # purchase_obj = self.env['purchase.order'].search([('name','=',purchase_order.name)])
+        this = stock_picking
+        moves = this.move_lines.filtered(lambda x: x._is_in() and
+                                                   x.product_id and
+                                                   x.product_id.gold and
+                                                   x.product_id.categ_id and
+                                                   x.product_id.categ_id.is_gold and
+                                                   x.product_id.categ_id.gold_on_hand_account and
+                                                   x.product_id.categ_id.gold_fixing_account)
+        if moves:
+            gold_on_hand_account_id = moves[0].product_id.categ_id.gold_on_hand_account.id
+            gold_fixing_account_id = moves[0].product_id.categ_id.gold_fixing_account.id
+            if not moves[0].product_id.categ_id.gold_journal.id:
+                raise ValidationError(_('Please fill gold journal in product Category'))
+            journal_id = moves[0].product_id.categ_id.gold_journal.id
+            move_lines = self._prepare_account_move_line_fixing_sale(gold_on_hand_account_id,gold_fixing_account_id,value)
+            if move_lines:
+                AccountMove = self.env['account.move'].with_context(
+                    default_journal_id=journal_id)
+                date = self._context.get('force_period_date',
+                                         fields.Date.context_today(self))
+                new_account_move = AccountMove.sudo().create({
+                    'journal_id': journal_id,
+                    'line_ids': move_lines,
+                    'date': datetime.now().date(),
+                    'ref': '%s - Fixing-' % (self.name),
+                    'type': 'entry',
+                    'type_of_action': 'fixed',
+                })
+                new_account_move.post()
 
 
     def _prepare_account_move_line_fixing(self, gold_on_hand_account_id,gold_fixing_account_id,value):
@@ -235,8 +329,41 @@ class AccountMove(models.Model):
         }]
         res = [(0, 0, x) for x in debit_line + credit_line]
         return res
+    def _prepare_account_move_line_fixing_sale(self, gold_on_hand_account_id,gold_fixing_account_id,value):
+        if not gold_on_hand_account_id or not gold_fixing_account_id:
+            raise ValidationError(_('Please fill gold accounts in product Category'))
+        if value <= 0:
+            raise ValidationError(_('Please add a value'))
+        debit_line = [{
+            'name': '%s - Fixing' % (self.name),
+            'ref': '%s - Fixing' % (self.name),
+            'partner_id': self.partner_id.id,
+            'debit': round(value, 3),
+            'credit': 0,
+            'account_id': gold_on_hand_account_id,
+        }]
+        credit_line = [{
+            'name': '%s - Fixing' % (self.name),
+            'ref': '%s - Fixing' % (self.name),
+            'partner_id': self.partner_id.id,
+            'debit': 0,
+            'credit': debit_line[0]['debit'],
+            'account_id': gold_fixing_account_id,
+        }]
+        res = [(0, 0, x) for x in debit_line + credit_line]
+        return res
 
-
+    def convert_fixed_sale(self,value):
+        if self.invoice_origin and 'S0'in self.invoice_origin:
+            sale_order = self.env['sale.order'].search([('name','=',self.invoice_origin)])
+            if sale_order:
+                stock_picking = self.env['stock.picking'].search([('origin','=',sale_order.name)])
+                if stock_picking:
+                    self.create_gold_unfixing_entry_sale(stock_picking,value)
+                    self.create_gold_fixing_entry_sale(stock_picking,value)
+                    self.pure_wt_value -= value
+                    self.write({'unfixed_fixed_gold': self.unfixed_fixed_gold+value})
+                    self.write({'unfixed_fixed_remain': self.unfixed_fixed_remain+self.unfixed_fixed_value})
     def convert_fixed(self,value):
         if self.invoice_origin and 'P0'in self.invoice_origin:
             purchase_order = self.env['purchase.order'].search([('name','=',self.invoice_origin)])
@@ -396,13 +523,15 @@ class AccountMove(models.Model):
             move.amount_untaxed = sign * (total_untaxed_currency if len(currencies) == 1 else total_untaxed)
             move.amount_tax = sign * (total_tax_currency if len(currencies) == 1 else total_tax)
             move.amount_total = sign * (total_currency if len(currencies) == 1 else total)
-            if move.purchase_type == "unfixed":
+            if move.purchase_type == "unfixed" or move.sale_type == "unfixed":
                 if  move.make_value_move <= 0.00 and move.pure_wt_value <= 0.00 and move.unfixed_fixed_remain <= 0.00:
                     move.amount_residual = 0.00
                 else:
                     move.amount_residual = -sign * (total_residual_currency if len(currencies) == 1 else total_residual)
             else:
+                print('ELSEEEEEEEEEEEEEEEEEEEEEEE')
                 move.amount_residual = -sign * (total_residual_currency if len(currencies) == 1 else total_residual)
+                print(move.amount_residual)
 
             move.amount_untaxed_signed = -total_untaxed
             move.amount_tax_signed = -total_tax
@@ -411,52 +540,23 @@ class AccountMove(models.Model):
 
             currency = len(currencies) == 1 and currencies.pop() or move.company_id.currency_id
             is_paid = currency and currency.is_zero(move.amount_residual) or not move.amount_residual
-            print(is_paid)
-            # print("HERE COMPUTE")
-            # Compute 'invoice_payment_state'.
-
-            print("++++++++++++++++++++++++++++++++++++++++++++++=")
-            print(move.state == 'posted')
-            print(is_paid)
-            print(move.unfixed_fixed_remain <= 0.00)
-            print("++++++++++++++++++++++++++++++++++++++++++++++=")
-
             if move.type == 'entry':
-                # print("ifentry")
                 move.invoice_payment_state = False
 
             elif move.state == 'posted' and is_paid  and move.fixed_not_paid == False:
-                # print("elif")
+                print(":ADSLKDSLS")
+                print(in_payment_set)
                 if move.id in in_payment_set:
-                    # print("ifinpaymet")
                     move.invoice_payment_state = 'in_payment'
                 else:
-                    # print('***************8')
-                    # print('***************8')
-                    # print('***************8')
-                    # print('***************8')
-                    # if move.unfixed_fixed_remain > 0.00:
-                    #     pass
-                    # else:
-                    print("PAID COMPUTE")
+                    print("PAIDDDD")
                     move.invoice_payment_state = 'paid'
-            elif move.state == 'posted' and is_paid  and move.purchase_type == 'fixed':
-                # print("elif")
+            elif move.state == 'posted' and is_paid  and (move.purchase_type == 'fixed' or move.sale_type == "fixed"):
                 if move.id in in_payment_set:
-                    # print("ifinpaymet")
                     move.invoice_payment_state = 'in_payment'
                 else:
-                    # print('***************8')
-                    # print('***************8')
-                    # print('***************8')
-                    # print('***************8')
-                    # if move.unfixed_fixed_remain > 0.00:
-                    #     pass
-                    # else:
-                    print("PAID COMPUTE")
                     move.invoice_payment_state = 'paid'
             else:
-                print("elsenot")
                 move.invoice_payment_state = 'not_paid'
 
 
@@ -464,7 +564,11 @@ class AccountMove(models.Model):
     @api.depends('invoice_line_ids')
     def _compute_make_value_move(self):
         for rec in self:
-            if rec.purchase_type == "unfixed":
+            print("rec")
+            print(rec)
+            print("rec")
+            if rec.purchase_type == "unfixed" or rec.sale_type == "unfixed":
+                print("++++++++++++++++++============____________)()")
                 make_value = 0.00
                 pure = 0.00
                 rate = 0.00
@@ -731,7 +835,7 @@ class Account_Payment_Inherit(models.Model):
 
         amount = self._compute_payment_amount(invoices, invoices[0].currency_id, invoices[0].journal_id, rec.get('payment_date') or fields.Date.today())
         if invoices:
-            if invoices.purchase_type == "unfixed":
+            if invoices.purchase_type == "unfixed" or   invoices.sale_type == "unfixed":
                 rec.update({
                             'currency_id': invoices[0].currency_id.id,
                             'amount': abs(invoices.make_value_move),
@@ -768,7 +872,7 @@ class Account_Payment_Inherit(models.Model):
         for rec in self:
             if rec.invoice_ids:
                 print("+++++++++++++++++++++++++++++++++++++++++")
-                if rec.invoice_ids.purchase_type == 'unfixed':
+                if rec.invoice_ids.purchase_type == 'unfixed' or rec.invoice_ids.sale_type == 'unfixed':
                     print("***********************")
                     if rec.amount > rec.invoice_ids.make_value_move and rec.unfixed_option != "pay_gold_value":
                         raise UserError(_("unfixed bill you can pay" + "" + str(rec.invoice_ids.make_value_move)))

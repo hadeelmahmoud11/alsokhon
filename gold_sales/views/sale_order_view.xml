@@ -85,7 +85,7 @@
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="after">
                     <field name="carat" attrs="{'column_invisible':[('parent.diamond','!=',True)]}" />
-                    <field name="d_make_value" attrs="{'column_invisible':[('parent.diamond','!=',True)],'readonly':[('parent.order_category','=','retail')]}"/>
+                    <field name="d_make_value" attrs="{'column_invisible':[('parent.diamond','!=',True)]}"/>
                 </xpath>
                 <xpath expr="//form/sheet/notebook/page/field[@name='order_line']/form/group/group/div[@name='ordered_qty']"
                        position="after">

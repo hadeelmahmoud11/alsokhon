@@ -132,11 +132,12 @@
                     <field name="gold_value" invisible="1"  />
                 </xpath>
                 <xpath expr="//form/sheet/notebook" position="inside">
-                  <page string="Unfixed Details" attrs="{'invisible': [('purchase_type', '=', False)]}">
+                  <page string="Unfixed Details" attrs="{'invisible': [('is_unfixed', '!=', True)]}">
                     <group>
                       <group>
-                        <field name="purchase_type" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
-                        <field name="gold_rate_value" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"/>
+                        <field name="is_unfixed" invisible="1"/>
+                        <field name="purchase_type" attrs="{'invisible': [('is_unfixed', '!=', True)],'readonly': True}"/>
+                        <field name="gold_rate_value" attrs="{'invisible': [('is_unfixed', '!=', True)],'readonly': True}"/>
                         <field name="unfixed_fixed_gold" attrs="{'invisible': [('unfixed_fixed_gold', '=', 0.00)]}" readonly="1" force_save="1"/>
                         <field name="unfixed_fixed_value" attrs="{'invisible': [('unfixed_fixed_value', '=', 0.00)]}" readonly="1" force_save="1"/>
                         <field name="unfixed_fixed_paid" attrs="{'invisible': [('unfixed_fixed_value', '=', 0.00)]}" readonly="1" force_save="1"/>
@@ -150,16 +151,16 @@
                     </group>
                     <group>
                       <group>
-                        <field name="make_value_move" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" force_save="1" />
-                        <field name="make_value_move_perm"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" force_save="1" />
+                        <field name="make_value_move" attrs="{'invisible': [('is_unfixed', '!=', True)],'readonly': True}" force_save="1" />
+                        <field name="make_value_move_perm"  attrs="{'invisible': [('is_unfixed', '!=', True)],'readonly': True}" force_save="1" />
                         <field name="make_value_move_perm_flag" invisible="1"   force_save="1" />
-                        <field name="make_value_move_paid" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"  force_save="1" />
+                        <field name="make_value_move_paid" attrs="{'invisible': [('is_unfixed', '!=', True)],'readonly': True}"  force_save="1" />
                       </group>
                       <group>
-                        <field name="pure_wt_value" attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"  force_save="1" />
-                        <field name="pure_wt_value_perm"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}" force_save="1" />
+                        <field name="pure_wt_value" attrs="{'invisible': [('is_unfixed', '!=', True)],'readonly': True}"  force_save="1" />
+                        <field name="pure_wt_value_perm"  attrs="{'invisible': [('is_unfixed', '!=', True)],'readonly': True}" force_save="1" />
                         <field name="pure_wt_value_perm_flag"  invisible="1"  force_save="1" />
-                        <field name="pure_wt_value_paid"  attrs="{'invisible': [('purchase_type', '=', False)],'readonly': True}"  force_save="1" />
+                        <field name="pure_wt_value_paid"  attrs="{'invisible': [('is_unfixed', '!=', True)],'readonly': True}"  force_save="1" />
                       </group>
                     </group>
                   </page>
@@ -224,9 +225,10 @@
             <field name="communication" position="after">
               <field name="is_unfixed_wizard" invisible="1" />
             </field>
-            <xpath expr="//form/sheet/group/group[4]" position="attributes">
-              <attribute name="attrs">{'invisible':[('is_unfixed_wizard','=',True)]}</attribute>
-            </xpath>
+            <group name="payment_difference" position="attributes">
+              <!-- <attribute name="attrs">{'invisible':[('is_unfixed_wizard','=',True)]}</attribute> -->
+              <attribute name="invisible">1</attribute>
+            </group>
             </field>
         </record>
 
