@@ -33,7 +33,7 @@
                       <field name="pure_remainning" readonly="1"/>
                       </group>
                       <newline/>
-                      <field name="move_ids" nolabel="1" context="{'group_by':'product_id'}">
+                      <field name="move_ids" nolabel="1" context="{'group_by':'product_id'}" domain="[('product_id.scrap','=',True),('product_id.active','=',True)]">
                       <tree editable="bottom">
                         <!-- <field name="incoming_flag" invisible="1"/> -->
                         <!-- <field name="scrap_state_read" invisible="1"/> -->
