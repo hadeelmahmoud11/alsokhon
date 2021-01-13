@@ -312,8 +312,8 @@
             <!--                                </div>-->
         </xpath>
     </template>
-
-    <template id = "website_sale.recommended_products" inherit_id="ks_theme_kinetik.kps_product" customize_show="True" name="Alternative Products" active="False">
+<!-- errorhere -->
+    <!-- <template id = "website_sale.recommended_products" inherit_id="ks_theme_kinetik.kps_product" customize_show="True" name="Alternative Products" active="False">
         <xpath expr="//div[@id='product_full_description']" position="after">
             <div class="w-100 d-flex justify-content-center row ks-alternate-product-row">
                 <div class="ks_alternate_slider container mt32 col-md-6 col-12 pr-xl-5" t-if="product.alternative_product_ids and product.ks_is_alternate_slider">
@@ -382,7 +382,7 @@
                 </div>
             </div>
         </xpath>
-    </template>
+    </template> -->
 
 <!--    <template id="ks_product_offer_detail_page" inherit_id="website_sale.product_price" name="orignal price">-->
 <!--        <xpath expr='//h4[hasclass("css_non_editable_mode_hidden")]' position='replace'>-->
