@@ -722,7 +722,7 @@ class PurchaseOrderLine(models.Model):
                     'make_value': self.make_value,
                     'd_make_value': self.d_make_value,
                     'gold_value': (self.gold_rate * (self.qty_received * self.gross_wt) * (self.purity_id.purity/ 1000.000000000000)),
-                    'price_unit': (self.gold_rate * (self.qty_received * self.gross_wt) * (self.purity_id.purity/ 1000.000000000000)) / (self.qty_received * self.gross_wt) * (self.purity_id.purity/ 1000.000000000000),
+                    'price_unit': (self.gold_rate * (self.qty_received * self.gross_wt) * (self.purity_id.purity/ 1000.000000000000)) / self.qty_received,
                     'price_subtotal': (self.gold_rate * (self.qty_received * self.gross_wt) * (self.purity_id.purity/ 1000.000000000000)),
                     'discount': self.discount,
                     })
@@ -777,7 +777,7 @@ class PurchaseOrderLine(models.Model):
                     'make_value': self.make_value,
                     'd_make_value': self.d_make_value,
                     'gold_value': (self.gold_rate * (self.quantity * self.gross_wt) * (self.purity_id.purity/ 1000.000000000000)),
-                    'price_unit': (self.gold_rate * (self.quantity * self.gross_wt) * (self.purity_id.purity/ 1000.000000000000)) / (self.quantity * self.gross_wt) * (self.purity_id.purity/ 1000.000000000000),
+                    'price_unit': (self.gold_rate * (self.quantity * self.gross_wt) * (self.purity_id.purity/ 1000.000000000000)) / self.quantity,
                     'price_subtotal': (self.gold_rate * (self.quantity * self.gross_wt) * (self.purity_id.purity/ 1000.000000000000)),
                     'discount': self.discount,
                     })
