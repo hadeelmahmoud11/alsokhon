@@ -87,6 +87,7 @@ class AccountMoveLine(models.Model):
     pure_wt_in = fields.Float(compute=_compute_pure_wt_in, store=True)
     pure_wt_out = fields.Float(compute=_compute_pure_wt_out, store=True)
     purity_diff = fields.Float('Purity +/-', digits=(16, 3))
+    total_gross_weight = fields.Float('Total Gross',digits=(16, 3))
     total_pure_weight = fields.Float('Pure Weight', digits=(16, 3))
     make_rate = fields.Monetary('Make Rate/G', digits=(16, 3))
     make_value = fields.Monetary('Make Value', digits=(16, 3))

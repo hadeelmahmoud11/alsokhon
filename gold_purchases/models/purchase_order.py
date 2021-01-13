@@ -532,149 +532,265 @@ class PurchaseOrderLine(models.Model):
             })
         return res
 
+    # def _prepare_account_move_line(self, move):
+    #     res = super(PurchaseOrderLine, self)._prepare_account_move_line(move)
+    #     #make_value_product = self.env.ref('gold_purchases.make_value_product')
+    #     product_object = self.env['product.product'].browse([res.get('product_id')])
+    #
+    #     price_un = 0.00
+    #     diff_gross = 0.00
+    #     if product_object.is_making_charges:
+    #         price_un = res.get('price_unit')
+    #     if product_object.gold:
+    #         if product_object.purchase_method == "receive":
+    #             new_pure = 0.0
+    #             total_pure_weight = 0.0
+    #             diff_gross = 0.0
+    #             if self.received_gross_wt < (self.gross_wt * self.product_qty):
+    #                 total_pure_weight = 0.0
+    #                 if self.product_id.categ_id.is_scrap == False:
+    #                     total_pure_weight = self.received_gross_wt * (self.purity_id and (
+    #                         self.purity_id.purity / 1000.000) or 1)
+    #                 else:
+    #                     total_pure_weight = self.received_gross_wt * (self.purity_id and (
+    #                         self.purity_id.scrap_purity / 1000.000) or 1)
+    #                 try:
+    #                     diff_gross =  (self.gross_wt * self.product_qty) / self.received_gross_wt
+    #                 except:
+    #                     raise UserError(_('You Should Receive Quantities First'))
+    #                 new_pure = 0.0
+    #                 if self.product_id.categ_id.is_scrap:
+    #                     new_pure = total_pure_weight
+    #                 else:
+    #                     new_pure = total_pure_weight / self.product_qty
+    #
+    #                 new_purity_diff =  self.purity_diff / self.product_qty
+    #                 res.update({
+    #                     'carat':self.carat,
+    #                     'gross_wt': self.received_gross_wt ,
+    #                     'pure_wt': new_pure - new_purity_diff ,
+    #                     'purity_id': self.purity_id and self.purity_id.id or False,
+    #                     'purity_diff': new_purity_diff,
+    #                     'gold_rate': self.gold_rate,
+    #                     'make_rate': self.make_rate,
+    #                     'make_value': self.make_value / diff_gross ,
+    #                     'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
+    #                     'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0,
+    #                     'price_subtotal': self.gold_rate and (new_pure * self.gold_rate) or 0,
+    #                     'discount': self.discount,
+    #                 })
+    #             else:
+    #                 res.update({
+    #                     'carat':self.carat,
+    #                     'gross_wt': self.gross_wt,
+    #                     'pure_wt': self.pure_wt,
+    #                     'purity_id': self.purity_id and self.purity_id.id or False,
+    #                     'purity_diff': self.purity_diff,
+    #                     'gold_rate': self.gold_rate,
+    #                     'make_rate': self.make_rate,
+    #                     'make_value': self.make_value,
+    #                     'gold_value': self.gold_value,
+    #                     'price_unit': self.gold_value,
+    #                     'price_subtotal': self.gold_value,
+    #                     'discount': self.discount,
+    #                 })
+    #         else:
+    #             # if self.product_qty < (self.gross_wt * self.product_qty):
+    #             #     total_pure_weight = self.product_qty * (self.purity_id and (
+    #             #         self.purity_id.purity / 1000.000) or 1)
+    #             #     try:
+    #             #         diff_gross =  (self.gross_wt * self.product_qty) / self.product_qty
+    #             #     except:
+    #             #         raise UserError(_('You Should Receive Quantities First'))
+    #             #     new_pure = total_pure_weight / self.product_qty
+    #             #     new_purity_diff =  self.purity_diff / self.product_qty
+    #             #     res.update({
+    #             #         'gross_wt': self.received_gross_wt ,
+    #             #         'pure_wt': new_pure - new_purity_diff ,
+    #             #         'purity_id': self.purity_id and self.purity_id.id or False,
+    #             #         'purity_diff': new_purity_diff,
+    #             #         'gold_rate': self.gold_rate,
+    #             #         'make_rate': self.make_rate,
+    #             #         'make_value': self.make_value / diff_gross ,
+    #             #         'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
+    #             #         'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0 ,
+    #             #     })
+    #             # else:
+    #             res.update({
+    #                 'carat':self.carat,
+    #                 'gross_wt': self.gross_wt,
+    #                 'pure_wt': self.pure_wt,
+    #                 'purity_id': self.purity_id and self.purity_id.id or False,
+    #                 'purity_diff': self.purity_diff,
+    #                 'gold_rate': self.gold_rate,
+    #                 'make_rate': self.make_rate,
+    #                 'make_value': self.make_value,
+    #                 'gold_value': self.gold_value,
+    #                 'price_unit': self.gold_value,
+    #                 'price_subtotal': self.gold_value,
+    #                 'discount': self.discount,
+    #             })
+    #     product_object = self.env['product.product'].browse([res.get('product_id')])
+    #     make_value_product = product_object.making_charge_id
+    #     if product_object.is_making_charges:
+    #         purchase_order = self.env['purchase.order'].browse([self.order_id.id])
+    #         new_gross_wt = 0.00
+    #         new_product_qty = 0.00
+    #         new_received_gross_wt =0.00
+    #         for line in purchase_order.order_line:
+    #             if line.product_id == self.product_id:
+    #                 if line.product_id.purchase_method == 'receive':
+    #                     if line.gross_wt > 0.00 and line.received_gross_wt > 0.00:
+    #                         new_gross_wt = line.gross_wt
+    #                         new_product_qty = line.product_qty
+    #                         new_received_gross_wt = line.received_gross_wt
+    #                 else:
+    #                     if line.gross_wt > 0.00 and line.product_qty > 0.00:
+    #                         new_gross_wt = line.gross_wt
+    #                         new_product_qty = line.product_qty
+    #                         new_received_gross_wt = line.received_gross_wt
+    #                     # print(new_gross_wt)
+    #                     # print(new_product_qty)
+    #                     # print(new_received_gross_wt)
+    #         if self.product_id.purchase_method == 'receive':
+    #             # print(price_un)
+    #             # print(new_gross_wt)
+    #             # print(new_product_qty)
+    #             # print(new_received_gross_wt)
+    #             if new_received_gross_wt <=0:
+    #                 raise ValidationError(_('You Should Receive Products First'))
+    #             else:
+    #                 diff_gross =  (new_gross_wt * new_product_qty) / new_received_gross_wt
+    #             if diff_gross > 0.00:
+    #                 res.update({'price_unit': price_un / diff_gross , 'quantity': 1.00,'gold_rate':0.00})
+    #             else:
+    #                 res.update({'price_unit': price_un, 'quantity': 1.00,'gold_rate':0.00})
+    #         else:
+    #             # if new_product_qty <=0:
+    #             #     raise ValidationError(_('You Should Receive Products First'))
+    #             # else:
+    #             diff_gross =  (new_gross_wt * new_product_qty)
+    #             if diff_gross > 0.00:
+    #                 res.update({'price_unit': price_un / diff_gross , 'quantity': 1.00,'gold_rate':0.00})
+    #             else:
+    #                 res.update({'price_unit': price_un, 'quantity': 1.00,'gold_rate':0.00})
+    #
+    #
+    #     print("res")
+    #     print(res)
+    #     print("res")
+    #     return res
+
     def _prepare_account_move_line(self, move):
         res = super(PurchaseOrderLine, self)._prepare_account_move_line(move)
-        #make_value_product = self.env.ref('gold_purchases.make_value_product')
-        product_object = self.env['product.product'].browse([res.get('product_id')])
-
-        price_un = 0.00
-        diff_gross = 0.00
-        if product_object.is_making_charges:
-            price_un = res.get('price_unit')
-        if product_object.gold:
-            if product_object.purchase_method == "receive":
-                new_pure = 0.0
-                total_pure_weight = 0.0
-                diff_gross = 0.0
-                if self.received_gross_wt < (self.gross_wt * self.product_qty):
-                    total_pure_weight = 0.0
-                    if self.product_id.categ_id.is_scrap == False:
-                        total_pure_weight = self.received_gross_wt * (self.purity_id and (
-                            self.purity_id.purity / 1000.000) or 1)
-                    else:
-                        total_pure_weight = self.received_gross_wt * (self.purity_id and (
-                            self.purity_id.scrap_purity / 1000.000) or 1)
-                    try:
-                        diff_gross =  (self.gross_wt * self.product_qty) / self.received_gross_wt
-                    except:
-                        raise UserError(_('You Should Receive Quantities First'))
-                    new_pure = 0.0
-                    if self.product_id.categ_id.is_scrap:
-                        new_pure = total_pure_weight
-                    else:
-                        new_pure = total_pure_weight / self.product_qty
-
-                    new_purity_diff =  self.purity_diff / self.product_qty
+        if self.product_id.is_making_charges or self.product_id.is_diamond_making_charges:
+            res.update({
+            'product_qty':self.product_qty,
+            'price_unit':self.price_unit,
+            })
+        else:
+            if self.product_id.purchase_method == 'receive':
+                if self.product_id.categ_id.is_scrap:
                     res.update({
-                        'carat':self.carat,
-                        'gross_wt': self.received_gross_wt ,
-                        'pure_wt': new_pure - new_purity_diff ,
-                        'purity_id': self.purity_id and self.purity_id.id or False,
-                        'purity_diff': new_purity_diff,
-                        'gold_rate': self.gold_rate,
-                        'make_rate': self.make_rate,
-                        'make_value': self.make_value / diff_gross ,
-                        'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
-                        'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0,
-                        'price_subtotal': self.gold_rate and (new_pure * self.gold_rate) or 0,
-                        'discount': self.discount ,
-                    })
-                else:
-                    res.update({
-                        'carat':self.carat,
-                        'gross_wt': self.gross_wt,
-                        'pure_wt': self.pure_wt,
-                        'purity_id': self.purity_id and self.purity_id.id or False,
-                        'purity_diff': self.purity_diff,
-                        'gold_rate': self.gold_rate,
-                        'make_rate': self.make_rate,
-                        'make_value': self.make_value,
-                        'gold_value': self.gold_value,
-                        'price_unit': self.gold_value,
-                        'price_subtotal': self.gold_value,
-                        'discount': self.discount ,
-                    })
-            else:
-                # if self.product_qty < (self.gross_wt * self.product_qty):
-                #     total_pure_weight = self.product_qty * (self.purity_id and (
-                #         self.purity_id.purity / 1000.000) or 1)
-                #     try:
-                #         diff_gross =  (self.gross_wt * self.product_qty) / self.product_qty
-                #     except:
-                #         raise UserError(_('You Should Receive Quantities First'))
-                #     new_pure = total_pure_weight / self.product_qty
-                #     new_purity_diff =  self.purity_diff / self.product_qty
-                #     res.update({
-                #         'gross_wt': self.received_gross_wt ,
-                #         'pure_wt': new_pure - new_purity_diff ,
-                #         'purity_id': self.purity_id and self.purity_id.id or False,
-                #         'purity_diff': new_purity_diff,
-                #         'gold_rate': self.gold_rate,
-                #         'make_rate': self.make_rate,
-                #         'make_value': self.make_value / diff_gross ,
-                #         'gold_value': self.gold_rate and (new_pure * self.gold_rate) or 0,
-                #         'price_unit': self.gold_rate and (new_pure * self.gold_rate) or 0 ,
-                #     })
-                # else:
-                res.update({
                     'carat':self.carat,
                     'gross_wt': self.gross_wt,
+                    'total_gross_weight': self.total_gross_wt,
                     'pure_wt': self.pure_wt,
                     'purity_id': self.purity_id and self.purity_id.id or False,
                     'purity_diff': self.purity_diff,
                     'gold_rate': self.gold_rate,
                     'make_rate': self.make_rate,
                     'make_value': self.make_value,
+                    'd_make_value': self.d_make_value,
                     'gold_value': self.gold_value,
-                    'price_unit': self.gold_value,
+                    'price_unit': self.gold_value / self.pure_wt,
                     'price_subtotal': self.gold_value,
-                    'discount': self.discount ,
-                })
-        product_object = self.env['product.product'].browse([res.get('product_id')])
-        make_value_product = product_object.making_charge_id
-        if product_object.is_making_charges:
-            purchase_order = self.env['purchase.order'].browse([self.order_id.id])
-            new_gross_wt = 0.00
-            new_product_qty = 0.00
-            new_received_gross_wt =0.00
-            for line in purchase_order.order_line:
-                if line.product_id == self.product_id:
-                    if line.product_id.purchase_method == 'receive':
-                        if line.gross_wt > 0.00 and line.received_gross_wt > 0.00:
-                            new_gross_wt = line.gross_wt
-                            new_product_qty = line.product_qty
-                            new_received_gross_wt = line.received_gross_wt
-                    else:
-                        if line.gross_wt > 0.00 and line.product_qty > 0.00:
-                            new_gross_wt = line.gross_wt
-                            new_product_qty = line.product_qty
-                            new_received_gross_wt = line.received_gross_wt
-                        # print(new_gross_wt)
-                        # print(new_product_qty)
-                        # print(new_received_gross_wt)
-            if self.product_id.purchase_method == 'receive':
-                print(price_un)
-                print(new_gross_wt)
-                print(new_product_qty)
-                print(new_received_gross_wt)
-                if new_received_gross_wt <=0:
-                    raise ValidationError(_('You Should Receive Products First'))
-                else:
-                    diff_gross =  (new_gross_wt * new_product_qty) / new_received_gross_wt
-                if diff_gross > 0.00:
-                    res.update({'price_unit': price_un / diff_gross , 'quantity': 1.00,'gold_rate':0.00})
-                else:
-                    res.update({'price_unit': price_un, 'quantity': 1.00,'gold_rate':0.00})
+                    'discount': self.discount,
+                    })
+                elif self.product_id.categ_id.is_gold:
+                    res.update({
+                    'carat':self.carat,
+                    'gross_wt': self.gross_wt,
+                    'total_gross_weight': self.total_gross_wt,
+                    'pure_wt': self.pure_wt,
+                    'purity_id': self.purity_id and self.purity_id.id or False,
+                    'purity_diff': self.purity_diff,
+                    'gold_rate': self.gold_rate,
+                    'make_rate': self.make_rate,
+                    'make_value': self.make_value,
+                    'd_make_value': self.d_make_value,
+                    'gold_value': self.gold_value,
+                    'price_unit': self.gold_value / self.pure_wt / self.product_qty,
+                    'price_subtotal': self.gold_value,
+                    'discount': self.discount,
+                    })
+                elif self.product_id.categ_id.is_diamond:
+                    res.update({
+                    'carat':self.carat,
+                    'gross_wt': self.gross_wt,
+                    'total_gross_weight': self.total_gross_wt,
+                    'pure_wt': self.pure_wt,
+                    'purity_id': self.purity_id and self.purity_id.id or False,
+                    'purity_diff': self.purity_diff,
+                    'gold_rate': self.gold_rate,
+                    'make_rate': self.make_rate,
+                    'make_value': self.make_value,
+                    'd_make_value': self.d_make_value,
+                    'gold_value': self.gold_value,
+                    'price_unit': self.price_unit,
+                    'price_subtotal': self.price_unit * self.product_qty,
+                    'discount': self.discount,
+                    })
             else:
-                # if new_product_qty <=0:
-                #     raise ValidationError(_('You Should Receive Products First'))
-                # else:
-                diff_gross =  (new_gross_wt * new_product_qty)
-                if diff_gross > 0.00:
-                    res.update({'price_unit': price_un / diff_gross , 'quantity': 1.00,'gold_rate':0.00})
-                else:
-                    res.update({'price_unit': price_un, 'quantity': 1.00,'gold_rate':0.00})
-
-
-        print(res)
+                if self.product_id.categ_id.is_scrap:
+                    res.update({
+                    'carat':self.carat,
+                    'gross_wt': self.gross_wt,
+                    'total_gross_weight': self.total_gross_wt,
+                    'pure_wt': self.pure_wt,
+                    'purity_id': self.purity_id and self.purity_id.id or False,
+                    'purity_diff': self.purity_diff,
+                    'gold_rate': self.gold_rate,
+                    'make_rate': self.make_rate,
+                    'make_value': self.make_value,
+                    'd_make_value': self.d_make_value,
+                    'gold_value': self.gold_value,
+                    'price_unit': self.gold_value / self.pure_wt,
+                    'price_subtotal': self.gold_value,
+                    'discount': self.discount,
+                    })
+                elif self.product_id.categ_id.is_gold:
+                    res.update({
+                    'carat':self.carat,
+                    'gross_wt': self.gross_wt,
+                    'total_gross_weight': self.total_gross_wt,
+                    'pure_wt': self.pure_wt,
+                    'purity_id': self.purity_id and self.purity_id.id or False,
+                    'purity_diff': self.purity_diff,
+                    'gold_rate': self.gold_rate,
+                    'make_rate': self.make_rate,
+                    'make_value': self.make_value,
+                    'd_make_value': self.d_make_value,
+                    'gold_value': self.gold_value,
+                    'price_unit': self.gold_value / self.pure_wt / self.product_qty,
+                    'price_subtotal': self.gold_value,
+                    'discount': self.discount,
+                    })
+                elif self.product_id.categ_id.is_diamond:
+                    res.update({
+                    'carat':self.carat,
+                    'gross_wt': self.gross_wt,
+                    'total_gross_weight': self.total_gross_wt,
+                    'pure_wt': self.pure_wt,
+                    'purity_id': self.purity_id and self.purity_id.id or False,
+                    'purity_diff': self.purity_diff,
+                    'gold_rate': self.gold_rate,
+                    'make_rate': self.make_rate,
+                    'make_value': self.make_value,
+                    'd_make_value': self.d_make_value,
+                    'gold_value': self.gold_value,
+                    'price_unit': self.price_unit,
+                    'price_subtotal': self.price_unit * self.product_qty,
+                    'discount': self.discount,
+                    })
         return res

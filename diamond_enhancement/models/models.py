@@ -58,3 +58,4 @@ class StockMove(models.Model):
 class AccountMove(models.Model):
     _inherit = 'account.move.line'
     carat = fields.Float('Diamond Carat')
+    d_make_value = fields.Float('Diamond Labor Charges')
