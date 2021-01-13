@@ -557,6 +557,11 @@ class AccountMove(models.Model):
                     move.invoice_payment_state = 'in_payment'
                 else:
                     move.invoice_payment_state = 'paid'
+            elif move.state == 'posted' and is_paid and not move.purchase_type and not move.sale_type:
+                if move.id in in_payment_set:
+                    move.invoice_payment_state = 'in_payment'
+                else:
+                    move.invoice_payment_state = 'paid'
             else:
                 move.invoice_payment_state = 'not_paid'
 
