@@ -27,7 +27,7 @@
                     </group>
                     <group>
                       <group>
-                        <field name="product_id"/>
+                        <field name="product_id" domain="[('scrap','=',True),('active','=',True)]"/>
                         <field name="purity_id"/>
                       </group>
                       <group>
