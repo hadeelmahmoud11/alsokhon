@@ -526,8 +526,9 @@
     </template>
 
     <!--    this is used for remove default recently view product at detail page-->
-    <template id="website_sale.recently_viewed_products_product" inherit_id="ks_theme_kinetik.kps_product" name="Recently Viewed Products" priority="16">
-    </template>
+    <!-- errorhere -->
+    <!-- <template id="website_sale.recently_viewed_products_product" inherit_id="ks_theme_kinetik.kps_product" name="Recently Viewed Products" priority="16">
+    </template> -->
     <!--    this is used for add buy now option at detail page-->
     <template id="website_sale.product_buy_now" inherit_id="ks_theme_kinetik.kps_product" active="False" customize_show="True" name="Buy Now Button">
         <xpath expr="//a[@id='add_to_cart']" position="after">
