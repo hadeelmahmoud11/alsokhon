@@ -685,13 +685,14 @@ class PurchaseOrderLine(models.Model):
         res = super(PurchaseOrderLine, self)._prepare_account_move_line(move)
         if self.product_id.is_making_charges or self.product_id.is_diamond_making_charges:
             res.update({
-            'product_qty':self.product_qty,
+            'quantity':self.product_qty,
             'price_unit':self.price_unit,
             })
         else:
             if self.product_id.purchase_method == 'receive':
                 if self.product_id.categ_id.is_scrap:
                     res.update({
+                    'quantity':self.product_qty,
                     'carat':self.carat,
                     'gross_wt': self.gross_wt,
                     'total_gross_weight': self.total_gross_wt,
@@ -709,6 +710,7 @@ class PurchaseOrderLine(models.Model):
                     })
                 elif self.product_id.categ_id.is_gold:
                     res.update({
+                    'quantity':self.product_qty,
                     'carat':self.carat,
                     'gross_wt': self.gross_wt,
                     'total_gross_weight': self.total_gross_wt,
@@ -726,6 +728,7 @@ class PurchaseOrderLine(models.Model):
                     })
                 elif self.product_id.categ_id.is_diamond:
                     res.update({
+                    'quantity':self.product_qty,
                     'carat':self.carat,
                     'gross_wt': self.gross_wt,
                     'total_gross_weight': self.total_gross_wt,
@@ -744,6 +747,7 @@ class PurchaseOrderLine(models.Model):
             else:
                 if self.product_id.categ_id.is_scrap:
                     res.update({
+                    'quantity':self.product_qty,
                     'carat':self.carat,
                     'gross_wt': self.gross_wt,
                     'total_gross_weight': self.total_gross_wt,
@@ -761,6 +765,7 @@ class PurchaseOrderLine(models.Model):
                     })
                 elif self.product_id.categ_id.is_gold:
                     res.update({
+                    'quantity':self.product_qty,
                     'carat':self.carat,
                     'gross_wt': self.gross_wt,
                     'total_gross_weight': self.total_gross_wt,
@@ -778,6 +783,7 @@ class PurchaseOrderLine(models.Model):
                     })
                 elif self.product_id.categ_id.is_diamond:
                     res.update({
+                    'quantity':self.product_qty,
                     'carat':self.carat,
                     'gross_wt': self.gross_wt,
                     'total_gross_weight': self.total_gross_wt,
