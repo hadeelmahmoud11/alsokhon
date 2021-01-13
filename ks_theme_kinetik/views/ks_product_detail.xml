@@ -313,7 +313,7 @@
         </xpath>
     </template>
 <!-- errorhere -->
-    <!-- <template id = "website_sale.recommended_products" inherit_id="ks_theme_kinetik.kps_product" customize_show="True" name="Alternative Products" active="False">
+    <template id = "recommended_products" inherit_id="ks_theme_kinetik.kps_product" customize_show="True" name="Alternative Products" active="False">
         <xpath expr="//div[@id='product_full_description']" position="after">
             <div class="w-100 d-flex justify-content-center row ks-alternate-product-row">
                 <div class="ks_alternate_slider container mt32 col-md-6 col-12 pr-xl-5" t-if="product.alternative_product_ids and product.ks_is_alternate_slider">
@@ -382,7 +382,7 @@
                 </div>
             </div>
         </xpath>
-    </template> -->
+    </template>
 
 <!--    <template id="ks_product_offer_detail_page" inherit_id="website_sale.product_price" name="orignal price">-->
 <!--        <xpath expr='//h4[hasclass("css_non_editable_mode_hidden")]' position='replace'>-->
@@ -527,10 +527,10 @@
 
     <!--    this is used for remove default recently view product at detail page-->
     <!-- errorhere -->
-    <!-- <template id="website_sale.recently_viewed_products_product" inherit_id="ks_theme_kinetik.kps_product" name="Recently Viewed Products" priority="16">
-    </template> -->
+    <template id="recently_viewed_products_product" inherit_id="ks_theme_kinetik.kps_product" name="Recently Viewed Products" priority="16">
+    </template>
     <!--    this is used for add buy now option at detail page-->
-    <template id="website_sale.product_buy_now" inherit_id="ks_theme_kinetik.kps_product" active="False" customize_show="True" name="Buy Now Button">
+    <template id="product_buy_now" inherit_id="ks_theme_kinetik.kps_product" active="False" customize_show="True" name="Buy Now Button">
         <xpath expr="//a[@id='add_to_cart']" position="after">
             <a role="button" id="buy_now" class="btn btn-outline-primary btn-lg mt16 d-block d-sm-inline-block" href="#"><i class="fa fa-bolt"/> Buy Now</a>
         </xpath>
