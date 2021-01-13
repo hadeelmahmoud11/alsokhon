@@ -331,7 +331,7 @@
                                                   class="o_text_overflow" style="display: block;"/>
                                         </h5>
                                         <div class="ks-price">
-                                            <t t-if="True"><!-- compatibility 12.0 -->
+                                            <t t-if="True">
                                                 <del t-attf-class="text-danger mr8 {{'' if combination_info['has_discounted_price'] else 'd-none'}}"
                                                      style="white-space: nowrap;"
                                                      t-esc="combination_info['list_price']"
@@ -363,7 +363,7 @@
                                                   class="o_text_overflow" style="display: block;"/>
                                         </h5>
                                         <div class="ks-price">
-                                            <t t-if="True"><!-- compatibility 12.0 -->
+                                            <t t-if="True">
                                                 <del t-attf-class="text-danger mr8 {{'' if combination_info['has_discounted_price'] else 'd-none'}}"
                                                      style="white-space: nowrap;"
                                                      t-esc="combination_info['list_price']"
