@@ -192,22 +192,22 @@ class SaleOrder(models.Model):
                                         })
             return res
 
-    total_gold_vale_order = fields.Float('Total Gold Value', compute="_compute_total_gold_value_order")
+    total_gold_vale_order = fields.Float('Total Value', compute="_compute_total_gold_value_order")
     def _compute_total_gold_value_order(self):
         for this in self:
             total = 0.0
             for line in this.order_line:
-                if line.product_id.is_making_charges:
+                if line.product_id.is_making_charges or line.product_id.is_diamond_making_charges:
                     total = total
                 else:
                     total = total+line.price_subtotal
             this.total_gold_vale_order = total
-    total_make_vale_order = fields.Float('Total Make Value', compute="_compute_total_make_value_order")
+    total_make_vale_order = fields.Float('Total Labor/Make Value', compute="_compute_total_make_value_order")
     def _compute_total_make_value_order(self):
         for this in self:
             total = 0.0
             for line in this.order_line:
-                if line.product_id.is_making_charges:
+                if line.product_id.is_making_charges or line.product_id.is_diamond_making_charges:
                     total = total+line.price_subtotal
                 else:
                     total = total
