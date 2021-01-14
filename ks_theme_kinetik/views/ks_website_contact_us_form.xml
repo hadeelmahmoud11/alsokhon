@@ -1,6 +1,6 @@
 <odoo>
     <data>
-    <template id="contactus_form" name="Contact Form" inherit_id="ks_theme_kinetik.contactus_form" customize_show="True">
+    <template id="website_crm.contactus_form" name="Contact Form" inherit_id="ks_theme_kinetik.contactus_form" customize_show="True">
             <xpath expr="//div[@name='mail_button']" position="replace">
                 <div class="col-lg-8 col-md-12 col-12 ks-contact-form p-sm-5 p-4">
                     <form action="/website_form/" method="post" data-model_name="crm.lead" data-success_page="/contactus-thank-you" class="s_website_form container-fluid" enctype="multipart/form-data" data-editable-form="false">
