@@ -113,10 +113,13 @@ class StockMove(models.Model):
                                 pol.product_qty, pol.price_unit + pol.d_make_value  + pol.gold_value)
                         elif purchase_order.assemply_type == 'give_diamond':
                             # print("GD")
-                            # print(pol.price_unit + pol.d_make_value + pol.make_value + pol.product_id.standard_price)
+                            # print(pol.price_unit)
+                            # print(pol.d_make_value)
+                            # print(pol.make_value)
+                            # print(pol.product_id.standard_price)
                             # print("GD")
                             svl_vals = move.product_id._prepare_in_svl_vals(
-                                pol.product_qty, pol.price_unit + pol.d_make_value  + pol.product_id.standard_price)
+                                pol.product_qty, pol.price_unit + pol.d_make_value  + pol.diamond_price)
             elif move.product_id.gold:
                 svl_vals = move.product_id._prepare_in_svl_vals(
                     move.pure_weight, move.gold_rate)

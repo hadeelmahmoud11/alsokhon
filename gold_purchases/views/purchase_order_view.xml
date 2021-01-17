@@ -103,6 +103,7 @@
                     <field name="gold_rate" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=',True)]}" force_save="1"/>
                     <field name="gold_value"  attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=',True)]}" width="12%"/>
                     <field name="is_make_value"  width="10%"  invisible="1"/>
+                    <field name="diamond_price" attrs="{'column_invisible':[('parent.assemply_type','!=','give_diamond')]}"/>
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="after">
                     <field name="carat" attrs="{'column_invisible':[('parent.diamond','!=',True),('parent.assembly','!=',True)]}" />
