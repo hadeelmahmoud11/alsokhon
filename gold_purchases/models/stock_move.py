@@ -87,19 +87,37 @@ class StockMove(models.Model):
             if move.product_id.categ_id.is_assembly:
                 purchase_order = self.env['purchase.order']
                 if 'P0' in move.origin:
+                    # print(move.origin)
                     purchase_order = self.env['purchase.order'].search([('name','=',move.origin)])
                     if len(purchase_order) > 0:
+                        # print(purchase_order)
                         pol = self.env['purchase.order.line'].search([('order_id','=',purchase_order.id),('product_id','=',move.product_id.id)])
+                        # print(pol)
+                        # print(pol.price_unit)
+                        # print(pol.make_value)
+                        # print(pol.d_make_value)
+                        # print(pol.gold_value)
+                        # print(pol.product_id.standard_price)
+                        # print(purchase_order.assemply_type)
                         if purchase_order.assemply_type == 'just':
+                            # print("J")
+                            # print(pol.price_unit + pol.d_make_value + pol.make_value)
+                            # print("J")
                             svl_vals = move.product_id._prepare_in_svl_vals(
-                                pol.product_qty, pol.price_unit + pol.d_make_value + pol.make_value)
+                                pol.product_qty, pol.price_unit + pol.d_make_value )
                         elif purchase_order.assemply_type == 'give_gold':
+                            # print("GG")
+                            # print(pol.price_unit + pol.d_make_value + pol.make_value + pol.gold_value)
+                            # print("GG")
                             svl_vals = move.product_id._prepare_in_svl_vals(
-                                pol.product_qty, pol.price_unit + pol.d_make_value + pol.make_value + pol.gold_value)
+                                pol.product_qty, pol.price_unit + pol.d_make_value  + pol.gold_value)
                         elif purchase_order.assemply_type == 'give_diamond':
+                            # print("GD")
+                            # print(pol.price_unit + pol.d_make_value + pol.make_value + pol.product_id.standard_price)
+                            # print("GD")
                             svl_vals = move.product_id._prepare_in_svl_vals(
-                                pol.product_qty, pol.price_unit + pol.d_make_value + pol.make_value + pol.product_id.standard_price)
-            if move.product_id.gold:
+                                pol.product_qty, pol.price_unit + pol.d_make_value  + pol.product_id.standard_price)
+            elif move.product_id.gold:
                 svl_vals = move.product_id._prepare_in_svl_vals(
                     move.pure_weight, move.gold_rate)
             elif move.product_id.diamond:
@@ -114,6 +132,7 @@ class StockMove(models.Model):
                 svl_vals = move.product_id._prepare_in_svl_vals(
                     forced_quantity or valued_quantity, unit_cost)
             svl_vals.update(move._prepare_common_svl_vals())
+            print(svl_vals)
             if forced_quantity:
                 svl_vals[
                     'description'] = 'Correction of %s (modification of past move)' % move.picking_id.name or move.name
