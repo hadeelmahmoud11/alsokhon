@@ -83,8 +83,8 @@
                     <field name="total_with_make"/>
                 </xpath>
                 <field name="amount_untaxed" position="before">
-                  <field name="total_gold_value_order"/>
-                  <field name="total_make_value_order"/>
+                  <field name="total_gold_vale_order"/>
+                  <field name="total_make_vale_order"/>
                 </field>
 
                 <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="after">

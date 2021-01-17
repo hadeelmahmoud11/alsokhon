@@ -299,8 +299,8 @@ class PurchaseOrder(models.Model):
                                             'price_subtotal': pro[0],
                                         })
             return res
-    total_gold_value_order = fields.Float('Total Value', compute="_compute_total_gold_value_order")
-    def _compute_total_gold_value_order(self):
+    total_gold_vale_order = fields.Float('Total Value', compute="_compute_total_gold_vale_order")
+    def _compute_total_gold_vale_order(self):
         for this in self:
             total = 0.0
             for line in this.order_line:
@@ -308,9 +308,9 @@ class PurchaseOrder(models.Model):
                     total = total
                 else:
                     total = total+line.price_subtotal
-            this.total_gold_value_order = total
-    total_make_value_order = fields.Float('Total labor/Make Value', compute="_compute_total_make_value_order")
-    def _compute_total_make_value_order(self):
+            this.total_gold_vale_order = total
+    total_make_vale_order = fields.Float('Total labor/Make Value', compute="_compute_total_make_vale_order")
+    def _compute_total_make_vale_order(self):
         for this in self:
             total = 0.0
             for line in this.order_line:
@@ -318,7 +318,7 @@ class PurchaseOrder(models.Model):
                     total = total+line.price_subtotal
                 else:
                     total = total
-            this.total_make_value_order = total
+            this.total_make_vale_order = total
 
     period_from = fields.Float('Period From')
     period_to = fields.Float('Period To')
