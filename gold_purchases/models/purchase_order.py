@@ -67,7 +67,7 @@ class PurchaseOrder(models.Model):
                         'product_uom': line.product_id.uom_id.id,
                         'picking_type_id':  line.purchase_id.order_type.assembly_picking_type_id.id,
                         'carat':line.carat,
-                        'product_uom_qty': line.gross_weight,
+                        'product_uom_qty': line.carat,
                         'gross_weight' : line.gross_weight ,
                         'pure_weight': line.pure_weight,
                         'purity': line.purity,
