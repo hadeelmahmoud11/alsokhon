@@ -54,6 +54,13 @@ class StockPicking(models.Model):
                     #             line.lot_id.gross_weight -= line.product_uom_qty * line.gross_weight
                             # print(line.lot_id.gross_weight,line.lot_id.pure_weight)
                     rec.create_gold_journal_entry_sale()
+                if 'Assembly Gold Transfer' in rec.origin:
+                    for line in rec.move_line_ids_without_package:
+                        if line.product_id.categ_id.is_diamond:
+                            line.lot_id.carat -= line.move_id.carat
+                        elif line.product_id.categ_id.is_scrap:
+                            line.lot_id.gross_weight -= line.move_id.gross_weight
+                    rec.create_gold_journal_entry_sale()
             print(rec)
             print(rec.group_id)
             print(rec.group_id.name)
@@ -74,7 +81,56 @@ class StockPicking(models.Model):
     #
     def create_gold_journal_entry_sale(self):
         self.ensure_one()
-        if 'POS' in self.origin :
+        if 'Assembly Gold Transfer' in self.origin:
+            # sale_obj = self.env['sale.order'].search([('name','=',self.origin)])
+            moves = self.move_lines.filtered(lambda x: x._is_out() and
+                                                        x.product_id and
+                                                        x.product_id.gold and
+                                                        x.product_id.categ_id and
+                                                        x.product_id.categ_id.is_gold and
+                                                        x.product_id.categ_id.gold_on_hand_account)
+            if moves:
+                total_purity = 0
+                product_dict = {}
+                description = '%s' % self.name
+                for product_id, move_list in groupby(moves, lambda x: x.product_id):
+                    description = '%s-%s' % (description, product_id.display_name)
+                    if product_id not in product_dict.keys():
+                        product_dict[product_id] = sum(
+                            x.pure_weight for x in move_list)
+                    else:
+                        product_dict[product_id] = product_dict[product_id] + sum(
+                            x.pure_weight for x in move_list)
+                total_purity = sum(value for key, value in product_dict.items())
+                if total_purity > 0.0 and product_dict and \
+                        self.partner_id :
+                    if not next(iter(product_dict)).categ_id.gold_journal.id:
+                        raise ValidationError(_('Please fill gold journal in product Category'))
+                    journal_id = next(iter(product_dict)).categ_id.gold_journal.id
+    #
+                    move_lines = self._prepare_account_move_line(product_dict)
+                    if move_lines:
+                        AccountMove = self.env['account.move'].with_context(
+                             default_journal_id=journal_id)
+                        date = self._context.get('force_period_date',
+                                                  fields.Date.context_today(self))
+                        # type_of_action = ''
+                        # if sale_obj.order_type.is_fixed:
+                        #     type_of_action = 'fixed'
+                        # elif  sale_obj.order_type.gold:
+                        #     type_of_action = 'unfixed'
+                        # else:
+                        #     pass
+                        new_account_move = AccountMove.sudo().create({
+                             'journal_id': journal_id,
+                             'line_ids': move_lines,
+                             'date': date,
+                             'ref': description,
+                             'type': 'entry',
+                             # 'type_of_action':type_of_action,
+                        })
+                        new_account_move.post()
+        elif 'POS' in self.origin :
             pos_obj = self.env['pos.order'].search([('name','=',self.origin.split(" - ")[1])])
             moves = self.move_lines.filtered(lambda x: x._is_out() and
                                                         x.product_id and
@@ -231,9 +287,38 @@ class StockPicking(models.Model):
                         new_account_move.post()
                         if sale_obj:
                             sale_obj.write({'stock_move_id': new_account_move.id})
-    #
+
     def _prepare_account_move_line(self, product_dict):
         if 'POS' in self.origin:
+            credit_lines = []
+            for product_id, value in product_dict.items():
+                if not product_id.categ_id.gold_on_hand_account.id or not product_id.categ_id.gold_stock_output_account.id:
+                    raise ValidationError(_('Please fill gold accounts in product Category'))
+                credit_lines.append({
+                    'name': '%s - %s' % (self.name, product_id.name),
+                    'product_id': product_id.id,
+                    'quantity': 1,
+                    'product_uom_id': product_id.uom_id.id,
+                    'ref': '%s - %s' % (self.name, product_id.name),
+                    'partner_id': self.partner_id.id,
+                    'debit': 0,
+                    'credit': round(value, 3),
+                    'account_id': product_id.categ_id.gold_on_hand_account.id,
+                })
+            debit_line = [{
+                'name': '%s - %s' % (self.name, product_id.name),
+                'product_id': product_id.id,
+                'quantity': 1,
+                'product_uom_id': product_id.uom_id.id,
+                'ref': '%s - %s' % (self.name, product_id.name),
+                'partner_id': self.partner_id.id,
+                'debit': sum(x['credit'] for x in credit_lines),
+                'credit': 0,
+                'account_id': product_id.categ_id.gold_stock_output_account.id,
+            }]
+            res = [(0, 0, x) for x in credit_lines + debit_line]
+            return res
+        elif 'Assembly Gold Transfer' in self.origin:
             credit_lines = []
             for product_id, value in product_dict.items():
                 if not product_id.categ_id.gold_on_hand_account.id or not product_id.categ_id.gold_stock_output_account.id:

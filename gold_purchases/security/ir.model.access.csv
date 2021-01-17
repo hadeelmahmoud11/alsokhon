@@ -5,3 +5,4 @@ access_item_category_line,access_item_category_line,model_item_category_line,,1,
 access_making_charges,access_making_charges,model_making_charges,,1,1,1,1
 access_unfixed_wizard,access_unfixed_wizard_sstock,model_stock_move_gold,,1,1,1,1
 access_unfixed_fixing,access_unfixed_fixing_sstock,model_fixing_unfixed_bill,,1,1,1,1
+access_assemply,accessassemply_s,model_assemply_componant,,1,1,1,1

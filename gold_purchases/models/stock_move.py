@@ -29,14 +29,23 @@ class StockMove(models.Model):
 
     gold = fields.Boolean(string="Gold", compute="_compute_gold_state")
     diamond = fields.Boolean(string="Gold", compute="_compute_gold_state")
+    assemply = fields.Boolean(string="Assemply", compute="_compute_gold_state")
     def _compute_gold_state(self):
         for this in self:
             if this.product_id.categ_id.is_gold:
                 this.gold = True
                 this.diamond = False
+                this.assemply = False
+                break
+            elif this.product_id.categ_id.is_diamond:
+                this.gold = False
+                this.assemply = False
+                this.diamond = True
+                break
             else:
                 this.gold = False
-                this.diamond = True
+                this.assemply = True
+                this.diamond = False
     gross_weight = fields.Float(string='Gross Weight', digits=(16, 3))
     pure_weight = fields.Float('Pure Weight', digits=(16, 3))
     purity = fields.Float(string="Purity", digits=(16, 3))
@@ -75,6 +84,21 @@ class StockMove(models.Model):
                 unit_cost = move.product_id.standard_price
             # Check Gold Product and pass gold rate, pure weight instead of
             # cost, qty
+            if move.product_id.categ_id.is_assembly:
+                purchase_order = self.env['purchase.order']
+                if 'P0' in move.origin:
+                    purchase_order = self.env['purchase.order'].search([('name','=',move.origin)])
+                    if len(purchase_order) > 0:
+                        pol = self.env['purchase.order.line'].search([('order_id','=',purchase_order.id),('product_id','=',move.product_id.id)])
+                        if purchase_order.assemply_type == 'just':
+                            svl_vals = move.product_id._prepare_in_svl_vals(
+                                pol.product_qty, pol.price_unit + pol.d_make_value + pol.make_value)
+                        elif purchase_order.assemply_type == 'give_gold':
+                            svl_vals = move.product_id._prepare_in_svl_vals(
+                                pol.product_qty, pol.price_unit + pol.d_make_value + pol.make_value + pol.gold_value)
+                        elif purchase_order.assemply_type == 'give_diamond':
+                            svl_vals = move.product_id._prepare_in_svl_vals(
+                                pol.product_qty, pol.price_unit + pol.d_make_value + pol.make_value + pol.product_id.standard_price)
             if move.product_id.gold:
                 svl_vals = move.product_id._prepare_in_svl_vals(
                     move.pure_weight, move.gold_rate)
@@ -288,6 +312,7 @@ class StockMoveLine(models.Model):
             })
         elif res.lot_id.product_id and not res.lot_id.product_id.categ_id.is_scrap:
             res.lot_id.write({
+            'carat': res.carat,
             'gross_weight': res.gross_weight,
             'purity': res.purity,
             'selling_making_charge':res.selling_making_charge,

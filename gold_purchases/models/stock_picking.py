@@ -9,6 +9,7 @@ class StockPicking(models.Model):
 
     gold = fields.Boolean(string="Gold", compute="_compute_gold_state")
     diamond = fields.Boolean(string="Diamond", compute="_compute_gold_state")
+    assemply = fields.Boolean(string="Assemply", compute="_compute_gold_state")
     def _compute_gold_state(self):
         for this in self:
             this.gold = False
@@ -16,10 +17,17 @@ class StockPicking(models.Model):
                 if line.product_id.categ_id.is_gold:
                     this.gold = True
                     this.diamond = False
+                    this.assemply = False
+                    break
+                elif line.product_id.categ_id.is_diamond:
+                    this.gold = False
+                    this.assemply = False
+                    this.diamond = True
                     break
                 else:
                     this.gold = False
-                    this.diamond = True
+                    this.assemply = True
+                    this.diamond = False
 
 
     period_from = fields.Float('Period From')

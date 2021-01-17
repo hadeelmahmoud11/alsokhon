@@ -19,6 +19,34 @@ class ProductTemplate(models.Model):
     is_making_charges = fields.Boolean('Gold Making Charges')
     scrap = fields.Boolean(string="Scrap")
     making_charge_id = fields.Many2one('product.product', 'Making Charges product')
+    hide_gold_making = fields.Boolean(compute="_compute_hide_gold_making")
+    @api.onchange('is_making_charges','gold','assembly')
+    def _compute_hide_gold_making(self):
+        for this in self:
+            this.hide_gold_making = True
+            if this.assembly:
+                this.hide_gold_making = False
+            else:
+                if this.is_making_charges:
+                    this.hide_gold_making = True
+                if not this.gold:
+                    this.hide_gold_making = True
+                else:
+                    this.hide_gold_making = False
+    hide_diamond_making = fields.Boolean(compute="_compute_hide_diamond_making")
+    @api.onchange('is_making_charges','diamond','assembly')
+    def _compute_hide_diamond_making(self):
+        for this in self:
+            this.hide_diamond_making = True
+            if this.assembly:
+                this.hide_diamond_making = False
+            else:
+                if this.is_diamond_making_charges:
+                    this.hide_diamond_making = True
+                if not this.diamond:
+                    this.hide_diamond_making = True
+                else:
+                    this.hide_diamond_making = False
 
     # @api.onchange('type')
     # def onchange_type_gold(self):

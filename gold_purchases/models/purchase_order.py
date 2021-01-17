@@ -3,10 +3,117 @@ from odoo import api, fields, models, _
 from datetime import date , timedelta , datetime
 from odoo.exceptions import ValidationError,UserError
 
+class assemblyComponants(models.Model):
+    """Assembly Details."""
+    _name = 'assemply.componant'
 
+    product_id = fields.Many2one('product.product')
+    lot_id = fields.Many2one('stock.production.lot')
+    carat = fields.Float()
+    gross_weight = fields.Float()
+    pure_weight = fields.Float(compute="compute_purity_pure")
+    purity = fields.Float(compute="compute_purity_pure")
+    purchase_id = fields.Many2one('purchase.order')
 
+    @api.onchange('gross_weight','purity')
+    def compute_purity_pure(self):
+        for this in self:
+            if this.lot_id:
+                this.purity = this.lot_id.purity
+                this.pure_weight = this.gross_weight * (this.purity / 1000)
+            else:
+                this.purity = 0.00
+                this.pure_weight = 0.00
+    @api.onchange('product_id','lot_id')
+    def getvalues(self):
+        print("##################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+        # for this in self:
+        if self.product_id and self.lot_id:
+            self.carat = self.lot_id.carat
+            self.gross_weight = self.lot_id.gross_weight
 class PurchaseOrder(models.Model):
     _inherit = 'purchase.order'
+
+    assemply_type = fields.Selection([('just','Just assembly'),('give_gold','Give Gold'),('give_diamond','Give Diamond')])
+    assembly_ids = fields.One2many('assemply.componant','purchase_id')
+
+
+    def button_confirm(self):
+        res = super(PurchaseOrder,self).button_confirm()
+        move_lines = []
+        for line in self.assembly_ids:
+            if self.assemply_type == 'give_gold':
+                move_lines.append((0, 0, {
+                        'name': "assembly move",
+                        'location_id': 8,
+                        'location_dest_id': 4,
+                        'product_id': line.product_id.id,
+                        'product_uom': line.product_id.uom_id.id,
+                        'picking_type_id':  line.purchase_id.order_type.assembly_picking_type_id.id,
+                        'carat':line.carat,
+                        'product_uom_qty': line.gross_weight,
+                        'gross_weight' : line.gross_weight ,
+                        'pure_weight': line.pure_weight,
+                        'purity': line.purity,
+                        'lot_id':line.lot_id.id,
+                        'origin':'Assembly Gold Transfer',
+                        }))
+            elif self.assemply_type == 'give_diamond':
+                move_lines.append((0, 0, {
+                        'name': "assembly move",
+                        'location_id': 8,
+                        'location_dest_id': 4,
+                        'product_id': line.product_id.id,
+                        'product_uom': line.product_id.uom_id.id,
+                        'picking_type_id':  line.purchase_id.order_type.assembly_picking_type_id.id,
+                        'carat':line.carat,
+                        'product_uom_qty': line.gross_weight,
+                        'gross_weight' : line.gross_weight ,
+                        'pure_weight': line.pure_weight,
+                        'purity': line.purity,
+                        'lot_id':line.lot_id.id,
+                        'origin':'Assembly Diamond Transfer',
+                        }))
+            else:
+                move_lines = []
+        if len(move_lines) > 0:
+            if self.assemply_type == 'give_gold':
+                picking = self.env['stock.picking'].create({
+                            'partner_id': self.partner_id.id,
+                            'location_id': 8,
+                            'location_dest_id': 4,
+                              # read.assembly_picking_type_id.id,
+                            'picking_type_id':  self.order_type.assembly_picking_type_id.id,
+                            'immediate_transfer': False,
+                            'move_lines': move_lines,
+                            'origin':'Assembly Gold Transfer'
+                        # 'move_line_ids_without_package':move_line_ids_without_package,
+                        })
+                picking.action_confirm()
+                picking.action_assign()
+                for this in picking:
+                    for this_lot_line in this.move_line_ids_without_package:
+                        this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
+                # picking.button_validate()
+            if self.assemply_type == 'give_diamond':
+                picking = self.env['stock.picking'].create({
+                            'partner_id': self.partner_id.id,
+                            'location_id': 8,
+                            'location_dest_id': 4,
+                              # read.assembly_picking_type_id.id,
+                            'picking_type_id':  self.order_type.assembly_picking_type_id.id,
+                            'immediate_transfer': False,
+                            'move_lines': move_lines,
+                            'origin':'Assembly Diamond Transfer'
+                        # 'move_line_ids_without_package':move_line_ids_without_package,
+                        })
+                picking.action_confirm()
+                picking.action_assign()
+                for this in picking:
+                    for this_lot_line in this.move_line_ids_without_package:
+                        this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
+                # picking.button_validate()
+        return res
 
     @api.model
     def create(self, values):
@@ -20,6 +127,12 @@ class PurchaseOrder(models.Model):
                 product_charge_gold_list.append(line.product_id.making_charge_id.id)
             elif line.product_id and line.product_id.categ_id.is_diamond:
                 product_charge_diamond_list.append(line.product_id.making_charge_diamond_id.id)
+            else:
+                product_charge_gold_list.append(line.product_id.making_charge_id.id)
+                product_charge_diamond_list.append(line.product_id.making_charge_diamond_id.id)
+
+        print(product_charge_gold_list)
+        print(product_charge_diamond_list)
         done_gold_product = []
         total_charge_gold = []
         for line in product_charge_gold_list:
@@ -106,6 +219,13 @@ class PurchaseOrder(models.Model):
                     product_charge_gold_list.append(line.product_id.making_charge_id.id)
                 elif line.product_id and line.product_id.categ_id.is_diamond:
                     product_charge_diamond_list.append(line.product_id.making_charge_diamond_id.id)
+                else:
+                    product_charge_gold_list.append(line.product_id.making_charge_id.id)
+                    product_charge_diamond_list.append(line.product_id.making_charge_diamond_id.id)
+
+            print(product_charge_gold_list)
+            print(product_charge_diamond_list)
+
             done_gold_product = []
             total_charge_gold = []
             for line in product_charge_gold_list:
@@ -179,7 +299,7 @@ class PurchaseOrder(models.Model):
                                             'price_subtotal': pro[0],
                                         })
             return res
-    total_gold_vale_order = fields.Float('Total Value', compute="_compute_total_gold_value_order")
+    total_gold_value_order = fields.Float('Total Value', compute="_compute_total_gold_value_order")
     def _compute_total_gold_value_order(self):
         for this in self:
             total = 0.0
@@ -188,8 +308,8 @@ class PurchaseOrder(models.Model):
                     total = total
                 else:
                     total = total+line.price_subtotal
-            this.total_gold_vale_order = total
-    total_make_vale_order = fields.Float('Total labor/Make Value', compute="_compute_total_make_value_order")
+            this.total_gold_value_order = total
+    total_make_value_order = fields.Float('Total labor/Make Value', compute="_compute_total_make_value_order")
     def _compute_total_make_value_order(self):
         for this in self:
             total = 0.0
@@ -198,7 +318,7 @@ class PurchaseOrder(models.Model):
                     total = total+line.price_subtotal
                 else:
                     total = total
-            this.total_make_vale_order = total
+            this.total_make_value_order = total
 
     period_from = fields.Float('Period From')
     period_to = fields.Float('Period To')
@@ -217,14 +337,16 @@ class PurchaseOrder(models.Model):
         result = action.read()[0]
         create_bill = self.env.context.get('create_bill', False)
         # override the context to get rid of the default filtering
-        if self.order_type.is_fixed:
+        # read.is_fixed
+        if self.order_type.assembly :
             result['context'] = {
                 'default_type': 'in_invoice',
                 'default_company_id': self.company_id.id,
                 'default_purchase_id': self.id,
                 'default_purchase_type': "fixed",
             }
-        elif  self.order_type.gold:
+        # read.gold
+        elif  self.order_type.assembly :
             result['context'] = {
                 'default_type': 'in_invoice',
                 'default_company_id': self.company_id.id,
@@ -265,9 +387,11 @@ class PurchaseOrder(models.Model):
             'period_to': self.period_to,
             'period_uom_id': self.period_uom_id and self.period_uom_id.id or False
         })
-        if self.order_type.gold and self.order_type.is_unfixed:
+        # read.gold
+        # read.is_unfixed
+        if self.order_type.assembly  and self.order_type.assembly :
             res.update({'purchase_type':'unfixed'})
-        elif self.order_type.gold and self.order_type.is_fixed:
+        elif self.order_type.assembly .gold and self.order_type.assembly .is_fixed:
             res.update({'purchase_type':'fixed'})
         return res
 
@@ -339,10 +463,10 @@ class PurchaseOrderLine(models.Model):
                 this.scrap_state_read = False
     def _compute_total_with_make(self):
         for this in self:
-            if this.product_id.is_making_charges:
+            if this.product_id.is_making_charges or this.product_id.is_diamond_making_charges:
                 this.total_with_make = 0.0
             else:
-                this.total_with_make = this.price_subtotal +this.make_value
+                this.total_with_make = this.price_subtotal +this.make_value + this.d_make_value
 
     @api.onchange('purity_hall','product_qty')
     def onchange_purity_hall(self):
@@ -440,8 +564,13 @@ class PurchaseOrderLine(models.Model):
                 rec.gold_value = rec.gold_rate and (
                         rec.total_pure_weight * rec.gold_rate) or 0
             else:
-                rec.gold_rate = 0.00
-                rec.gold_value = 0.00
+                if rec.order_id.assembly:
+                    rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
+                    rec.gold_value = rec.gold_rate and (
+                            rec.total_pure_weight * rec.gold_rate) or 0
+                else:
+                    rec.gold_rate = 0.00
+                    rec.gold_value = 0.00
             if rec.product_id.categ_id.is_scrap:
                 rec.total_gross_wt = rec.gross_wt
             else:

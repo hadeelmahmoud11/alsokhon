@@ -7,14 +7,15 @@
             <field name="inherit_id" ref="stock.view_production_lot_form"/>
             <field name="arch" type="xml">
                 <field name="company_id" position="after">
-                  <field name="carat" attrs="{'invisible':[('diamond','!=',True)]}"/>
+                  <field name="carat" attrs="{'invisible':[('diamond','!=',True),('assemply','!=',True)]}"/>
 
                   <field name="diamond" invisible="1"/>
-                    <field name="gold" invisible="1"/>
-                    <field name="gross_weight" readonly="1" force_save="1" attrs="{'invisible':[('gold','!=',True)]}"/>
-                    <field name="purity" readonly="1" force_save="1" attrs="{'invisible':[('gold','!=',True)]}"/>
-                    <field name="purity_id" readonly="1" force_save="1" attrs="{'invisible':[('gold','!=',True)]}"/>
-                    <field name="pure_weight" readonly="1" force_save="1" attrs="{'invisible':[('gold','!=',True)]}"/>
+                  <field name="gold" invisible="1"/>
+                    <field name="assemply" invisible="1"/>
+                    <field name="gross_weight" readonly="1" force_save="1" attrs="{'invisible':[('gold','!=',True),('assemply','!=',True)]}"/>
+                    <field name="purity" readonly="1" force_save="1" attrs="{'invisible':[('gold','!=',True),('assemply','!=',True)]}"/>
+                    <field name="purity_id" readonly="1" force_save="1" attrs="{'invisible':[('gold','!=',True),('assemply','!=',True)]}"/>
+                    <field name="pure_weight" readonly="1" force_save="1" attrs="{'invisible':[('gold','!=',True),('assemply','!=',True)]}"/>
                     <field name="remaining_weight" readonly="1" force_save="1" invisible="1"/>
                     <field name="item_category_id" readonly="1" force_save="1"/>
                     <field name="sub_category_id" readonly="1" force_save="1"/>
@@ -30,14 +31,15 @@
             <field name="inherit_id" ref="stock.view_production_lot_tree"/>
             <field name="arch" type="xml">
                 <field name="product_id" position="after">
-                  <field name="carat" invisible="1" attrs="{'column_invisible':[('diamond','!=',True)]}"/>
+                  <field name="carat" invisible="1" attrs="{'column_invisible':[('diamond','!=',True),('assemply','!=',True)]}"/>
 
                   <field name="gold" invisible="1"/>
-                    <field name="diamond" invisible="1"/>
-                    <field name="gross_weight" invisible="1" attrs="{'column_invisible':[('gold','!=',True)]}"/>
-                    <field name="purity" invisible ="1" attrs="{'column_invisible':[('gold','!=',True)]}"/>
-                    <field name="is_scrap" invisible ="1" attrs="{'column_invisible':[('gold','!=',True)]}"/>
-                    <field name="pure_weight" attrs="{'column_invisible':[('gold','!=',True)]}"/>
+                  <field name="diamond" invisible="1"/>
+                    <field name="assemply" invisible="1"/>
+                    <field name="gross_weight" invisible="1" attrs="{'column_invisible':[('gold','!=',True),('assemply','!=',True)]}"/>
+                    <field name="purity" invisible ="1" attrs="{'column_invisible':[('gold','!=',True),('assemply','!=',True)]}"/>
+                    <field name="is_scrap" invisible ="1" attrs="{'column_invisible':[('gold','!=',True),('assemply','!=',True)]}"/>
+                    <field name="pure_weight" attrs="{'column_invisible':[('gold','!=',True),('assemply','!=',True)]}"/>
                     <field name="item_category_id" invisible ="1"/>
                     <field name="sub_category_id" invisible ="1"/>
                     <field name="selling_karat_id" invisible ="1"/>

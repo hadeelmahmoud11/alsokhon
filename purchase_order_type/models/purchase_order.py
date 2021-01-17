@@ -18,6 +18,12 @@ class PurchaseOrder(models.Model):
     is_unfixed = fields.Boolean(string='unFixed', compute='get_is_unfixed')
     gold = fields.Boolean(string='gold', compute='get_is_gold')
     diamond = fields.Boolean(string='diamond', compute='get_is_diamond')
+    assembly = fields.Boolean(string='assembly', compute='get_is_assembly')
+
+    @api.depends('order_type')
+    def get_is_assembly(self):
+        for rec in self:
+            rec.assembly = rec.order_type and rec.order_type.assembly and True or False
 
     @api.depends('order_type')
     def get_is_fixed(self):
