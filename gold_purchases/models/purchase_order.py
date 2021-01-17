@@ -338,7 +338,7 @@ class PurchaseOrder(models.Model):
         create_bill = self.env.context.get('create_bill', False)
         # override the context to get rid of the default filtering
         # read.is_fixed
-        if self.order_type.assembly :
+        if self.order_type.is_fixed :
             result['context'] = {
                 'default_type': 'in_invoice',
                 'default_company_id': self.company_id.id,
@@ -346,7 +346,7 @@ class PurchaseOrder(models.Model):
                 'default_purchase_type': "fixed",
             }
         # read.gold
-        elif  self.order_type.assembly :
+        elif  self.order_type.is_unfixed :
             result['context'] = {
                 'default_type': 'in_invoice',
                 'default_company_id': self.company_id.id,

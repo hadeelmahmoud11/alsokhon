@@ -99,29 +99,31 @@ class stockGoldMove(models.TransientModel):
             account_move.write({'invoice_payment_state': "paid"})
 
         if not sale_order.order_type.stock_picking_type_id :
-            raise UserError(_("fill picking type field in so purhcase type"))
+            raise UserError(_("fill picking type field in so sale type"))
         if self.pure_weight > 0.00:
             picking = self.env['stock.picking'].create({
                     'location_id': sale_order.order_type.stock_picking_type_id.default_location_src_id.id,
                     'location_dest_id': sale_order.order_type.stock_picking_type_id.default_location_dest_id.id,
                     'picking_type_id': sale_order.order_type.stock_picking_type_id.id,
-                    'bill_unfixed': account_move.id,
+                    'invoice_unfixed': account_move.id,
                     'immediate_transfer': False,
                     'move_lines': move_lines,
                     # 'move_line_ids_without_package':move_line_ids_without_package,
                     })
-                # picking.action_confirm()
-                # picking.action_assign()
-                # for this in picking:
-                #     for this_lot_line in this.move_line_ids_without_package:
-                #         this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
-
             if account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
                 account_move.write({'unfixed_stock_picking_three': picking.id})
             if account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
                 account_move.write({'unfixed_stock_picking_two': picking.id})
             if not account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
                 account_move.write({'unfixed_stock_picking': picking.id})
+            return picking.button_validate()
+                # picking.action_confirm()
+                # picking.action_assign()
+                # for this in picking:
+                #     for this_lot_line in this.move_line_ids_without_package:
+                #         this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
+
+
             # elif remain < 0:
             #     raise UserError(_("Sorry please review your inputs , you are trying to deliver quant more than you have "))
             # else:

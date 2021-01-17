@@ -120,6 +120,7 @@ class stockGoldMove(models.TransientModel):
 
             # move.write({'gross_weight': move.gross_weight -  move.paid_gross})
             move.write({'pure_weight': move.pure_weight -  move.paid_pure})
+            move.write({'paid_gross': 0.00 ,'paid_pure' : 0.00})
             # move.write({'paid_gross': 0.00 ,'paid_pure' : 0.00})
             # if move.gross_weight <= 0.00 or move.pure_weight <= 0.00:
                 # move.write({'is_full_paid': True})
@@ -153,14 +154,13 @@ class stockGoldMove(models.TransientModel):
                 for this in picking:
                     for this_lot_line in this.move_line_ids_without_package:
                         this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
-                picking.button_validate()
-
                 if account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
                     account_move.write({'unfixed_stock_picking_three': picking.id})
                 if account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
                     account_move.write({'unfixed_stock_picking_two': picking.id})
                 if not account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
                     account_move.write({'unfixed_stock_picking': picking.id})
+                return picking.button_validate()
             elif remain < 0:
                 raise UserError(_("Sorry please review your inputs , you are trying to deliver quant more than you have "))
             # else:
@@ -181,6 +181,4 @@ class stockGoldMove(models.TransientModel):
 
 
             #account_move.write({'unfixed_stock_picking' : picking.id})
-        for move in self.env['stock.production.lot'].browse(data['move_ids']):
-            move.write({'paid_gross': 0.00 ,'paid_pure' : 0.00})
         return {'type': 'ir.actions.act_window_close'}

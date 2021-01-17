@@ -165,10 +165,10 @@
                     </group>
                   </page>
                 </xpath>
-                <xpath expr="//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='price_unit']" position="attributes">
+                <!-- <xpath expr="//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='price_unit']" position="attributes">
                     <attribute name="attrs">{'readonly': ['|',('parent.purchase_type', '=', "unfixed"),('parent.purchase_type', '=', "fixed")]}</attribute>
                     <attribute name="force_save">1</attribute>
-                </xpath>
+                </xpath> -->
 
             </field>
         </record>
