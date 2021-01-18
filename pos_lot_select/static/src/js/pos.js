@@ -478,7 +478,9 @@ odoo.define('pos_lot_select.pos', function(require){
               this._super(parent,options);
           },
           get_rate: function(){
-              var rate = this.pos.config.gold_rate;
+              var rate = parseFloat((this.pos.config.gold_rate).toFixed(4));
+              this.pos.config.gold_rate =  parseFloat((this.pos.config.gold_rate).toFixed(4));
+
               console.log("rate");
               console.log(rate);
               // console.log(this.pos.config);
