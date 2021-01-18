@@ -23,12 +23,10 @@
                         <t t-if="widget.pos.config.allow_pos_lot">
                             <t t-if="widget.options.product_lot">
                                 <div >
-                                  <span style="width: 5%;">
+                                  <!-- <span style="width: 5%;">
                                     Is Return Product:
                                     <i class="is_return_bt"  style="color: green;font-size: 25px;cursor: pointer" >False</i>
-
-                                    <!-- <input type="checkbox" id="checkbox" style="width: 4%;min-height: 20px;cursor: pointer;" /> -->
-                                  </span>
+                                  </span> -->
                                   <input placeholder="Search Lot" style="width: 160px;
                                         border: 1px solid #cecbcb;
                                         padding: 10px 20px;
