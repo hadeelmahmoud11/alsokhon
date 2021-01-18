@@ -10,7 +10,7 @@ odoo.define('pos_lot_select.pos', function(require){
       var PosBaseWidget = require('point_of_sale.BaseWidget');
 
       models.load_fields('product.product',['making_charge_id','making_charge_diamond_id']);
-      models.load_fields('product.category',['is_scrap','is_diamond']);
+      models.load_fields('product.category',['is_gold','is_scrap','is_diamond','is_assembly']);
       models.load_models({
           model: 'stock.production.lot',
           fields: [],
@@ -238,6 +238,7 @@ odoo.define('pos_lot_select.pos', function(require){
                     product_lot.push(lot);
                   }
               });
+              // console.log(self.pos);
 
               // self.render_list_lots(product_lot,undefined);
               options.qstr = "";
@@ -276,13 +277,15 @@ odoo.define('pos_lot_select.pos', function(require){
               $(".add_lot_number").click(function(){
                 var lot_count = $(this).closest("tr").find("input").val();
 
-                if (!self.options.order_line.product.categ.is_diamond) {
-                  var selling_making_charge= $(this).closest("tr").find("#selling_making_charge")[0].innerText;
-                  var pure_weight= $(this).closest("tr").find("#pure_weight")[0].innerText;
-                  var gross_weight= $(this).closest("tr").find("#gross_weight")[0].innerText;
-                  var purity_id= $(this).closest("tr").find("#purity_id")[0].innerText;
-                  var gold_rate= self.pos.config.gold_rate;
-                }
+                // if (self.options.order_line.product.categ.is_gold ) {
+                //   var selling_making_charge= $(this).closest("tr").find("#selling_making_charge")[0].innerText;
+                // }
+                // if (!self.options.order_line.product.categ.is_diamond) {
+                //   var pure_weight= $(this).closest("tr").find("#pure_weight")[0].innerText;
+                //   var gross_weight= $(this).closest("tr").find("#gross_weight")[0].innerText;
+                //   var purity_id= $(this).closest("tr").find("#purity_id")[0].innerText;
+                //   var gold_rate= self.pos.config.gold_rate;
+                // }
 
                       var lot = $(this).data("lot");
 
@@ -375,23 +378,21 @@ odoo.define('pos_lot_select.pos', function(require){
                     var pure_weight = lot.pure_weight;
 
                     if (order_line.product.categ.is_scrap) {
-                      var scrap_purity = self.pos.list_gold_purity[lot.purity_id[0]].scrap_purity/1000;
-                      pure_weight = scrap_purity;
+                      pure_weight = self.pos.list_gold_purity[lot.purity_id[0]].scrap_purity/1000;
                     }
 
-                    console.log(self.options);
-                    if (self.options.is_return) {
-                      self.options.pack_lot_lines.models[0].quantity*=-1;
-                      self.options.order_line.quantity*=-1;
-                      self.options.order_line.quantityStr=String(self.options.order_line.quantity);
-                    }
+                    // console.log(self.options);
+                    // if (self.options.is_return) {
+                    //   self.options.pack_lot_lines.models[0].quantity*=-1;
+                    //   self.options.order_line.quantity*=-1;
+                    //   self.options.order_line.quantityStr=String(self.options.order_line.quantity);
+                    // }
 
-                    if (!order_line.product.categ.is_diamond) {
+                    if (order_line.product.categ.is_scrap||order_line.product.categ.is_gold) {
                       self.change_price(self.pos.config.gold_rate,pure_weight);
-
                     }
 
-                    if(!order_line.product.categ.is_scrap && order_line.product.making_charge_id ){
+                    if(order_line.product.categ.is_gold && order_line.product.making_charge_id ){
                       var product = self.pos.db.get_product_by_id(self.options.order_line.product.making_charge_id[0]);
                       self.options.order.add_product(product, {
                         quantity: 1,
@@ -400,10 +401,6 @@ odoo.define('pos_lot_select.pos', function(require){
                     }
                     if(order_line.product.categ.is_diamond && order_line.product.making_charge_diamond_id ){
                       var product = self.pos.db.get_product_by_id(self.options.order_line.product.making_charge_diamond_id[0]);
-                      // console.log(product);
-                      // console.log(self.options.order.pricelist);
-                      // console.log(product.get_price(self.options.order.pricelist, 1));
-
                       self.options.order.add_product(product, {
                         quantity: 1,
                         price: order_line.quantity * lot.selling_making_charge,
