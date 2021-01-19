@@ -335,7 +335,16 @@ class StockMoveLine(models.Model):
             'sub_category_id':res.sub_category_id.id,
             'selling_karat_id':res.selling_karat_id.id,
             })
-        elif res.lot_id.product_id and not res.lot_id.product_id.categ_id.is_scrap:
+        elif res.lot_id.product_id and res.lot_id.product_id.categ_id.is_assembly:
+            assembly_description = []
+            if res.move_id.origin and 'P0' in res.move_id.origin:
+                purchase_obj = self.env['purchase.order'].search([('name','=',res.move_id.origin)])
+                if purchase_obj:
+                    for line in purchase_obj.assembly_description:
+                        assembly_description.append((0,0,{
+                        'product_id':line.product_id.id,
+                        'quantity':line.quantity,
+                        }))
             res.lot_id.write({
             'carat': res.carat,
             'gross_weight': res.gross_weight,
@@ -345,6 +354,7 @@ class StockMoveLine(models.Model):
             'item_category_id':res.item_category_id.id,
             'sub_category_id':res.sub_category_id.id,
             'selling_karat_id':res.selling_karat_id.id,
+            'assembly_description':assembly_description,
             })
 
 

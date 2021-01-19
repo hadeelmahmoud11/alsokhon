@@ -135,7 +135,7 @@ class StockPicking(models.Model):
                              'date': date,
                              'ref': description,
                              'type': 'entry',
-                             # 'type_of_action':type_of_action,
+                             'type_of_action':self.sale_type,
                         })
                         new_account_move.post()
         elif 'POS' in self.origin :

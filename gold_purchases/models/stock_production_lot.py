@@ -2,9 +2,18 @@
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
+class assemblyDescriptionLot(models.Model):
+    """docstring for assemblyDescription."""
+    _name = 'assembly.description.lot'
+
+    product_id = fields.Many2one('product.product')
+    quantity = fields.Float()
+    lot_id = fields.Many2one('stock.production.lot')
+
 class StockProductionLot(models.Model):
     _inherit = 'stock.production.lot'
 
+    assembly_description = fields.One2many('assembly.description.lot','lot_id')
     gold = fields.Boolean(string="Gold", compute="_compute_gold_state")
     diamond = fields.Boolean(string="Diamond", compute="_compute_gold_state")
     assembly = fields.Boolean(string="assembly", compute="_compute_gold_state")

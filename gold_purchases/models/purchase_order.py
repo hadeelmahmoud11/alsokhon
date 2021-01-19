@@ -52,7 +52,7 @@ class assemblyComponentsDiamond(models.Model):
 class PurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
-    assembly_description = fields.Many2one('assembly.description')
+    assembly_description = fields.One2many('assembly.description','purchase_id')
     def action_view_assembly_operations(self):
         """ This function returns an action that display existing picking orders of given purchase order ids. When only one found, show the picking immediately.
         """
