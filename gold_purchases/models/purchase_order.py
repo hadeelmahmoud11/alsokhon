@@ -144,7 +144,7 @@ class PurchaseOrder(models.Model):
                             'move_lines': gold_move_lines,
                             'sale_type':sale_type,
                             'origin': location.name + ' - Assembly Gold Transfer'
-                        })#
+                        })
                 picking.action_confirm()
                 picking.action_assign()
                 for this in picking:
