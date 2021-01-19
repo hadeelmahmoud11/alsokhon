@@ -3,7 +3,7 @@ from odoo import api, fields, models, _
 from datetime import date , timedelta , datetime
 from odoo.exceptions import ValidationError,UserError
 
-class assemblyDescription(object):
+class assemblyDescription(models.Model):
     """docstring for assemblyDescription."""
     _name = 'assembly.description'
 
