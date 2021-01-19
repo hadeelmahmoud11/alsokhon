@@ -389,9 +389,9 @@ class PurchaseOrder(models.Model):
         })
         # read.gold
         # read.is_unfixed
-        if self.order_type.assembly  and self.order_type.assembly :
+        if self.order_type.is_unfixed:
             res.update({'purchase_type':'unfixed'})
-        elif self.order_type.assembly .gold and self.order_type.assembly .is_fixed:
+        elif self.order_type.is_fixed:
             res.update({'purchase_type':'fixed'})
         return res
 
