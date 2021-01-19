@@ -42,6 +42,7 @@
                             <field name="is_unfixed" attrs="{'invisible': [('is_fixed', '=', True)]}"/>
                             <field name="gold" />
                             <field name="diamond" />
+                            <field name="assembly" />
                             <field name="stock_picking_type_id" attrs="{'invisible': [('is_unfixed', '=', False)],'required': [('is_unfixed', '=', True)]}"/>
                         </group>
                         <group>

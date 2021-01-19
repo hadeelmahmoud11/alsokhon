@@ -11,6 +11,7 @@
                 <field name="is_unfixed" invisible="1"/>
                 <field name="gold" invisible="1"/>
                 <field name="diamond" invisible="1"/>
+                <field name="assembly" invisible="1"/>
             </field>
         </field>
     </record>
