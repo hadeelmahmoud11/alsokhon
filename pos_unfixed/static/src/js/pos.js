@@ -195,8 +195,8 @@ odoo.define('pos_unfixed.pos', function(require){
             if(id==1){
               order.order_type = 'retail';
               $(".unfixed_product").css({'display':'none'});
-              var prod = self.pos.db.get_product_by_id(562);
-              order.add_product(prod);
+              // var prod = self.pos.db.get_product_by_id(562);
+              // order.add_product(prod);
             }else {
               order.order_type = 'sale';
               $(".unfixed_product").css({'display':'block'});
