@@ -142,7 +142,7 @@ class PurchaseOrder(models.Model):
                             'picking_type_id':  self.order_type.assembly_picking_type_id.id,
                             'immediate_transfer': False,
                             'move_lines': gold_move_lines,
-                            'sale_type':sale_type,
+                            # 'sale_type':sale_type,
                             'origin': location.name + ' - Assembly Gold Transfer'
                         })
                 picking.action_confirm()
@@ -179,7 +179,7 @@ class PurchaseOrder(models.Model):
                             'picking_type_id':  self.order_type.assembly_picking_type_id.id,
                             'immediate_transfer': False,
                             'move_lines': scrap_move_lines,
-                            'sale_type':sale_type,
+                            # 'sale_type':sale_type,
                             'origin': location.name + ' - Assembly Scrap Transfer'
                         })
                 picking.action_confirm()
