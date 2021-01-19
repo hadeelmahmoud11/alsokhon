@@ -127,6 +127,7 @@
                                                   <td id="pure_weight">
                                                       <t t-esc="product_lot.pure_weight"/>
                                                   </td>
+
                                                   <td id="gold_rate">
                                                       <t t-esc="widget.pos.config.gold_rate" />
                                                   </td>

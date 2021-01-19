@@ -266,6 +266,8 @@ odoo.define('pos_lot_select.pos', function(require){
           renderElement:function(){
               this._super();
               var self = this;
+              console.log("((((((((self))))))))");
+              console.log(self);
               $.fn.setCursorToTextEnd = function() {
                   $initialVal = this.val();
                   this.val($initialVal + ' ');
@@ -382,11 +384,13 @@ odoo.define('pos_lot_select.pos', function(require){
                     }
 
                     // console.log(self.options);
-                    // if (self.options.is_return) {
-                    //   self.options.pack_lot_lines.models[0].quantity*=-1;
-                    //   self.options.order_line.quantity*=-1;
-                    //   self.options.order_line.quantityStr=String(self.options.order_line.quantity);
-                    // }
+                    if (self.options.order_line.product.is_unfixed) {
+                      self.options.pack_lot_lines.models[0].quantity*=-1;
+                      self.options.order_line.quantity*=-1;
+                      self.options.order_line.quantityStr=String(self.options.order_line.quantity);
+                    }
+
+                    
 
                     if (order_line.product.categ.is_scrap||order_line.product.categ.is_gold) {
                       self.change_price(self.pos.config.gold_rate,pure_weight);
@@ -434,6 +438,8 @@ odoo.define('pos_lot_select.pos', function(require){
                       $input = $(ev.target),
                       cid = $input.attr('cid'),
                       lot_name = $input.val();
+                      console.log("((pack_lot_lines))");
+                  console.log(pack_lot_lines);
 
                   var lot_model = pack_lot_lines.get({cid: cid});
                   lot_model.set_lot_name(lot_name);  // First set current model then add new one

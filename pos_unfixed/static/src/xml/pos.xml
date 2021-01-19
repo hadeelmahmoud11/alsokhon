@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+  <t t-extend="PaymentScreenWidget">
+      <t t-jquery='.payment-buttons' t-operation='append'>
+        <!-- <t t-if="widget.pos.get_order().order_type == 'sale'"> -->
+          <div class='button unfixed_product' style="display:none;">
+              <i class='fa fa-tag' role="img" aria-label="Customer" title="Unfixed"/>
+              Unfixed
+          </div>
+        </t>
+
+      <!-- </t> -->
+  </t>
+  <t t-name="TypeButton">
+		<div class='control-button '>
+			<i class='fa fa-tag' />
+      <!-- <t t-if="widget.pos.get_order().order_type">
+          <t t-esc="widget.pos.get_order().order_type" />
+      </t>
+      <t t-if="!widget.pos.get_order().order_type">
+           Order Type
+      </t> -->
+      <t t-esc='widget.get_current_type()'/>
+		</div>
+	</t>
+
+
+
+</templates>
