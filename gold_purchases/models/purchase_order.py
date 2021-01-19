@@ -18,7 +18,7 @@ class assemblyComponentsGold(models.Model):
 
     @api.onchange('gross_weight','purity')
     def compute_purity_pure(self):
-            this.pure_weight = this.gross_weight * (this.purity / 1000)
+            self.pure_weight = self.gross_weight * (self.purity / 1000)
     @api.onchange('lot_id')
     def getvalues(self):
         if self.product_id and self.lot_id:
