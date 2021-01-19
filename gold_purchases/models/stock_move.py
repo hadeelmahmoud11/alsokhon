@@ -29,22 +29,22 @@ class StockMove(models.Model):
 
     gold = fields.Boolean(string="Gold", compute="_compute_gold_state")
     diamond = fields.Boolean(string="Gold", compute="_compute_gold_state")
-    assemply = fields.Boolean(string="Assemply", compute="_compute_gold_state")
+    assembly = fields.Boolean(string="assembly", compute="_compute_gold_state")
     def _compute_gold_state(self):
         for this in self:
             if this.product_id.categ_id.is_gold:
                 this.gold = True
                 this.diamond = False
-                this.assemply = False
+                this.assembly = False
                 break
             elif this.product_id.categ_id.is_diamond:
                 this.gold = False
-                this.assemply = False
+                this.assembly = False
                 this.diamond = True
                 break
             else:
                 this.gold = False
-                this.assemply = True
+                this.assembly = True
                 this.diamond = False
     gross_weight = fields.Float(string='Gross Weight', digits=(16, 3))
     pure_weight = fields.Float('Pure Weight', digits=(16, 3))
@@ -98,28 +98,31 @@ class StockMove(models.Model):
                         # print(pol.d_make_value)
                         # print(pol.gold_value)
                         # print(pol.product_id.standard_price)
-                        # print(purchase_order.assemply_type)
-                        if purchase_order.assemply_type == 'just':
+                        # print(purchase_order.assembly_type)
+                        if purchase_order.assembly_no_giving:
                             # print("J")
                             # print(pol.price_unit + pol.d_make_value + pol.make_value)
                             # print("J")
                             svl_vals = move.product_id._prepare_in_svl_vals(
                                 pol.product_qty, pol.price_unit + pol.d_make_value )
-                        elif purchase_order.assemply_type == 'give_gold':
+                        elif purchase_order.assembly_give_gold:
                             # print("GG")
                             # print(pol.price_unit + pol.d_make_value + pol.make_value + pol.gold_value)
                             # print("GG")
                             svl_vals = move.product_id._prepare_in_svl_vals(
                                 pol.product_qty, pol.price_unit + pol.d_make_value  + pol.gold_value)
-                        elif purchase_order.assemply_type == 'give_diamond':
+                        elif purchase_order.assembly_give_diamond:
                             # print("GD")
                             # print(pol.price_unit)
                             # print(pol.d_make_value)
                             # print(pol.make_value)
                             # print(pol.product_id.standard_price)
                             # print("GD")
+                            diamond_price = 0.0
+                            for line in purchase_order.assembly_diamond_ids:
+                                diamond_price += line.product_id.standard_price * line.carat
                             svl_vals = move.product_id._prepare_in_svl_vals(
-                                pol.product_qty, pol.price_unit + pol.d_make_value  + pol.diamond_price)
+                                pol.product_qty, pol.price_unit + pol.d_make_value  + diamond_price)
             elif move.product_id.gold:
                 svl_vals = move.product_id._prepare_in_svl_vals(
                     move.pure_weight, move.gold_rate)

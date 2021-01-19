@@ -54,13 +54,18 @@ class StockPicking(models.Model):
                     #             line.lot_id.gross_weight -= line.product_uom_qty * line.gross_weight
                             # print(line.lot_id.gross_weight,line.lot_id.pure_weight)
                     rec.create_gold_journal_entry_sale()
-                if 'Assembly Gold Transfer' in rec.origin:
+                if 'Assembly Scrap Transfer' in rec.origin:
                     for line in rec.move_line_ids_without_package:
-                        if line.product_id.categ_id.is_diamond:
-                            line.lot_id.carat -= line.move_id.carat
-                        elif line.product_id.categ_id.is_scrap:
+                        if line.product_id.categ_id.is_scrap:
                             line.lot_id.gross_weight -= line.move_id.gross_weight
                     rec.create_gold_journal_entry_sale()
+                if 'Assembly Gold Transfer' in rec.origin:
+                    for line in rec.move_line_ids_without_package:
+                        if line.product_id.categ_id.is_gold:
+                            line.lot_id.gross_weight -= line.move_id.product_uom_qty * line.move_id.gross_weight
+                    rec.create_gold_journal_entry_sale()
+                if line.product_id.categ_id.is_diamond:
+                    line.lot_id.carat -= line.move_id.carat
             print(rec)
             print(rec.group_id)
             print(rec.group_id.name)
@@ -81,7 +86,7 @@ class StockPicking(models.Model):
     #
     def create_gold_journal_entry_sale(self):
         self.ensure_one()
-        if 'Assembly Gold Transfer' in self.origin:
+        if 'Assembly Gold Transfer' in self.origin or 'Assembly Scrap Transfer' in self.origin:
             # sale_obj = self.env['sale.order'].search([('name','=',self.origin)])
             moves = self.move_lines.filtered(lambda x: x._is_out() and
                                                         x.product_id and

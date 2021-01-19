@@ -6,19 +6,32 @@
           <field name="model">purchase.order</field>
           <field name="inherit_id" ref="purchase.purchase_order_form"/>
           <field name="arch" type="xml">
-            <field name="partner_id" position="after">
-              <field name="assemply_type" attrs="{'required':[('assembly','=',True)],'invisible':[('assembly','!=',True)]}"/>
-            </field>
+            <div name="button_box" position="inside">
+              <button type="object" name="action_view_assembly_operations" class="oe_stat_button" icon="fa-truck" attrs="{'invisible':['|', ('assembly_operations_count', '=', 0), ('state', 'in', ('draft','sent','to approve'))]}">
+                  <field name="assembly_operations_count" widget="statinfo" string="Assembly Operations"/>
+              </button>
+            </div>
               <page name="purchase_delivery_invoice" position="after">
-                <page string="Assembly Components" name="assembly_mrp" attrs="{'invisible':[('assemply_type','not in', ['give_gold','give_diamond'])]}">
-                  <field name="assembly_ids">
+                <page string="Assembly Gold Components" name="assembly_mrp_gold" attrs="{'invisible':[('assembly','!=', True)]}">
+                  <field name="assembly_gold_ids">
                     <tree editable="top">
                       <field name="product_id"/>
+                      <field name="location_id"/>
                       <field name="lot_id" domain="[('product_id','=',product_id)]"/>
-                      <field name="carat"/>
+                      <field name="product_uom_qty"/>
                       <field name="gross_weight"/>
                       <field name="pure_weight" readonly="1" force_save="1"/>
                       <field name="purity"/>
+                    </tree>
+                  </field>
+                </page>
+                <page string="Assembly Diamond Components" name="assembly_mrp_diamond" attrs="{'invisible':[('assembly','!=', True)]}">
+                  <field name="assembly_diamond_ids">
+                    <tree editable="top">
+                      <field name="product_id"/>
+                      <field name="location_id"/>
+                      <field name="lot_id" domain="[('product_id','=',product_id)]"/>
+                      <field name="carat"/>
                     </tree>
                   </field>
                 </page>
@@ -103,7 +116,7 @@
                     <field name="gold_rate" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=',True)]}" force_save="1"/>
                     <field name="gold_value"  attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=',True)]}" width="12%"/>
                     <field name="is_make_value"  width="10%"  invisible="1"/>
-                    <field name="diamond_price" attrs="{'column_invisible':[('parent.assemply_type','!=','give_diamond')]}"/>
+                    <!-- <field name="diamond_price" attrs="{'column_invisible':[('parent.assembly_type','!=','give_diamond')]}"/> -->
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="after">
                     <field name="carat" attrs="{'column_invisible':[('parent.diamond','!=',True),('parent.assembly','!=',True)]}" />

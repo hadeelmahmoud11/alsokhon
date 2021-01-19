@@ -7,22 +7,22 @@ class StockProductionLot(models.Model):
 
     gold = fields.Boolean(string="Gold", compute="_compute_gold_state")
     diamond = fields.Boolean(string="Diamond", compute="_compute_gold_state")
-    assemply = fields.Boolean(string="Assemply", compute="_compute_gold_state")
+    assembly = fields.Boolean(string="assembly", compute="_compute_gold_state")
     def _compute_gold_state(self):
         for this in self:
             if this.product_id.categ_id.is_gold:
                 this.gold = True
                 this.diamond = False
-                this.assemply = False
+                this.assembly = False
                 break
             elif this.product_id.categ_id.is_diamond:
                 this.gold = False
-                this.assemply = False
+                this.assembly = False
                 this.diamond = True
                 break
             else:
                 this.gold = False
-                this.assemply = True
+                this.assembly = True
                 this.diamond = False
 
     gross_weight = fields.Float(string="Gross Weight")
