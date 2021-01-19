@@ -116,9 +116,9 @@ class PurchaseOrder(models.Model):
             location_diamond_components = diamond_components.filtered(lambda x: x.location_id == location)
             if len(location_gold_components) > 0:
                 sale_type = ''
-                if line.purchase_gold_id.order_type.is_fixed:
+                if self.order_type.is_fixed:
                     sale_type = 'fixed'
-                elif line.purchase_gold_id.order_type.is_unfixed:
+                elif self.order_type.is_unfixed:
                     sale_type = 'unfixed'
                 for line in location_gold_components:
                     gold_move_lines.append((0, 0, {
