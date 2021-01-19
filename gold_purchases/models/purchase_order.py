@@ -12,19 +12,19 @@ class assemblyComponentsGold(models.Model):
     lot_id = fields.Many2one('stock.production.lot')
     product_uom_qty = fields.Float()
     gross_weight = fields.Float()
-    pure_weight = fields.Float(compute="compute_purity_pure")
-    purity = fields.Float(compute="compute_purity_pure")
+    pure_weight = fields.Float()
+    purity = fields.Float()
     purchase_gold_id = fields.Many2one('purchase.order')
 
     @api.onchange('gross_weight','purity')
     def compute_purity_pure(self):
         for this in self:
-            if this.lot_id:
-                # this.purity = this.lot_id.purity
-                this.pure_weight = this.gross_weight * (this.purity / 1000)
-            else:
-                this.purity = 0.00
-                this.pure_weight = 0.00
+            # if this.lot_id:
+            #     this.purity = this.lot_id.purity
+            this.pure_weight = this.gross_weight * (this.purity / 1000)
+            # else:
+            #     this.purity = 0.00
+            #     this.pure_weight = 0.00
     @api.onchange('lot_id')
     def getvalues(self):
         if self.product_id and self.lot_id:
