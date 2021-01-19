@@ -227,12 +227,8 @@ odoo.define('pos_unfixed.pos', function(require){
 
     var posorder_super = models.Order.prototype;
   	models.Order = models.Order.extend({
-
   		initialize: function(attr,options) {
-  			// console.log("PPPPPPPPPPPPPP");
-  			// console.log("PPPPPPPPPPPPPP");
   			var self = this;
-
   			this.order_type = 'retail';
   			posorder_super.initialize.call(this,attr,options);
   		},
@@ -246,73 +242,112 @@ odoo.define('pos_unfixed.pos', function(require){
 
   		init_from_JSON: function(json){
   			posorder_super.init_from_JSON.apply(this,arguments);
-  			this.order_type = json.order_type;
+  			// this.order_type = json.order_type;
   		},
   	});
 
 
-    var TypeButton = screens.ActionButtonWidget.extend({
-    	template: 'TypeButton',
-      init: function (parent, options) {
-          this._super(parent, options);
+    // var TypeButton = screens.ActionButtonWidget.extend({
+    // 	template: 'TypeButton',
+    //   init: function (parent, options) {
+    //       this._super(parent, options);
+    //
+    //       this.pos.get('orders').bind('add remove change', function () {
+    //           this.renderElement();
+    //       }, this);
+    //
+    //       this.pos.bind('change:selectedOrder', function () {
+    //           this.renderElement();
+    //       }, this);
+    //   },
+    // 	button_click: function(){
+    //     var self = this;
+    //     var list = [];
+    //     list.push({label:"Retail", item:1});
+    //     list.push({label:"Whole Sale", item:2});
+    //     var order = this.pos.get_order();
+    //     self.gui.show_popup('selection',{
+    //       title: 'Order Type',
+    //       list: list,
+    //       confirm: function (id) {
+    //         if(id==1){
+    //           order.order_type = 'retail';
+    //           $(".unfixed_product").css({'display':'none'});
+    //         }else {
+    //           order.order_type = 'sale';
+    //           $(".unfixed_product").css({'display':'block'});
+    //         }
+    //         order.trigger('change');
+    //       },
+    //
+    //     });
+    //
+    // 	},
+    //   get_current_type: function () {
+    //       var name = _t('Order Type');
+    //       var order = this.pos.get_order();
+    //
+    //       if (order) {
+    //           var order_type = order.order_type;
+    //
+    //           if (order_type=='retail') {
+    //               name = "Retail";
+    //           }else {
+    //             name = 'Whole Sale';
+    //           }
+    //       }
+    //        return name;
+    //   },
+    // });
+    //
+    // screens.define_action_button({
+    // 	'name': 'orderType',
+    // 	'widget': TypeButton,
+    // });
 
-          this.pos.get('orders').bind('add remove change', function () {
-              this.renderElement();
-          }, this);
 
-          this.pos.bind('change:selectedOrder', function () {
-              this.renderElement();
-          }, this);
-      },
+
+    var saleButton = screens.ActionButtonWidget.extend({
+    	template: 'saleButton',
     	button_click: function(){
         var self = this;
-        var list = [];
-        list.push({label:"Retail", item:1});
-        list.push({label:"Whole Sale", item:2});
         var order = this.pos.get_order();
-        self.gui.show_popup('selection',{
-          title: 'Order Type',
-          list: list,
-          confirm: function (id) {
-            if(id==1){
-              order.order_type = 'retail';
-              $(".unfixed_product").css({'display':'none'});
-              // var prod = self.pos.db.get_product_by_id(562);
-              // order.add_product(prod);
-            }else {
-              order.order_type = 'sale';
-              $(".unfixed_product").css({'display':'block'});
-
-            }
-
-            // console.log(order);
-            order.trigger('change');
-          },
-
-        });
-
+        order.order_type = 'sale';
+        $(".wSale_bt").css({'background': '#6EC89B'});
+        $(".retail_bt").css({'background':'fixed'});
     	},
-      get_current_type: function () {
-          var name = _t('Order Type');
-          var order = this.pos.get_order();
-
-          if (order) {
-              var order_type = order.order_type;
-
-              if (order_type=='retail') {
-                  name = "Retail";
-              }else {
-                name = 'Whole Sale';
-              }
-          }
-           return name;
-      },
-
     });
-
     screens.define_action_button({
-    	'name': 'orderType',
-    	'widget': TypeButton,
+    	'name': 'saleorderType',
+    	'widget': saleButton,
+    });
+    var retailButton = screens.ActionButtonWidget.extend({
+    	template: 'retailButton',
+    	button_click: function(){
+        var self = this;
+        var order = this.pos.get_order();
+        order.order_type = 'retail';
+        $(".retail_bt").css({'background': '#6EC89B'});
+        $(".wSale_bt").css({'background':'fixed'});
+    	},
+      // check_type: function () {
+      //     // var name = _t('Order Type');
+      //
+      //     var order = this.pos.get_order();
+      //     console.log(order);
+      //
+      //     if (order.order_type == 'sale') {
+      //       $(".wSale_bt").css({'background': '#6EC89B'});
+      //       $(".retail_bt").css({'background':'fixed'});
+      //     }else {
+      //       $(".retail_bt").css({'background': '#6EC89B'});
+      //       $(".wSale_bt").css({'background':'fixed'});
+      //     }
+      // },
+    });
+    screens.define_action_button({
+    	'name': 'retailorderType',
+    	'widget': retailButton,
     });
 
     //
