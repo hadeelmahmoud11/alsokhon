@@ -192,7 +192,7 @@ class StockPicking(models.Model):
                         new_account_move.post()
                         # if pos_obj:
                         #     pos_obj.write({'stock_move_id': new_account_move.id})
-        elif 'P0' in self.group_id.name:
+        elif self.group_id.name and 'P0' in self.group_id.name:
         # if 'P0' in self.group_id.name:
             purchase_obj = self.env['purchase.order'].search([('name','=',self.group_id.name)])
             moves = self.move_lines.filtered(lambda x: x._is_in() and
