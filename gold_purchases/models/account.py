@@ -159,12 +159,13 @@ class AccountMove(models.Model):
                     'type_of_action': 'unfixed',
                 })
                 new_account_move.post()
+                self.unfixing_move = new_account_move.id
 
     def create_gold_unfixing_entry_sale(self,stock_picking,value):
         self.ensure_one()
         # purchase_obj = self.env['purchase.order'].search([('name','=',purchase_order.name)])
         this = stock_picking
-        moves = this.move_lines.filtered(lambda x: x._is_in() and
+        moves = this.move_lines.filtered(lambda x: x._is_out() and
                                                    x.product_id and
                                                    x.product_id.gold and
                                                    x.product_id.categ_id and
@@ -192,6 +193,7 @@ class AccountMove(models.Model):
                     'type_of_action': 'unfixed',
                 })
                 new_account_move.post()
+                self.unfixing_move = new_account_move.id
 
 
     def _prepare_account_move_line_unfixing(self, gold_on_hand_account_id,gold_fixing_account_id,value):
@@ -273,11 +275,12 @@ class AccountMove(models.Model):
                     'type_of_action': 'fixed',
                 })
                 new_account_move.post()
+                self.fixing_move = new_account_move.id
     def create_gold_fixing_entry_sale(self,stock_picking,value):
         self.ensure_one()
         # purchase_obj = self.env['purchase.order'].search([('name','=',purchase_order.name)])
         this = stock_picking
-        moves = this.move_lines.filtered(lambda x: x._is_in() and
+        moves = this.move_lines.filtered(lambda x: x._is_out() and
                                                    x.product_id and
                                                    x.product_id.gold and
                                                    x.product_id.categ_id and
@@ -305,6 +308,7 @@ class AccountMove(models.Model):
                     'type_of_action': 'fixed',
                 })
                 new_account_move.post()
+                self.fixing_move = new_account_move.id
 
 
     def _prepare_account_move_line_fixing(self, gold_on_hand_account_id,gold_fixing_account_id,value):
@@ -385,6 +389,8 @@ class AccountMove(models.Model):
             this.unfixed_fixed_paid = this.unfixed_fixed_value - this.unfixed_fixed_remain
     unfixed_fixed_remain = fields.Float('Unfixed -> Fixed Remaining', digits=(16, 3))
     fixed_not_paid = fields.Boolean(default=True)
+    fixing_move = fields.Many2one('account.move')
+    unfixing_move = fields.Many2one('account.move')
 
     # compute="compute_unfixed_fixed_remain"
 

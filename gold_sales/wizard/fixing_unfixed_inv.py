@@ -10,8 +10,14 @@ class fixing_unfixed_inv(models.Model):
     _name = 'fixing.unfixed.inv'
     _description = 'Fixing Unfixed inv'
 
-    value = fields.Float()
-    gold_rate = fields.Float()
+    remaining_gold = fields.Float(string="Remaining Pure Wt", digits=(16, 3), compute="_compute_remainin_gold")
+    def _compute_remainin_gold(self):
+        for this in self:
+            if this._context.get('active_id',False):
+                account_move = self.env['account.move'].browse(this._context.get('active_id'))
+                this.remaining_gold = account_move.pure_wt_value
+    value = fields.Float(string="To Convert Pure Wt")
+    gold_rate = fields.Float(string="Gold Rate")
 
     @api.onchange('value')
     def check_limit(self):
