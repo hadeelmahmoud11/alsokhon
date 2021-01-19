@@ -3,6 +3,14 @@ from odoo import api, fields, models, _
 from datetime import date , timedelta , datetime
 from odoo.exceptions import ValidationError,UserError
 
+class assemblyDescription(object):
+    """docstring for assemblyDescription."""
+    _name = 'assembly.description'
+
+    product_id = fields.Many2one('product.product')
+    quantity = fields.Float()
+    purchase_id = fields.Many2one('purchase.order')
+
 class assemblyComponentsGold(models.Model):
     """Assembly Details."""
     _name = 'assembly.component.gold'
@@ -44,6 +52,7 @@ class assemblyComponentsDiamond(models.Model):
 class PurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
+    assembly_description = fields.Many2one('assembly.description')
     def action_view_assembly_operations(self):
         """ This function returns an action that display existing picking orders of given purchase order ids. When only one found, show the picking immediately.
         """

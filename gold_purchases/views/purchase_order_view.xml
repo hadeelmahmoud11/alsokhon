@@ -12,6 +12,14 @@
               </button>
             </div>
               <page name="purchase_delivery_invoice" position="after">
+                <page string="Assembly Description" name="assembly_mrp_details" attrs="{'invisible':[('assembly','!=', True)]}">
+                  <field name="assembly_description">
+                    <tree editable="top">
+                      <field name="product_id"/>
+                      <field name="quantity"/>
+                    </tree>
+                  </field>
+                </page>
                 <page string="Assembly Gold Components" name="assembly_mrp_gold" attrs="{'invisible':[('assembly','!=', True)]}">
                   <field name="assembly_gold_ids">
                     <tree editable="top">
