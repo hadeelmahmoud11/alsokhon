@@ -51,50 +51,38 @@ odoo.define('pos_unfixed.pos', function(require){
     //         self.list_lot_num = list_lot_num;
     //     },
     // });
-    // var OrderlineSuper = models.Orderline;
-    // models.Orderline = models.Orderline.extend({
-    //     set_product_lot: function(product){
-    //         this.has_product_lot = product.tracking !== 'none' && this.pos.config.use_existing_lots;
-    //         this.pack_lot_lines  = this.has_product_lot && new PacklotlineCollection2(null, {'order_line': this});
-    //     },
-    //     export_for_printing: function(){
-    //         var pack_lot_ids = [];
-    //         if (this.has_product_lot){
-    //             this.pack_lot_lines.each(_.bind( function(item) {
-    //                 return pack_lot_ids.push(item.export_as_JSON());
-    //             }, this));
-    //         }
-    //         var data = OrderlineSuper.prototype.export_for_printing.apply(this, arguments);
-    //         data.pack_lot_ids = pack_lot_ids;
-    //         return data;
-    //     },
-    //
-    //     get_order_line_lot:function(){
-    //         var pack_lot_ids = [];
-    //         if (this.has_product_lot){
-    //             this.pack_lot_lines.each(_.bind( function(item) {
-    //                 return pack_lot_ids.push(item.export_as_JSON());
-    //             }, this));
-    //         }
-    //         return pack_lot_ids;
-    //     },
-    //     get_required_number_of_lots: function(){
-    //         var lots_required = 1;
-    //
-    //         if (this.product.tracking == 'serial' || this.product.tracking == 'lot') {
-    //             lots_required = this.quantity;
-    //         }
-    //
-    //         return lots_required;
-    // },
-    //
-    //
-    // });
+    var OrderlineSuper = models.Orderline.prototype;
+    models.Orderline = models.Orderline.extend({
+        initialize: function(attr,options) {
+    			var self = this;
+    			this.is_unfixed = false;
+    			OrderlineSuper.initialize.call(this,attr,options);
+    		},
+
+        export_for_printing: function(){
+            var data = OrderlineSuper.export_for_printing.apply(this, arguments);
+            data.is_unfixed = this.is_unfixed|| false;
+            return data;
+        },
+        init_from_JSON: function(json) {
+            OrderlineSuper.init_from_JSON.apply(this,arguments);
+            this.is_unfixed = json.is_unfixed;
+        },
+        export_as_JSON: function() {
+          var loaded = OrderlineSuper.export_as_JSON.apply(this, arguments);
+          loaded.is_unfixed = this.is_unfixed || false;
+          // this.order_type = 'retail';
+          return loaded;
+        },
+    });
     screens.PaymentScreenWidget.include({
       init: function(parent, options) {
           var self = this;
+          // console.log(this._super(parent, options));
+
           this._super(parent, options);
-          console.log("sadsdad");
+          // console.log("sadsdad");
+          // console.log(this._super(parent, options));
 
           this.pos.bind('change:selectedOrder',function(){
                   this.renderElement();
@@ -114,58 +102,58 @@ odoo.define('pos_unfixed.pos', function(require){
           // // doing a back navigation. It also makes sure that keys that
           // // do not generate a keypress in Chrom{e,ium} (eg. delete,
           // // backspace, ...) get passed to the keypress handler.
-          // this.keyboard_keydown_handler = function(event){
-          //     if (event.keyCode === 8 || event.keyCode === 46) { // Backspace and Delete
-          //         event.preventDefault();
-          //
-          //         // These do not generate keypress events in
-          //         // Chrom{e,ium}. Even if they did, we just called
-          //         // preventDefault which will cancel any keypress that
-          //         // would normally follow. So we call keyboard_handler
-          //         // explicitly with this keydown event.
-          //         self.keyboard_handler(event);
-          //     }
-          // };
+          this.keyboard_keydown_handler = function(event){
+              // if (event.keyCode === 8 || event.keyCode === 46) { // Backspace and Delete
+              //     event.preventDefault();
+              //
+              //     // These do not generate keypress events in
+              //     // Chrom{e,ium}. Even if they did, we just called
+              //     // preventDefault which will cancel any keypress that
+              //     // would normally follow. So we call keyboard_handler
+              //     // explicitly with this keydown event.
+              //     self.keyboard_handler(event);
+              // }
+          };
           //
           // // This keyboard handler listens for keypress events. It is
           // // also called explicitly to handle some keydown events that
           // // do not generate keypress events.
-          // this.keyboard_handler = function(event){
-          //     // On mobile Chrome BarcodeEvents relies on an invisible
-          //     // input being filled by a barcode device. Let events go
-          //     // through when this input is focused.
-          //     if (BarcodeEvents.$barcodeInput && BarcodeEvents.$barcodeInput.is(":focus")) {
-          //         return;
-          //     }
-          //
-          //     var key = '';
-          //
-          //     if (event.type === "keypress") {
-          //         if (event.keyCode === 13) { // Enter
-          //             self.validate_order();
-          //         } else if ( event.keyCode === 190 || // Dot
-          //                     event.keyCode === 110 ||  // Decimal point (numpad)
-          //                     event.keyCode === 44 ||  // Comma
-          //                     event.keyCode === 46 ) {  // Numpad dot
-          //             key = self.decimal_point;
-          //         } else if (event.keyCode >= 48 && event.keyCode <= 57) { // Numbers
-          //             key = '' + (event.keyCode - 48);
-          //         } else if (event.keyCode === 45) { // Minus
-          //             key = '-';
-          //         } else if (event.keyCode === 43) { // Plus
-          //             key = '+';
-          //         }
-          //     } else { // keyup/keydown
-          //         if (event.keyCode === 46) { // Delete
-          //             key = 'CLEAR';
-          //         } else if (event.keyCode === 8) { // Backspace
-          //             key = 'BACKSPACE';
-          //         }
-          //     }
-          //
-          //     self.payment_input(key);
-          //     event.preventDefault();
-          // };
+          this.keyboard_handler = function(event){
+              // On mobile Chrome BarcodeEvents relies on an invisible
+              // input being filled by a barcode device. Let events go
+              // through when this input is focused.
+              // if (BarcodeEvents.$barcodeInput && BarcodeEvents.$barcodeInput.is(":focus")) {
+              //     return;
+              // }
+              //
+              // var key = '';
+              //
+              // if (event.type === "keypress") {
+              //     if (event.keyCode === 13) { // Enter
+              //         self.validate_order();
+              //     } else if ( event.keyCode === 190 || // Dot
+              //                 event.keyCode === 110 ||  // Decimal point (numpad)
+              //                 event.keyCode === 44 ||  // Comma
+              //                 event.keyCode === 46 ) {  // Numpad dot
+              //         key = self.decimal_point;
+              //     } else if (event.keyCode >= 48 && event.keyCode <= 57) { // Numbers
+              //         key = '' + (event.keyCode - 48);
+              //     } else if (event.keyCode === 45) { // Minus
+              //         key = '-';
+              //     } else if (event.keyCode === 43) { // Plus
+              //         key = '+';
+              //     }
+              // } else { // keyup/keydown
+              //     if (event.keyCode === 46) { // Delete
+              //         key = 'CLEAR';
+              //     } else if (event.keyCode === 8) { // Backspace
+              //         key = 'BACKSPACE';
+              //     }
+              // }
+              //
+              // self.payment_input(key);
+              // event.preventDefault();
+          };
 
           //__this
 
@@ -204,6 +192,7 @@ odoo.define('pos_unfixed.pos', function(require){
 
                   prod.is_unfixed=true;
                   order.add_product(prod);
+                  order.get_selected_orderline().is_unfixed=true;
                   // console.log(order.get_selected_orderline());
 
                   // if (prod.tracking!=='none') {
