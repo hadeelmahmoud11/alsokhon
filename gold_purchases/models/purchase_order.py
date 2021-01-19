@@ -133,7 +133,6 @@ class PurchaseOrder(models.Model):
                             'pure_weight': line.pure_weight,
                             'purity': line.purity,
                             'lot_id':line.lot_id.id,
-                            'sale_type':sale_type,
                             'origin': location.name + ' - Assembly Gold Transfer'
                             }))
                 picking = self.env['stock.picking'].create({
@@ -143,6 +142,7 @@ class PurchaseOrder(models.Model):
                             'picking_type_id':  self.order_type.assembly_picking_type_id.id,
                             'immediate_transfer': False,
                             'move_lines': gold_move_lines,
+                            'sale_type':sale_type,
                             'origin': location.name + ' - Assembly Gold Transfer'
                         })
                 picking.action_confirm()
@@ -153,9 +153,9 @@ class PurchaseOrder(models.Model):
                 picking.assembly_purchase_id = self.id
             if len(location_scrap_components) > 0:
                 sale_type = ''
-                if line.purchase_gold_id.order_type.is_fixed:
+                if self.order_type.is_fixed:
                     sale_type = 'fixed'
-                elif line.purchase_gold_id.order_type.is_unfixed:
+                elif self.order_type.is_unfixed:
                     sale_type = 'unfixed'
                 for line in scrap_move_lines:
                     scrap_move_lines.append((0, 0, {
@@ -170,7 +170,6 @@ class PurchaseOrder(models.Model):
                             'pure_weight': line.pure_weight,
                             'purity': line.purity,
                             'lot_id':line.lot_id.id,
-                            'sale_type':sale_type,
                             'origin': location.name + ' - Assembly Scrap Transfer'
                             }))
                 picking = self.env['stock.picking'].create({
@@ -180,6 +179,7 @@ class PurchaseOrder(models.Model):
                             'picking_type_id':  self.order_type.assembly_picking_type_id.id,
                             'immediate_transfer': False,
                             'move_lines': scrap_move_lines,
+                            'sale_type':sale_type,
                             'origin': location.name + ' - Assembly Scrap Transfer'
                         })
                 picking.action_confirm()
