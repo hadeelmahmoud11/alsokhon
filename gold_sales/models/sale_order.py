@@ -939,9 +939,9 @@ class StockRule(models.Model):
                             'period_uom_id': sale_order.period_uom_id and sale_order.period_uom_id.id or False
                         }))
                     if sale_order.order_type.gold and sale_order.order_type.is_unfixed:
-                        picking_id.update({'sale_type':'unfixed'})
+                        picking_id.write({'sale_type':'unfixed'})
                     elif sale_order.order_type.gold and sale_order.order_type.is_fixed:
-                        picking_id.update({'sale_type':'fixed'})
+                        picking_id.write({'sale_type':'fixed'})
                     for sol in sale_order.order_line:
                         for move in moves:
                             if sol.product_id.id == move.product_id.id:
