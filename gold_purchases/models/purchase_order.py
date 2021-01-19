@@ -111,17 +111,15 @@ class PurchaseOrder(models.Model):
 
         internal_locations = self.env['stock.location'].search([('usage','=','internal')])
         for location in internal_locations:
-            print(location)
             location_gold_components = gold_components.filtered(lambda x: x.location_id == location)
             location_scrap_components = scrap_components.filtered(lambda x: x.location_id == location)
             location_diamond_components = diamond_components.filtered(lambda x: x.location_id == location)
-            print(location_gold_components)
-            print(location_scrap_components)
-            print(location_diamond_components)
-            print(len(location_gold_components))
-            print(len(location_scrap_components))
-            print(len(location_diamond_components))
             if len(location_gold_components) > 0:
+                sale_type = ''
+                if line.purchase_gold_id.order_type.is_fixed:
+                    sale_type = 'fixed'
+                elif line.purchase_gold_id.order_type.is_unfixed:
+                    sale_type = 'unfixed'
                 for line in location_gold_components:
                     gold_move_lines.append((0, 0, {
                             'name': "assembly move",
@@ -135,6 +133,7 @@ class PurchaseOrder(models.Model):
                             'pure_weight': line.pure_weight,
                             'purity': line.purity,
                             'lot_id':line.lot_id.id,
+                            'sale_type':sale_type,
                             'origin': location.name + ' - Assembly Gold Transfer'
                             }))
                 picking = self.env['stock.picking'].create({
@@ -153,6 +152,11 @@ class PurchaseOrder(models.Model):
                         this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
                 picking.assembly_purchase_id = self.id
             if len(location_scrap_components) > 0:
+                sale_type = ''
+                if line.purchase_gold_id.order_type.is_fixed:
+                    sale_type = 'fixed'
+                elif line.purchase_gold_id.order_type.is_unfixed:
+                    sale_type = 'unfixed'
                 for line in scrap_move_lines:
                     scrap_move_lines.append((0, 0, {
                             'name': "assembly move",
@@ -166,6 +170,7 @@ class PurchaseOrder(models.Model):
                             'pure_weight': line.pure_weight,
                             'purity': line.purity,
                             'lot_id':line.lot_id.id,
+                            'sale_type':sale_type,
                             'origin': location.name + ' - Assembly Scrap Transfer'
                             }))
                 picking = self.env['stock.picking'].create({
