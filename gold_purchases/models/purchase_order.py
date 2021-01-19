@@ -115,7 +115,7 @@ class PurchaseOrder(models.Model):
             location_scrap_components = scrap_components.filtered(lambda x: x.location_id == location)
             location_diamond_components = diamond_components.filtered(lambda x: x.location_id == location)
             if len(location_gold_components) > 0:
-                sale_type = ''
+                sale_type = ""
                 if self.order_type.is_fixed:
                     sale_type = 'fixed'
                 elif self.order_type.is_unfixed:
@@ -152,7 +152,7 @@ class PurchaseOrder(models.Model):
                         this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
                 picking.assembly_purchase_id = self.id
             if len(location_scrap_components) > 0:
-                sale_type = ''
+                sale_type = ""
                 if self.order_type.is_fixed:
                     sale_type = 'fixed'
                 elif self.order_type.is_unfixed:
