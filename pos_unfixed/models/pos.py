@@ -119,7 +119,7 @@ _logger = logging.getLogger(__name__)
 class PosOrder(models.Model):
     _inherit = "pos.order"
 
-    order_type = fields.Selection([('sale', "Hole Sale"),('retail', "Retail")], string='Order Type', default='retail')
+    order_type = fields.Selection([('sale', "Whole Sale"),('retail', "Retail")], string='Order Type', default='retail')
 
     @api.model
     def _order_fields(self, ui_order):
