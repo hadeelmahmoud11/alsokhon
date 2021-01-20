@@ -31,12 +31,12 @@
             <field name="context" eval="{'model': 'account.general.ledger','gold': 'gold_fixed_position'}" />
         </record>
 
-        <menuitem id="menu_action_account_report_gold_fixed_general_ledger"
-            action="action_account_report_gold_fixed_general_ledger"
-            name="Gold Fixing Position"
-            parent="account.account_reports_management_menu"
-            groups="account.group_account_user"
-            sequence="3"/>
+<!--        <menuitem id="menu_action_account_report_gold_fixed_general_ledger"-->
+<!--            action="action_account_report_gold_fixed_general_ledger"-->
+<!--            name="Gold Fixing Position"-->
+<!--            parent="account.account_reports_management_menu"-->
+<!--            groups="account.group_account_user"-->
+<!--            sequence="3"/>-->
 
 
 
