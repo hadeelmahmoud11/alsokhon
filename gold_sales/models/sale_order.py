@@ -14,16 +14,41 @@ from odoo.exceptions import UserError,ValidationError
 import logging
 _logger = logging.getLogger(__name__)
 
+class DetailsAssembly(models.Model):
+    """docstring for DetailsAssembly."""
+    _name = 'details.assembly'
+
+    product_id = fields.Many2one('product.product')
+    quantity = fields.Float()
+    sale_id = fields.Many2one('sale.order')
+    sol_product = fields.Many2one('product.product')
+
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
     order_category = fields.Selection([('whole_sale','Whole-sale'),('retail','Retail')])
+    details_assembly = fields.One2many('details.assembly','sale_id')
+
+
 
 
 
     @api.model
     def create(self, values):
+
         res = super(SaleOrder, self).create(values)
+        list_assebnly = []
+        for line in res.order_line:
+            if line.lot_id and line.product_id.categ_id.is_assembly:
+                list_assebnly = []
+                for det in line.lot_id.assembly_description:
+                    list_assebnly.append((0,0,{
+                    'product_id':det.product_id.id,
+                    'quantity':det.quantity,
+                    'sale_id':line.order_id.id,
+                    'sol_product':line.product_id.id,
+                    }))
+        res.write({'details_assembly':list_assebnly})
         total_make_rate = 0
         total_qty = 0
         product_charge_gold_list = []
@@ -32,6 +57,9 @@ class SaleOrder(models.Model):
             if line.product_id and line.product_id.categ_id.is_gold:
                 product_charge_gold_list.append(line.product_id.making_charge_id.id)
             elif line.product_id and line.product_id.categ_id.is_diamond:
+                product_charge_diamond_list.append(line.product_id.making_charge_diamond_id.id)
+            else:
+                product_charge_gold_list.append(line.product_id.making_charge_id.id)
                 product_charge_diamond_list.append(line.product_id.making_charge_diamond_id.id)
         done_gold_product = []
         total_charge_gold = []
@@ -104,7 +132,22 @@ class SaleOrder(models.Model):
         return res
 
     def write(self, values):
+        for dde in self.details_assembly:
+            dde.unlink()
+        list_assebnly = []
+        for line in self.order_line:
+            if line.lot_id and line.product_id.categ_id.is_assembly:
+                list_assebnly = []
+                for det in line.lot_id.assembly_description:
+                    list_assebnly.append((0,0,{
+                    'product_id':det.product_id.id,
+                    'quantity':det.quantity,
+                    'sale_id':line.order_id.id,
+                    'sol_product':line.product_id.id,
+                    }))
+        values['details_assembly'] = list_assebnly
         res = super(SaleOrder, self).write(values)
+
         making_order_line = self.env['sale.order.line'].search([('order_id','=',self.id),('is_make_value','=',True)])
         if self.state not in  ['done','sale']:
             if making_order_line:
@@ -117,6 +160,9 @@ class SaleOrder(models.Model):
                 if line.product_id and line.product_id.categ_id.is_gold:
                     product_charge_gold_list.append(line.product_id.making_charge_id.id)
                 elif line.product_id and line.product_id.categ_id.is_diamond:
+                    product_charge_diamond_list.append(line.product_id.making_charge_diamond_id.id)
+                else:
+                    product_charge_gold_list.append(line.product_id.making_charge_id.id)
                     product_charge_diamond_list.append(line.product_id.making_charge_diamond_id.id)
             done_gold_product = []
             total_charge_gold = []
@@ -273,6 +319,9 @@ class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
 
+
+
+
     def _prepare_procurement_values(self, group_id=False):
         values = super(SaleOrderLine, self)._prepare_procurement_values(group_id)
         print("================================================================")
@@ -353,10 +402,10 @@ class SaleOrderLine(models.Model):
 
     def _compute_total_with_make(self):
         for this in self:
-            if this.product_id.is_making_charges:
+            if this.product_id.is_making_charges or this.product_id.is_diamond_making_charges:
                 this.total_with_make = 0.0
             else:
-                this.total_with_make = this.price_subtotal +this.make_value
+                this.total_with_make = this.price_subtotal +this.make_value + this.d_make_value
     @api.onchange('purity_hall','product_uom_qty')
     def onchange_purity_hall(self):
         for rec in self:
@@ -461,8 +510,13 @@ class SaleOrderLine(models.Model):
                 rec.gold_value = rec.gold_rate and (
                         rec.total_pure_weight * rec.gold_rate) or 0
             else:
-                rec.gold_rate = 0.00
-                rec.gold_value = 0.00
+                if rec.order_id.assembly:
+                    rec.gold_rate = rec.order_id.gold_rate / 1000.000000000000
+                    rec.gold_value = rec.gold_rate and (
+                            rec.total_pure_weight * rec.gold_rate) or 0
+                else:
+                    rec.gold_rate = 0.00
+                    rec.gold_value = 0.00
             if rec.product_id.categ_id.is_scrap:
                 rec.total_gross_wt = rec.gross_wt
             else:

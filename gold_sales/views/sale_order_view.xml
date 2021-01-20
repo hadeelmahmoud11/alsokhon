@@ -19,6 +19,18 @@
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
+              <page name="other_information" position="after">
+                <page name="details_assembly" string="Assembly Products Description">
+                  <field name="details_assembly">
+                    <tree>
+                      <field name="product_id"/>
+                      <field name="quantity"/>
+                      <field name="sale_id"/>
+                      <field name="sol_product"/>
+                    </tree>
+                  </field>
+                </page>
+              </page>
               <field name="partner_id" position="after">
                 <field name="order_category" requiered="1"/>
               </field>
@@ -69,43 +81,43 @@
                 </field>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="after">
                     <field name="scrap_state_read" invisible="1"/>
-                    <field name="gross_wt" width="12%" force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                    <field name="total_gross_wt" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                    <field name="received_gross_wt" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                    <field name="purity_id" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                    <field name="pure_wt" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                    <field name="purity_hall" width="10%" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                    <field name="purity_diff" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                    <field name="stock" width="10%" invisible="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                    <field name="make_rate" width="15%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                    <field name="make_value" width="12%"   force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                    <field name="gold_rate" width="12%"   force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                    <field name="gold_value" width="12%"   force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
+                    <field name="gross_wt" width="12%" force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                    <field name="total_gross_wt" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                    <field name="received_gross_wt" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                    <field name="purity_id" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                    <field name="pure_wt" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                    <field name="purity_hall" width="10%" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                    <field name="purity_diff" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                    <field name="stock" width="10%" invisible="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                    <field name="make_rate" width="15%"  force_save="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)],'readonly':[('parent.order_category','=','retail')]}"/>
+                    <field name="make_value" width="12%"   force_save="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}" readonly="1"/>
+                    <field name="gold_rate" width="12%"   force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                    <field name="gold_value" width="12%"   force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
                     <field name="is_make_value"  width="10%"  invisible="1"/>
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom']" position="after">
-                    <field name="carat" attrs="{'column_invisible':[('parent.diamond','!=',True)]}" />
-                    <field name="d_make_value" attrs="{'column_invisible':[('parent.diamond','!=',True)]}"/>
+                    <field name="carat" attrs="{'column_invisible':[('parent.diamond','!=',True),('parent.assembly','!=', True)]}" />
+                    <field name="d_make_value" attrs="{'column_invisible':[('parent.diamond','!=',True),('parent.assembly','!=', True)]}"/>
                 </xpath>
                 <xpath expr="//form/sheet/notebook/page/field[@name='order_line']/form/group/group/div[@name='ordered_qty']"
                        position="after">
                        <field name="scrap_state_read" invisible="1"/>
-                       <field name="gross_wt" width="12%" force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                       <field name="total_gross_wt" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                       <field name="received_gross_wt" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                       <field name="purity_id" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                       <field name="pure_wt" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                       <field name="purity_hall" width="10%" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                       <field name="purity_diff" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                       <field name="stock" width="10%" invisible="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                       <field name="make_rate" width="15%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                       <field name="make_value" width="12%"   force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                       <field name="gold_rate" width="12%"   force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
-                       <field name="gold_value" width="12%"   force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True)]}"/>
+                       <field name="gross_wt" width="12%" force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                       <field name="total_gross_wt" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                       <field name="received_gross_wt" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                       <field name="purity_id" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                       <field name="pure_wt" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                       <field name="purity_hall" width="10%" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                       <field name="purity_diff" width="10%"  force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                       <field name="stock" width="10%" invisible="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                       <field name="make_rate" width="15%"  force_save="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)],'readonly':[('parent.order_category','=','retail')]}"/>
+                       <field name="make_value" width="12%"   force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                       <field name="gold_rate" width="12%"   force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
+                       <field name="gold_value" width="12%"   force_save="1" readonly="1" attrs="{'column_invisible':[('parent.gold','!=',True),('parent.assembly','!=', True)]}"/>
                        <field name="is_make_value"  width="10%"  invisible="1"/>
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='price_unit']" position="attributes">
-                    <attribute name="attrs">{'readonly': ['|','|',('is_make_value', '=', True),('parent.is_gold_fixed', '=', True)]}</attribute>
+                    <attribute name="attrs">{'readonly': [('parent.assembly','!=',True)]}</attribute>
                     <attribute name="force_save">1</attribute>
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="attributes">

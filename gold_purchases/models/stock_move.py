@@ -335,7 +335,18 @@ class StockMoveLine(models.Model):
             'sub_category_id':res.sub_category_id.id,
             'selling_karat_id':res.selling_karat_id.id,
             })
-        elif res.lot_id.product_id and res.lot_id.product_id.categ_id.is_assembly:
+        elif res.lot_id.product_id and res.lot_id.product_id.categ_id.is_gold:
+            res.lot_id.write({
+            'gross_weight': res.gross_weight,
+            'purity': res.purity,
+            'selling_making_charge':res.selling_making_charge,
+            'pure_weight':res.pure_weight,
+            'item_category_id':res.item_category_id.id,
+            'sub_category_id':res.sub_category_id.id,
+            'selling_karat_id':res.selling_karat_id.id,
+            })
+        elif res.lot_id.product_id and res.lot_id.product_id.categ_id.is_assembly and res.move_id._is_in():
+            print("^^^^^^^^^^^^^^^^^^^^^")
             assembly_description = []
             if res.move_id.origin and 'P0' in res.move_id.origin:
                 purchase_obj = self.env['purchase.order'].search([('name','=',res.move_id.origin)])

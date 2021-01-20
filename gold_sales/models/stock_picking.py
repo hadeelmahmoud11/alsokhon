@@ -36,8 +36,11 @@ class StockPicking(models.Model):
                         for line in rec.move_line_ids_without_package:
                             if line.product_id.categ_id.is_scrap:
                                 line.lot_id.gross_weight -= line.move_id.product_uom_qty
-                            else:
+                            elif line.product_id.categ_id.is_gold:
                                 line.lot_id.gross_weight -= line.move_id.product_uom_qty * line.move_id.gross_weight
+                            elif line.product_id.categ_id.is_assembly:
+                                line.lot_id.gross_weight -= line.move_id.product_uom_qty * line.move_id.gross_weight
+                                line.lot_id.carat -= line.move_id.carat
                         rec.create_gold_journal_entry_sale()
                 if 'POS' in rec.origin:
                     # print("self.move_line_ids_without_package")
