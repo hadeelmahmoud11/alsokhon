@@ -185,14 +185,13 @@ odoo.define('pos_unfixed.pos', function(require){
       					title: 'Unfixed Product',
       					list: list,
       					confirm: function (product_id) {
-                  console.log(product_id);
 
                   var prod = self.pos.db.get_product_by_id(product_id);
                   var order = self.pos.get_order();
 
-                  prod.is_unfixed=true;
-                  order.add_product(prod);
-                  order.get_selected_orderline().is_unfixed=true;
+                  // prod.is_unfixed=true;
+                  order.add_product(prod,{is_unfixed:true});
+                  // order.get_selected_orderline().is_unfixed=true;
                   // console.log(order.get_selected_orderline());
 
                   // if (prod.tracking!=='none') {
@@ -235,7 +234,6 @@ odoo.define('pos_unfixed.pos', function(require){
         //     }
   			// });
         // order.orderlines = orderlines;
-        console.log(order);
         this._super();
 
         // order.orderLines
@@ -257,6 +255,88 @@ odoo.define('pos_unfixed.pos', function(require){
   			this.order_type = 'retail';
   			posorder_super.initialize.call(this,attr,options);
   		},
+      add_product: function(product, options){
+          if(this._printed){
+              this.destroy();
+              return this.pos.get_order().add_product(product, options);
+          }
+          this.assert_editable();
+          options = options || {};
+          var attr = JSON.parse(JSON.stringify(product));
+          attr.pos = this.pos;
+          attr.order = this;
+          var line = new models.Orderline({}, {pos: this.pos, order: this, product: product});
+          this.fix_tax_included_price(line);
+
+          if(options.extras !== undefined){
+              for (var prop in options.extras) {
+                  line[prop] = options.extras[prop];
+              }
+          }
+
+          if(options.quantity !== undefined){
+              line.set_quantity(options.quantity);
+          }
+
+          if(options.price !== undefined){
+              line.set_unit_price(options.price);
+              this.fix_tax_included_price(line);
+          }
+
+          if(options.lst_price !== undefined){
+              line.set_lst_price(options.lst_price);
+          }
+
+          if(options.discount !== undefined){
+              line.set_discount(options.discount);
+          }
+          if(options.is_unfixed){
+            line.is_unfixed=true;
+          }else {
+            line.is_unfixed=false;
+          }
+
+          var to_merge_orderline;
+          for (var i = 0; i < this.orderlines.length; i++) {
+              if(this.orderlines.at(i).can_be_merged_with(line) && options.merge !== false){
+                  to_merge_orderline = this.orderlines.at(i);
+              }
+          }
+          if (to_merge_orderline){
+              to_merge_orderline.merge(line);
+              this.select_orderline(to_merge_orderline);
+          } else {
+              this.orderlines.add(line);
+              this.select_orderline(this.get_last_orderline());
+          }
+
+          if(line.has_product_lot){
+              this.display_lot_popup();
+          }
+          if (this.pos.config.iface_customer_facing_display) {
+              this.pos.send_current_order_to_customer_facing_display();
+          }
+      },
+      // add_product: function(product, options){
+      //     posorder_super.add_product.call(this,product,options);
+      //
+      //
+      //
+          // if(options.is_unfixed){
+          //   line.is_unfixed=true;
+          // }else {
+          //   line.is_unfixed=false;
+          // }
+      //
+      //
+      //
+      //     if(line.has_product_lot){
+      //         this.display_lot_popup();
+      //     }
+      //     if (this.pos.config.iface_customer_facing_display) {
+      //         this.pos.send_current_order_to_customer_facing_display();
+      //     }
+      // },
   		export_as_JSON: function(){
   			var loaded = posorder_super.export_as_JSON.apply(this, arguments);
   			loaded.order_type = this.order_type || false;

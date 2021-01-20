@@ -89,84 +89,86 @@
                                         <t t-foreach="widget.options.product_lot" t-as="product_lot">
                                             <tr style="font-size: 12px;">
                                               <t t-set="making_charge" t-value="product_lot.selling_making_charge*product_lot.gross_weight"/>
-                                                <td>
-                                                    <div t-att-value="product_lot.id">
-                                                        <t t-esc="product_lot.name" />
-                                                    </div>
-                                                </td>
-                                                <td id="total_qty">
-                                                    <t t-esc="product_lot.total_qty" />
-                                                </td>
-                                                <t t-if="widget.options.order_line.product.categ.is_gold">
-                                                  <td id="gross_weight">
-                                                      <t t-esc="product_lot.gross_weight" />
+                                              <!-- <t t-if="product_lot.total_qty>0 || widget.options.order_line.is_unfixed"> -->
+                                                  <td>
+                                                      <div t-att-value="product_lot.id">
+                                                          <t t-esc="product_lot.name" />
+                                                      </div>
                                                   </td>
-                                                  <td id="purity_id">
-                                                      <t t-esc="product_lot.purity_id[1]" />
+                                                  <td id="total_qty">
+                                                      <t t-esc="product_lot.total_qty" />
                                                   </td>
-                                                  <td id="pure_weight">
-                                                      <t t-esc="product_lot.pure_weight"/>
-                                                  </td>
-                                                  <td id="selling_making_charge">
-                                                      <t t-esc="making_charge" />
-                                                  </td>
-                                                  <!-- <td id="selling_making">
-                                                      <t t-esc="product_lot.selling_making_charge" />
-                                                  </td> -->
-                                                  <td id="gold_rate">
-                                                      <t t-esc="widget.pos.config.gold_rate" />
-                                                  </td>
-                                                </t>
-                                                <t t-if="widget.options.order_line.product.categ.is_scrap">
-                                                  <td id="gross_weight">
-                                                      <t t-esc="product_lot.gross_weight" />
-                                                  </td>
-                                                  <td id="purity_id">
-                                                      <t t-esc="product_lot.purity_id[1]" />
-                                                  </td>
-                                                  <td id="pure_weight">
-                                                      <t t-esc="product_lot.pure_weight"/>
-                                                  </td>
+                                                  <t t-if="widget.options.order_line.product.categ.is_gold">
+                                                    <td id="gross_weight">
+                                                        <t t-esc="product_lot.gross_weight" />
+                                                    </td>
+                                                    <td id="purity_id">
+                                                        <t t-esc="product_lot.purity_id[1]" />
+                                                    </td>
+                                                    <td id="pure_weight">
+                                                        <t t-esc="product_lot.pure_weight"/>
+                                                    </td>
+                                                    <td id="selling_making_charge">
+                                                        <t t-esc="making_charge" />
+                                                    </td>
+                                                    <!-- <td id="selling_making">
+                                                        <t t-esc="product_lot.selling_making_charge" />
+                                                    </td> -->
+                                                    <td id="gold_rate">
+                                                        <t t-esc="widget.pos.config.gold_rate" />
+                                                    </td>
+                                                  </t>
+                                                  <t t-if="widget.options.order_line.product.categ.is_scrap">
+                                                    <td id="gross_weight">
+                                                        <t t-esc="product_lot.gross_weight" />
+                                                    </td>
+                                                    <td id="purity_id">
+                                                        <t t-esc="product_lot.purity_id[1]" />
+                                                    </td>
+                                                    <td id="pure_weight">
+                                                        <t t-esc="product_lot.pure_weight"/>
+                                                    </td>
 
-                                                  <td id="gold_rate">
-                                                      <t t-esc="widget.pos.config.gold_rate" />
+                                                    <td id="gold_rate">
+                                                        <t t-esc="widget.pos.config.gold_rate" />
+                                                    </td>
+                                                  </t>
+                                                  <t t-if="widget.options.order_line.product.categ.is_assembly">
+                                                    <td id="gross_weight">
+                                                        <t t-esc="product_lot.gross_weight" />
+                                                    </td>
+                                                    <td id="purity_id">
+                                                        <t t-esc="product_lot.purity_id[1]" />
+                                                    </td>
+                                                    <td id="pure_weight">
+                                                        <t t-esc="product_lot.pure_weight"/>
+                                                    </td>
+                                                    <td id="gold_rate">
+                                                        <t t-esc="widget.pos.config.gold_rate" />
+                                                    </td>
+                                                    <td id="carat">
+                                                        <t t-esc="product_lot.carat" />
+                                                    </td>
+                                                  </t>
+                                                  <t t-if="widget.options.order_line.product.categ.is_diamond">
+                                                    <td id="carat">
+                                                        <t t-esc="product_lot.carat" />
+                                                    </td>
+                                                    <!-- <td id="carat_wt">
+                                                        <t t-esc="product_lot.carat_wt" />
+                                                    </td> -->
+                                                    <td id="selling_making">
+                                                        <t t-esc="product_lot.selling_making_charge" />
+                                                    </td>
+                                        					</t>
+                                                  <!-- <span id="gold_rate" ><t t-esc="product_lot.gold_rate" class="display:none;"/></span> -->
+                                                  <td>
+                                                      <input type="text" value="1" style="font-size: 15px;width: 52px;min-height: 9px;height: 25px;padding: -1px;"/>
                                                   </td>
-                                                </t>
-                                                <t t-if="widget.options.order_line.product.categ.is_assembly">
-                                                  <td id="gross_weight">
-                                                      <t t-esc="product_lot.gross_weight" />
+                                                  <td>
+                                                     <i class="fa fa-plus-square add_lot_number" aria-hidden="true" style="color: green;font-size: 25px;cursor: pointer" t-att-data-lot="product_lot.name"></i>
                                                   </td>
-                                                  <td id="purity_id">
-                                                      <t t-esc="product_lot.purity_id[1]" />
-                                                  </td>
-                                                  <td id="pure_weight">
-                                                      <t t-esc="product_lot.pure_weight"/>
-                                                  </td>
-                                                  <td id="gold_rate">
-                                                      <t t-esc="widget.pos.config.gold_rate" />
-                                                  </td>
-                                                  <td id="carat">
-                                                      <t t-esc="product_lot.carat" />
-                                                  </td>
-                                                </t>
-                                                <t t-if="widget.options.order_line.product.categ.is_diamond">
-                                                  <td id="carat">
-                                                      <t t-esc="product_lot.carat" />
-                                                  </td>
-                                                  <!-- <td id="carat_wt">
-                                                      <t t-esc="product_lot.carat_wt" />
-                                                  </td> -->
-                                                  <td id="selling_making">
-                                                      <t t-esc="product_lot.selling_making_charge" />
-                                                  </td>
-                                      					</t>
-                                                <!-- <span id="gold_rate" ><t t-esc="product_lot.gold_rate" class="display:none;"/></span> -->
-                                                <td>
-                                                    <input type="text" value="1" style="font-size: 15px;width: 52px;min-height: 9px;height: 25px;padding: -1px;"/>
-                                                </td>
-                                                <td>
-                                                   <i class="fa fa-plus-square add_lot_number" aria-hidden="true" style="color: green;font-size: 25px;cursor: pointer" t-att-data-lot="product_lot.name"></i>
-                                                </td>
+                                                <!-- </t> -->
                                             </tr>
                                         </t>
                                     </table>
