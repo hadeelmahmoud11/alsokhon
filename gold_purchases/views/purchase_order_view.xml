@@ -152,7 +152,7 @@
                   <field name="discount"/>
                 </field>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='price_unit']" position="attributes">
-                    <attribute name="attrs">{'readonly': ['|','|',('parent.gold','=',True),('is_make_value', '=', True),('parent.is_gold_fixed', '=', True)]}</attribute>
+                    <attribute name="attrs">{'readonly': ['|','|',('parent.gold','=',True),('is_make_value', '=', True)]}</attribute>
                     <attribute name="force_save">1</attribute>
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="attributes">
