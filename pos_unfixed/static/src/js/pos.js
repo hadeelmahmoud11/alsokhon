@@ -211,6 +211,42 @@ odoo.define('pos_unfixed.pos', function(require){
 
 
       },
+      click_back: function(){
+  			var self  = this;
+  			var order = this.pos.get_order();
+        var lines = order.get_orderlines();
+        var orderlines = []
+        // var i = lines.length-1;
+        // var m =0;
+        // while (lines) {
+        //   if(lines[m].is_unfixed){
+        //     lines[m].order.remove_orderline(lines[m]);
+        //
+        //   }
+        // }
+        order.get_orderlines().forEach(function (line) {
+  					if(line.is_unfixed){
+              order.remove_orderline(line);
+            }
+  			});
+        // lines.forEach(function (line) {
+  			// 		if(!line.is_unfixed){
+        //       orderlines.push(line);
+        //     }
+  			// });
+        // order.orderlines = orderlines;
+        console.log(order);
+        this._super();
+
+        // order.orderLines
+  			// if(order.is_paying_partial)
+  			// {
+  			// 	self.payment_deleteorder();
+  			// }
+  			// else{
+  			// 	this._super();
+  			// }
+  		},
     });
 
 
