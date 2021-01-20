@@ -94,8 +94,23 @@ class PurchaseOrder(models.Model):
             if len(this.assembly_gold_ids) == 0 and len(this.assembly_diamond_ids) == 0:
                 this.assembly_no_giving = True
 
+    def button_cancel(self):
+        res = super(PurchaseOrder, self).button_cancel()
+        component_pickings = self.env['stock.picking'].search([('assembly_purchase_id','=',self.id)])
+        for picking in component_pickings:
+            picking.action_cancel()
+        return res
     def button_confirm(self):
         res = super(PurchaseOrder,self).button_confirm()
+        need_location = False
+        for line in self.assembly_gold_ids:
+            if not line.location_id:
+                need_location = True
+        for line in self.assembly_diamond_ids:
+            if not line.location_id:
+                need_location = True
+        if need_location:
+            raise (_('Please fill the location at the component lines'))
         diamond_move_lines = []
         scrap_move_lines = []
         gold_move_lines = []

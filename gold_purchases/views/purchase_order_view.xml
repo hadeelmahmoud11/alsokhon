@@ -29,7 +29,7 @@
                       <field name="product_uom_qty"/>
                       <field name="gross_weight"/>
                       <field name="pure_weight" readonly="1" force_save="1"/>
-                      <field name="purity"/>
+                      <field name="purity" readonly="1" force_save="1"/>
                     </tree>
                   </field>
                 </page>
