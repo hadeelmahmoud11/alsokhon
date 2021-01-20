@@ -29,9 +29,12 @@
                       <group>
                         <field name="product_id" domain="[('scrap','=',True),('active','=',True)]"/>
                         <field name="purity_id"/>
+                        <field name="lot_state" widget="radio"/>
+                        <field name="lot_id" attrs="{'invisible':[('lot_state','!=','exist')] , 'required':[('lot_state','=','exist')]}"/>
+                        <field name="lot_name" attrs="{'invisible':[('lot_state','!=','new')] , 'required':[('lot_state','=','new')]}"/>
                       </group>
                       <group>
-                        <field name="required_pure"/>
+                        <!-- <field name="required_pure"/> -->
                         <field name="gross_weight"/>
                         <field name="pure_weight"/>
                       </group>

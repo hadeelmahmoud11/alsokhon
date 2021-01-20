@@ -10,6 +10,9 @@ class stockGoldMove(models.TransientModel):
 
     product_id = fields.Many2one('product.product')
     purity_id = fields.Many2one('gold.purity')
+    lot_state = fields.Selection([('exist','Existing Lot'),('new','New Lot')])
+    lot_id = fields.Many2one('stock.production.lot')
+    lot_name = fields.Char()
     gross_weight = fields.Float(digits=(16, 3))
     pure_weight = fields.Float(compute="_compute_pure_weight" ,digits=(16, 3))
     required_pure = fields.Float(compute="_compute_required_pure" ,digits=(16, 3))
@@ -50,6 +53,20 @@ class stockGoldMove(models.TransientModel):
         # pure = 0.00
         # gross_weight = 0.00
         # purity = 0.00
+        lot = self.env['stock.production.lot']
+        if self.lot_state == 'new':
+            lot = self.env['stock.production.lot'].create({
+            'name':self.lot_name,
+            'product_id':self.product_id.id,
+            'product_qty':1,
+            'product_uom_id':self.product_id.uom_id.id,
+            'gross_weight':self.gross_weight,
+            'purity':self.purity_id.purity,
+            'purity_id':self.purity_id.id,
+            'pure_weight':self.pure_weight,
+            })
+        else:
+            lot = self.lot_id.id
         move_lines = []
         # move_line_ids_without_package = []
         # for move in self.env['stock.production.lot'].browse(data['move_ids']):
@@ -73,7 +90,8 @@ class stockGoldMove(models.TransientModel):
                 'product_uom_qty': self.gross_weight,
                 'pure_weight': self.pure_weight,
                 'gross_weight': self.gross_weight ,
-                'purity': self.purity_id.scrap_purity,}))
+                'purity': self.purity_id.scrap_purity,
+                'lot_id':lot.id}))
             # move_line_ids_without_package.append((0, 0, {
             #         'location_id': sale_order.order_type.stock_picking_type_id.default_location_src_id.id,
             #         'location_dest_id': sale_order.order_type.stock_picking_type_id.default_location_dest_id.id,
@@ -110,6 +128,11 @@ class stockGoldMove(models.TransientModel):
                     'move_lines': move_lines,
                     # 'move_line_ids_without_package':move_line_ids_without_package,
                     })
+            picking.action_confirm()
+            picking.action_assign()
+            for this in picking:
+                for this_lot_line in this.move_line_ids_without_package:
+                    this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
             if account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
                 account_move.write({'unfixed_stock_picking_three': picking.id})
             if account_move.unfixed_stock_picking and not account_move.unfixed_stock_picking_two and not account_move.unfixed_stock_picking_three:
