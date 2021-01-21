@@ -13,7 +13,7 @@ class assemblyDescriptionLotGold(models.Model):
     purity_id = fields.Float()
     purity = fields.Float()
     lot_id_gold = fields.Many2one('stock.production.lot')
-    lotttt = fields.Many2one('stock.production.lot')
+
 class assemblyDescriptionLotDiamond(models.Model):
     """docstring for assemblyDescriptionDiamond."""
     _name = 'assembly.description.lot.diamond'
@@ -26,7 +26,7 @@ class assemblyDescriptionLotDiamond(models.Model):
 
 class StockProductionLot(models.Model):
     _inherit = 'stock.production.lot'
-    assembly_description = fields.One2many('assembly.description.lot.gold','lotttt')
+    
     assembly_description_gold = fields.One2many('assembly.description.lot.gold','lot_id_gold')
     assembly_description_diamond = fields.One2many('assembly.description.lot.diamond','lot_id_diamond')
     gold = fields.Boolean(string="Gold", compute="_compute_gold_state")
