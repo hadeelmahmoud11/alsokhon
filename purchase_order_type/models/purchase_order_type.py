@@ -34,7 +34,9 @@ class PurchaseOrderType(models.Model):
     diamond = fields.Boolean('Diamond')
     assembly = fields.Boolean('Assembly')
     assembly_picking_type_id = fields.Many2one(
-        comodel_name='stock.picking.type', string='picking type')
+        comodel_name='stock.picking.type', string='picking type item out')
+    assembly_picking_type_id_back = fields.Many2one(
+        comodel_name='stock.picking.type', string='picking type item back')
     stock_picking_type_id = fields.Many2one(
         comodel_name='stock.picking.type', string='picking type')
 
@@ -42,5 +44,5 @@ class PurchaseOrderType(models.Model):
     @api.constrains('stock_picking_type_id')
     def _check_stock_picking_type_id(self):
         for check in self:
-            if not check.stock_picking_type_id.default_location_src_id or not  check.stock_picking_type_id.default_location_dest_id:
+            if self.is_unfixed and not check.stock_picking_type_id.default_location_src_id or not  check.stock_picking_type_id.default_location_dest_id:
                 raise ValidationError(_('please fill source and destination locations for picking type.'))

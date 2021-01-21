@@ -45,6 +45,7 @@
                             <field name="assembly" />
                             <field name="stock_picking_type_id" attrs="{'invisible': [('is_unfixed', '=', False)],'required': [('is_unfixed', '=', True)]}"/>
                             <field name="assembly_picking_type_id" attrs="{'invisible': [('assembly', '=', False)],'required': [('assembly', '=', True)]}"/>
+                            <field name="assembly_picking_type_id_back" attrs="{'invisible': [('assembly', '=', False)],'required': [('assembly', '=', True)]}"/>
                         </group>
                         <group>
                             <field name="payment_term_id"/>

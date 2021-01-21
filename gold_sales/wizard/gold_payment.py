@@ -66,7 +66,7 @@ class stockGoldMove(models.TransientModel):
             'pure_weight':self.pure_weight,
             })
         else:
-            lot = self.lot_id.id
+            lot = self.lot_id
         move_lines = []
         # move_line_ids_without_package = []
         # for move in self.env['stock.production.lot'].browse(data['move_ids']):

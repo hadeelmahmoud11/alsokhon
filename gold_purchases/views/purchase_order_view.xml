@@ -1,11 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
-      <record model="ir.ui.view" id="purchase_line_inherit__mrp_form_view">
+      <record model="ir.ui.view" id="purchase_line_inherit_mrp_form_view">
           <field name="name">purchase.order.inherit.mrp.form.view</field>
           <field name="model">purchase.order</field>
           <field name="inherit_id" ref="purchase.purchase_order_form"/>
           <field name="arch" type="xml">
+            <!-- <xpath expr="//form/header/button[@id='bid_confirm']" position="replace">
+              <button name="button_confirm" type="object" states="ready" string="Confirm Order" class="oe_highlight" id="bid_confirm"/>
+            </xpath>
+            <xpath expr="//form/header/button[@id='draft_confirm']" position="replace">
+              <button name="button_confirm" type="object" states="ready" string="Confirm Order" id="draft_confirm"/>
+            </xpath> -->
+            <xpath expr="//header" position="inside">
+              <field name="ready" invisible="1"/>
+              <button name="process" type="object" string="Process Assembly" class="oe_highlight" attrs="{'invisible':['|',('state','!=','draft'),('assembly','!=',True)]}"/>
+              <button name="return_component" type="object" string="Receive Charge Components" class="oe_highlight" attrs="{'invisible':[('state','!=','processing')]}"/>
+              <button name="finish_processing" type="object" string="Finish Assembly" class="oe_highlight" attrs="{'invisible':[('state','!=','receive')]}"/>
+            </xpath>
+            <field name="state" position="replace">
+              <field name="state" widget="statusbar" statusbar_visible="draft,processing,receive,sent,purchase" readonly="1"/>
+            </field>
             <div name="button_box" position="inside">
               <button type="object" name="action_view_assembly_operations" class="oe_stat_button" icon="fa-truck" attrs="{'invisible':['|', ('assembly_operations_count', '=', 0), ('state', 'in', ('draft','sent','to approve'))]}">
                   <field name="assembly_operations_count" widget="statinfo" string="Assembly Operations"/>
@@ -24,8 +39,8 @@
                   <field name="assembly_gold_ids">
                     <tree editable="top">
                       <field name="product_id"/>
-                      <field name="location_id"/>
-                      <field name="lot_id" domain="[('product_id','=',product_id)]"/>
+                      <field name="location_id" domain="[('usage','=','internal')]"/>
+                      <field name="lot_id" domain="[('product_id','=',product_id),('product_qty','>',0)]"/>
                       <field name="product_uom_qty"/>
                       <field name="gross_weight"/>
                       <field name="pure_weight" readonly="1" force_save="1"/>
@@ -37,14 +52,42 @@
                   <field name="assembly_diamond_ids">
                     <tree editable="top">
                       <field name="product_id"/>
-                      <field name="location_id"/>
-                      <field name="lot_id" domain="[('product_id','=',product_id)]"/>
+                      <field name="location_id" domain="[('usage','=','internal')]"/>
+                      <field name="lot_id" domain="[('product_id','=',product_id),('product_qty','>',0)]"/>
                       <field name="carat"/>
                     </tree>
                   </field>
                 </page>
+                <page string="Assembly Gold Returned Components" name="assembly_mrp_gold_back" attrs="{'invisible':[('assembly','!=', True)]}">
+                  <field name="assembly_back_gold_ids">
+                    <tree editable="top">
+                      <field name="product_id"/>
+                      <field name="lot_state"/>
+                      <field name="lot_id" domain="[('product_id','=',product_id),('product_qty','>',0)]" attrs="{'invisible':[('lot_state','!=','exist')] , 'required':[('lot_state','=','exist')]}"/>
+                      <field name="lot_name" attrs="{'invisible':[('lot_state','!=','new')] , 'required':[('lot_state','=','new')]}"/>
+                      <field name="gold_rate"/>
+                      <field name="gross_weight"/>
+                      <field name="purity_id"/>
+                      <field name="purity" readonly="1" force_save="1"/>
+                      <field name="pure_weight"/>
+                      <field name="total_value"/>
+                    </tree>
+                  </field>
+                </page>
+                <page string="Assembly Diamond Returned Components" name="assembly_mrp_diamond_back" attrs="{'invisible':[('assembly','!=', True)]}">
+                  <field name="assembly_back_diamond_ids">
+                    <tree editable="top">
+                      <field name="product_id"/>
+                      <field name="lot_state"/>
+                      <field name="lot_id" domain="[('product_id','=',product_id),('product_qty','>',0)]" attrs="{'invisible':[('lot_state','!=','exist')] , 'required':[('lot_state','=','exist')]}"/>
+                      <field name="lot_name" attrs="{'invisible':[('lot_state','!=','new')] , 'required':[('lot_state','=','new')]}"/>
+                      <field name="carat"/>
+                      <field name="carat_cost"/>
+                      <field name="total_cost"/>
+                    </tree>
+                  </field>
+                </page>
               </page>
-
           </field>
       </record>
 

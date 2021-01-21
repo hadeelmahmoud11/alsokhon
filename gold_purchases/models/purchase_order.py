@@ -3,6 +3,64 @@ from odoo import api, fields, models, _
 from datetime import date , timedelta , datetime
 from odoo.exceptions import ValidationError,UserError
 
+
+# ('assembly.back.component.gold','purchase_back_gold_id')
+# ('assembly.back.component.diamond','purchase_back_diamond_id')
+
+class assemblyBackGold(models.Model):
+    """docstring for assemblyBackGold."""
+    _name = 'assembly.back.component.gold'
+    purchase_back_gold_id = fields.Many2one('purchase.order')
+    product_id = fields.Many2one('product.product')
+    lot_state = fields.Selection([('exist','Existing Lot'),('new','New Lot')])
+    lot_id = fields.Many2one('stock.production.lot')
+    lot_name = fields.Char()
+    gold_rate = fields.Float(digits=(16,3))
+    gross_weight = fields.Float()
+    purity_id = fields.Many2one('gold.purity')
+    purity = fields.Float()
+    pure_weight = fields.Float(compute="_compute_pure_weight")
+    total_value = fields.Float(compute="_compute_total_vale")
+    @api.onchange('gross_weight')
+    def _compute_pure_weight(self):
+        for this in self:
+            this.pure_weight = this.gross_weight * (this.purity / 1000)
+
+    @api.onchange('lot_id')
+    def getvalues(self):
+        if self.product_id and self.lot_id:
+            self.gross_weight = self.lot_id.gross_weight
+            self.purity_id = self.lot_id.purity_id.id
+            self.purity = self.lot_id.purity
+            self.pure_weight = self.lot_id.pure_weight
+    def _compute_total_vale(self):
+        for this in self:
+            this.total_value = this.gross_weight * this.gold_rate
+
+class assemblyBackDiamond(models.Model):
+    """docstring for assemblyBackDiamond."""
+    _name = 'assembly.back.component.diamond'
+    purchase_back_diamond_id = fields.Many2one('purchase.order')
+    product_id = fields.Many2one('product.product')
+    lot_state = fields.Selection([('exist','Existing Lot'),('new','New Lot')])
+    lot_id = fields.Many2one('stock.production.lot')
+    lot_name = fields.Char()
+    carat = fields.Float()
+    carat_cost = fields.Float()
+    total_cost = fields.Float(compute="_compute_total_vale")
+
+    @api.onchange('lot_id')
+    def getvalues(self):
+        if self.product_id and self.lot_id:
+            self.carat = self.lot_id.carat
+    @api.onchange('carat','carat_cost')
+    def _compute_total_vale(self):
+        for this in self:
+            this.total_cost = this.carat * this.carat_cost
+
+
+
+
 class assemblyDescription(models.Model):
     """docstring for assemblyDescription."""
     _name = 'assembly.description'
@@ -51,57 +109,19 @@ class assemblyComponentsDiamond(models.Model):
             self.carat = self.lot_id.carat
 class PurchaseOrder(models.Model):
     _inherit = 'purchase.order'
-
-    assembly_description = fields.One2many('assembly.description','purchase_id')
-    def action_view_assembly_operations(self):
-        """ This function returns an action that display existing picking orders of given purchase order ids. When only one found, show the picking immediately.
-        """
-        action = self.env.ref('stock.action_picking_tree_all')
-        result = action.read()[0]
-        # override the context to get rid of the default filtering on operation type
-        result['context'] = {'default_partner_id': self.partner_id.id, 'default_picking_type_id': self.order_type.assembly_picking_type_id.id}
-        pick_ids = self.env['stock.picking'].search([('assembly_purchase_id','=',self.id)])
-        # choose the view_mode accordingly
-        if not pick_ids or len(pick_ids) > 1:
-            result['domain'] = "[('id','in',%s)]" % (pick_ids.ids)
-        elif len(pick_ids) == 1:
-            res = self.env.ref('stock.view_picking_form', False)
-            form_view = [(res and res.id or False, 'form')]
-            if 'views' in result:
-                result['views'] = form_view + [(state,view) for state,view in result['views'] if view != 'form']
-            else:
-                result['views'] = form_view
-            result['res_id'] = pick_ids.id
-        return result
-    assembly_operations_count = fields.Float(compute="_compute_assembly_operations_count")
-    def _compute_assembly_operations_count(self):
-        for this in self:
-            this.assembly_operations_count = self.env['stock.picking'].search_count([('assembly_purchase_id','=',self.id)])
-    assembly_gold_ids = fields.One2many('assembly.component.gold','purchase_gold_id')
-    assembly_diamond_ids = fields.One2many('assembly.component.diamond','purchase_diamond_id')
-    assembly_no_giving = fields.Boolean(compute="_compute_assembly_state")
-    assembly_give_gold = fields.Boolean(compute="_compute_assembly_state")
-    assembly_give_diamond = fields.Boolean(compute="_compute_assembly_state")
-    def _compute_assembly_state(self):
-        for this in self:
-            this.assembly_give_gold = False
-            this.assembly_give_diamond = False
-            this.assembly_no_giving = False
-            if len(this.assembly_gold_ids) > 0:
-                this.assembly_give_gold = True
-            if len(this.assembly_diamond_ids) > 0:
-                this.assembly_give_diamond = True
-            if len(this.assembly_gold_ids) == 0 and len(this.assembly_diamond_ids) == 0:
-                this.assembly_no_giving = True
-
-    def button_cancel(self):
-        res = super(PurchaseOrder, self).button_cancel()
-        component_pickings = self.env['stock.picking'].search([('assembly_purchase_id','=',self.id)])
-        for picking in component_pickings:
-            picking.action_cancel()
-        return res
-    def button_confirm(self):
-        res = super(PurchaseOrder,self).button_confirm()
+    state = fields.Selection([
+        ('draft', 'RFQ'),
+        ('processing', 'In Process'),
+        ('receive','Received'),
+        ('sent', 'RFQ Sent'),
+        ('to approve', 'To Approve'),
+        ('purchase', 'Purchase Order'),
+        ('done', 'Locked'),
+        ('cancel', 'Cancelled'),
+    ], string='Status', readonly=True, index=True, copy=False, default='draft', tracking=True)
+    # state = fields.Selection(selection_add=[])
+    def process(self):
+        self.state = 'processing'
         need_location = False
         for line in self.assembly_gold_ids:
             if not line.location_id:
@@ -232,7 +252,353 @@ class PurchaseOrder(models.Model):
                     for this_lot_line in this.move_line_ids_without_package:
                         this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
                 picking.assembly_purchase_id = self.id
+
+    assembly_back_gold_ids = fields.One2many('assembly.back.component.gold','purchase_back_gold_id')
+    assembly_back_diamond_ids = fields.One2many('assembly.back.component.diamond','purchase_back_diamond_id')
+
+    def return_component(self):
+        diamond_move_lines = []
+        scrap_move_lines = []
+        gold_move_lines = []
+        gold_components = self.assembly_back_gold_ids.filtered(lambda x: x.product_id and
+                                                       x.product_id.gold and
+                                                       x.product_id.categ_id and
+                                                       x.product_id.categ_id.is_gold)
+        scrap_components = self.assembly_back_gold_ids.filtered(lambda x: x.product_id and
+                                                       x.product_id.gold and
+                                                       x.product_id.categ_id and
+                                                       x.product_id.categ_id.is_scrap)
+        diamond_components = self.assembly_back_diamond_ids
+        if len(gold_components) > 0:
+            sale_type = ""
+            if self.order_type.is_fixed:
+                sale_type = 'fixed'
+            elif self.order_type.is_unfixed:
+                sale_type = 'unfixed'
+            for line in gold_components:
+                lot = self.env['stock.production.lot']
+                if line.lot_state == 'new':
+                    lot = self.env['stock.production.lot'].create({
+                    'name':line.lot_name,
+                    'product_id':line.product_id.id,
+                    'product_qty':1,
+                    'product_uom_id':line.product_id.uom_id.id,
+                    'gross_weight':line.gross_weight,
+                    'purity':line.purity_id.purity,
+                    'purity_id':line.purity_id.id,
+                    'pure_weight':line.pure_weight,
+                    })
+                else:
+                    lot = line.lot_id
+                gold_move_lines.append((0, 0, {
+                        'name': "assembly move",
+                        'location_id': self.order_type.assembly_picking_type_id_back.default_location_src_id.id,
+                        'location_dest_id': self.order_type.assembly_picking_type_id_back.default_location_dest_id.id,
+                        'product_id': line.product_id.id,
+                        'product_uom': line.product_id.uom_id.id,
+                        'picking_type_id':  line.purchase_back_gold_id.order_type.assembly_picking_type_id_back.id,
+                        'product_uom_qty': 1,
+                        'gross_weight' : line.gross_weight ,
+                        'pure_weight': line.pure_weight,
+                        'purity': line.purity,
+                        'lot_id':lot.id,
+                        'origin': self.order_type.assembly_picking_type_id_back.default_location_dest_id.name + ' - Receive - Assembly Gold Transfer'
+                        }))
+            picking = self.env['stock.picking'].create({
+                        'partner_id': self.partner_id.id,
+                        'location_id': self.order_type.assembly_picking_type_id_back.default_location_src_id.id,
+                        'location_dest_id': self.order_type.assembly_picking_type_id_back.default_location_dest_id.id,
+                        'picking_type_id':  self.order_type.assembly_picking_type_id_back.id,
+                        'immediate_transfer': False,
+                        'move_lines': gold_move_lines,
+                        'sale_type':sale_type,
+                        'origin': self.order_type.assembly_picking_type_id_back.default_location_dest_id.name + ' - Receive - Assembly Gold Transfer'
+                    })
+            picking.action_confirm()
+            picking.action_assign()
+            for this in picking:
+                for this_lot_line in this.move_line_ids_without_package:
+                    this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
+            picking.assembly_purchase_id = self.id
+        if len(scrap_components) > 0:
+            sale_type = ""
+            if self.order_type.is_fixed:
+                sale_type = 'fixed'
+            elif self.order_type.is_unfixed:
+                sale_type = 'unfixed'
+            for line in scrap_components:
+                lot = self.env['stock.production.lot']
+                if line.lot_state == 'new':
+                    lot = self.env['stock.production.lot'].create({
+                    'name':line.lot_name,
+                    'product_id':line.product_id.id,
+                    'product_qty':line.gross_weight,
+                    'product_uom_id':line.product_id.uom_id.id,
+                    'gross_weight':line.gross_weight,
+                    'purity':line.purity_id.purity,
+                    'purity_id':line.purity_id.id,
+                    'pure_weight':line.pure_weight,
+                    })
+                else:
+                    lot = line.lot_id
+                scrap_move_lines.append((0, 0, {
+                        'name': "assembly move",
+                        'location_id': self.order_type.assembly_picking_type_id_back.default_location_src_id.id,
+                        'location_dest_id': self.order_type.assembly_picking_type_id_back.default_location_dest_id.id,
+                        'product_id': line.product_id.id,
+                        'product_uom': line.product_id.uom_id.id,
+                        'picking_type_id':  line.purchase_back_gold_id.order_type.assembly_picking_type_id_back.id,
+                        'product_uom_qty': line.gross_weight,
+                        'gross_weight' : line.gross_weight ,
+                        'pure_weight': line.pure_weight,
+                        'purity': line.purity,
+                        'lot_id':lot.id,
+                        'origin': self.order_type.assembly_picking_type_id_back.default_location_dest_id.name + ' - Receive - Assembly Scrap Transfer'
+                        }))
+            picking = self.env['stock.picking'].create({
+                        'partner_id': self.partner_id.id,
+                        'location_id': self.order_type.assembly_picking_type_id_back.default_location_src_id.id,
+                        'location_dest_id': self.order_type.assembly_picking_type_id_back.default_location_dest_id.id,
+                        'picking_type_id':  self.order_type.assembly_picking_type_id_back.id,
+                        'immediate_transfer': False,
+                        'move_lines': scrap_move_lines,
+                        'sale_type':sale_type,
+                        'origin': self.order_type.assembly_picking_type_id_back.default_location_dest_id.name + ' - Receive - Assembly Scrap Transfer'
+                    })
+            picking.action_confirm()
+            picking.action_assign()
+            for this in picking:
+                for this_lot_line in this.move_line_ids_without_package:
+                    this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
+            picking.assembly_purchase_id = self.id
+        if len(diamond_components) > 0:
+            for line in diamond_components:
+                lot = self.env['stock.production.lot']
+                if line.lot_state == 'new':
+                    lot = self.env['stock.production.lot'].create({
+                    'name':line.lot_name,
+                    'product_id':line.product_id.id,
+                    'product_qty':line.carat,
+                    'product_uom_id':line.product_id.uom_id.id,
+                    'carat':line.carat
+                    })
+                else:
+                    lot = line.lot_id
+                diamond_move_lines.append((0, 0, {
+                        'name': "assembly move",
+                        'location_id': self.order_type.assembly_picking_type_id_back.default_location_src_id.id,
+                        'location_dest_id': self.order_type.assembly_picking_type_id_back.default_location_dest_id.id,
+                        'product_id': line.product_id.id,
+                        'product_uom': line.product_id.uom_id.id,
+                        'picking_type_id':  line.purchase_back_diamond_id.order_type.assembly_picking_type_id_back.id,
+                        'carat':line.carat,
+                        'product_uom_qty': line.carat,
+                        'lot_id':lot.id,
+                        'origin': self.order_type.assembly_picking_type_id_back.default_location_dest_id.name + ' - Receive - Assembly Diamond Transfer',
+                        }))
+            picking = self.env['stock.picking'].create({
+                        'partner_id': self.partner_id.id,
+                        'location_id': self.order_type.assembly_picking_type_id_back.default_location_src_id.id,
+                        'location_dest_id': self.order_type.assembly_picking_type_id_back.default_location_dest_id.id,
+                        'picking_type_id':  self.order_type.assembly_picking_type_id_back.id,
+                        'immediate_transfer': False,
+                        'move_lines': diamond_move_lines,
+                        'origin': self.order_type.assembly_picking_type_id_back.default_location_dest_id.name + ' - Receive - Assembly Diamond Transfer'
+                    })
+            picking.action_confirm()
+            picking.action_assign()
+            for this in picking:
+                for this_lot_line in this.move_line_ids_without_package:
+                    this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
+            picking.assembly_purchase_id = self.id
+        self.state = 'receive'
+
+    def finish_processing(self):
+        self.state = 'draft'
+        self.ready = True
+
+    ready = fields.Boolean(default=False)
+    assembly_description = fields.One2many('assembly.description','purchase_id')
+    def action_view_assembly_operations(self):
+        """ This function returns an action that display existing picking orders of given purchase order ids. When only one found, show the picking immediately.
+        """
+        action = self.env.ref('stock.action_picking_tree_all')
+        result = action.read()[0]
+        # override the context to get rid of the default filtering on operation type
+        result['context'] = {'default_partner_id': self.partner_id.id, 'default_picking_type_id': self.order_type.assembly_picking_type_id.id}
+        pick_ids = self.env['stock.picking'].search([('assembly_purchase_id','=',self.id)])
+        # choose the view_mode accordingly
+        if not pick_ids or len(pick_ids) > 1:
+            result['domain'] = "[('id','in',%s)]" % (pick_ids.ids)
+        elif len(pick_ids) == 1:
+            res = self.env.ref('stock.view_picking_form', False)
+            form_view = [(res and res.id or False, 'form')]
+            if 'views' in result:
+                result['views'] = form_view + [(state,view) for state,view in result['views'] if view != 'form']
+            else:
+                result['views'] = form_view
+            result['res_id'] = pick_ids.id
+        return result
+    assembly_operations_count = fields.Float(compute="_compute_assembly_operations_count")
+    def _compute_assembly_operations_count(self):
+        for this in self:
+            this.assembly_operations_count = self.env['stock.picking'].search_count([('assembly_purchase_id','=',self.id)])
+    assembly_gold_ids = fields.One2many('assembly.component.gold','purchase_gold_id')
+    assembly_diamond_ids = fields.One2many('assembly.component.diamond','purchase_diamond_id')
+    assembly_no_giving = fields.Boolean(compute="_compute_assembly_state")
+    assembly_give_gold = fields.Boolean(compute="_compute_assembly_state")
+    assembly_give_diamond = fields.Boolean(compute="_compute_assembly_state")
+    def _compute_assembly_state(self):
+        for this in self:
+            this.assembly_give_gold = False
+            this.assembly_give_diamond = False
+            this.assembly_no_giving = False
+            if len(this.assembly_gold_ids) > 0:
+                this.assembly_give_gold = True
+            if len(this.assembly_diamond_ids) > 0:
+                this.assembly_give_diamond = True
+            if len(this.assembly_gold_ids) == 0 and len(this.assembly_diamond_ids) == 0:
+                this.assembly_no_giving = True
+
+    def button_cancel(self):
+        res = super(PurchaseOrder, self).button_cancel()
+        component_pickings = self.env['stock.picking'].search([('assembly_purchase_id','=',self.id)])
+        for picking in component_pickings:
+            picking.action_cancel()
         return res
+    # def button_confirm(self):
+    #     res = super(PurchaseOrder,self).button_confirm()
+    #     need_location = False
+    #     for line in self.assembly_gold_ids:
+    #         if not line.location_id:
+    #             need_location = True
+    #     for line in self.assembly_diamond_ids:
+    #         if not line.location_id:
+    #             need_location = True
+    #     if need_location:
+    #         raise (_('Please fill the location at the component lines'))
+    #     diamond_move_lines = []
+    #     scrap_move_lines = []
+    #     gold_move_lines = []
+    #     gold_components = self.assembly_gold_ids.filtered(lambda x: x.product_id and
+    #                                                    x.product_id.gold and
+    #                                                    x.product_id.categ_id and
+    #                                                    x.product_id.categ_id.is_gold)
+    #     scrap_components = self.assembly_gold_ids.filtered(lambda x: x.product_id and
+    #                                                    x.product_id.gold and
+    #                                                    x.product_id.categ_id and
+    #                                                    x.product_id.categ_id.is_scrap)
+    #     diamond_components = self.assembly_diamond_ids
+    #
+    #     internal_locations = self.env['stock.location'].search([('usage','=','internal')])
+    #     for location in internal_locations:
+    #         location_gold_components = gold_components.filtered(lambda x: x.location_id == location)
+    #         location_scrap_components = scrap_components.filtered(lambda x: x.location_id == location)
+    #         location_diamond_components = diamond_components.filtered(lambda x: x.location_id == location)
+    #         if len(location_gold_components) > 0:
+    #             sale_type = ""
+    #             if self.order_type.is_fixed:
+    #                 sale_type = 'fixed'
+    #             elif self.order_type.is_unfixed:
+    #                 sale_type = 'unfixed'
+    #             for line in location_gold_components:
+    #                 gold_move_lines.append((0, 0, {
+    #                         'name': "assembly move",
+    #                         'location_id': location.id,
+    #                         'location_dest_id': self.order_type.assembly_picking_type_id.default_location_dest_id.id,
+    #                         'product_id': line.product_id.id,
+    #                         'product_uom': line.product_id.uom_id.id,
+    #                         'picking_type_id':  line.purchase_gold_id.order_type.assembly_picking_type_id.id,
+    #                         'product_uom_qty': line.product_uom_qty,
+    #                         'gross_weight' : line.gross_weight ,
+    #                         'pure_weight': line.pure_weight,
+    #                         'purity': line.purity,
+    #                         'lot_id':line.lot_id.id,
+    #                         'origin': location.name + ' - Assembly Gold Transfer'
+    #                         }))
+    #             picking = self.env['stock.picking'].create({
+    #                         'partner_id': self.partner_id.id,
+    #                         'location_id': location.id,
+    #                         'location_dest_id': self.order_type.assembly_picking_type_id.default_location_dest_id.id,
+    #                         'picking_type_id':  self.order_type.assembly_picking_type_id.id,
+    #                         'immediate_transfer': False,
+    #                         'move_lines': gold_move_lines,
+    #                         'sale_type':sale_type,
+    #                         'origin': location.name + ' - Assembly Gold Transfer'
+    #                     })
+    #             picking.action_confirm()
+    #             picking.action_assign()
+    #             for this in picking:
+    #                 for this_lot_line in this.move_line_ids_without_package:
+    #                     this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
+    #             picking.assembly_purchase_id = self.id
+    #         if len(location_scrap_components) > 0:
+    #             sale_type = ""
+    #             if self.order_type.is_fixed:
+    #                 sale_type = 'fixed'
+    #             elif self.order_type.is_unfixed:
+    #                 sale_type = 'unfixed'
+    #             for line in scrap_move_lines:
+    #                 scrap_move_lines.append((0, 0, {
+    #                         'name': "assembly move",
+    #                         'location_id': location.id,
+    #                         'location_dest_id': self.order_type.assembly_picking_type_id.default_location_dest_id.id,
+    #                         'product_id': line.product_id.id,
+    #                         'product_uom': line.product_id.uom_id.id,
+    #                         'picking_type_id':  line.purchase_gold_id.order_type.assembly_picking_type_id.id,
+    #                         'product_uom_qty': line.gross_weight,
+    #                         'gross_weight' : line.gross_weight ,
+    #                         'pure_weight': line.pure_weight,
+    #                         'purity': line.purity,
+    #                         'lot_id':line.lot_id.id,
+    #                         'origin': location.name + ' - Assembly Scrap Transfer'
+    #                         }))
+    #             picking = self.env['stock.picking'].create({
+    #                         'partner_id': self.partner_id.id,
+    #                         'location_id': location.id,
+    #                         'location_dest_id': self.order_type.assembly_picking_type_id.default_location_dest_id.id,
+    #                         'picking_type_id':  self.order_type.assembly_picking_type_id.id,
+    #                         'immediate_transfer': False,
+    #                         'move_lines': scrap_move_lines,
+    #                         'sale_type':sale_type,
+    #                         'origin': location.name + ' - Assembly Scrap Transfer'
+    #                     })
+    #             picking.action_confirm()
+    #             picking.action_assign()
+    #             for this in picking:
+    #                 for this_lot_line in this.move_line_ids_without_package:
+    #                     this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
+    #             picking.assembly_purchase_id = self.id
+    #         if len(location_diamond_components) > 0:
+    #             for line in location_diamond_components:
+    #                 diamond_move_lines.append((0, 0, {
+    #                         'name': "assembly move",
+    #                         'location_id': location.id,
+    #                         'location_dest_id': self.order_type.assembly_picking_type_id.default_location_dest_id.id,
+    #                         'product_id': line.product_id.id,
+    #                         'product_uom': line.product_id.uom_id.id,
+    #                         'picking_type_id':  line.purchase_diamond_id.order_type.assembly_picking_type_id.id,
+    #                         'carat':line.carat,
+    #                         'product_uom_qty': line.carat,
+    #                         'lot_id':line.lot_id.id,
+    #                         'origin': location.name + ' - Assembly Diamond Transfer',
+    #                         }))
+    #             picking = self.env['stock.picking'].create({
+    #                         'partner_id': self.partner_id.id,
+    #                         'location_id': location.id,
+    #                         'location_dest_id': self.order_type.assembly_picking_type_id.default_location_dest_id.id,
+    #                         'picking_type_id':  self.order_type.assembly_picking_type_id.id,
+    #                         'immediate_transfer': False,
+    #                         'move_lines': diamond_move_lines,
+    #                         'origin': location.name + ' - Assembly Diamond Transfer'
+    #                     })
+    #             picking.action_confirm()
+    #             picking.action_assign()
+    #             for this in picking:
+    #                 for this_lot_line in this.move_line_ids_without_package:
+    #                     this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
+    #             picking.assembly_purchase_id = self.id
+    #     return res
 
     @api.model
     def create(self, values):
