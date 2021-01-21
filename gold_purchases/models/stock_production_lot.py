@@ -39,7 +39,9 @@ class StockProductionLot(models.Model):
     def _compute_purity_id(self):
         for this in self:
             this.purity_id = False
-            if this.product_id and this.product_id.categ_id.is_scrap:
+            if this.from_pos:
+                this.purity_id=this.from_pos
+            elif this.product_id and this.product_id.categ_id.is_scrap:
                 purity_id = self.env['gold.purity'].search([('scrap_purity','=',this.purity)])
                 if purity_id:
                     this.purity_id = purity_id.id
