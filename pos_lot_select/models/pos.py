@@ -32,12 +32,14 @@ class pos_order_line(models.Model):
             if lot_name:
 
                 lot = self.env['stock.production.lot'].search([('name','=',lot_name),('product_id','=',line[2]['product_id'])])
+                session = self.env['pos.session'].browse(session_id).exists() if session_id else None
+                rate = session.config_id.gold_rate if session else 0
                 if lot:
                     line[2]['gross_weight'] = lot.gross_weight
                     line[2]['purity_id'] = lot.purity_id.id
                     line[2]['pure_weight'] = lot.pure_weight
                     line[2]['make_value'] = lot.selling_making_charge
-                    line[2]['gold_rate'] = lot.gold_rate
+                    line[2]['gold_rate'] = rate
                     line[2]['carat'] = lot.carat
         if line and 'name' not in line[2]:
             session = self.env['pos.session'].browse(session_id).exists() if session_id else None

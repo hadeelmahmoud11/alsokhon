@@ -455,6 +455,35 @@ odoo.define('pos_unfixed.pos', function(require){
     	'widget': retailButton,
     });
 
+
+    var AddLotWidget = PopupWidget.extend({
+        template:'AddLotWidget',
+
+        init: function(parent, options){
+            this._super(parent, options);
+
+        },
+        events: {
+            'click .button.cancel':  'click_cancel',
+            'click .button.confirm': 'click_confirm',
+        },
+
+        click_confirm: function(){
+
+
+
+            this.gui.close_popup();
+
+        },
+         click_cancel: function(){
+            this.gui.close_popup();
+
+        }
+
+    });
+    gui.define_popup({name:'AddLotWidget', widget: AddLotWidget});
+
+
     //
     // var PackLotLinePopupWidget = PopupWidget.extend({
     //     template: 'PackLotLinePopupWidget',

@@ -253,6 +253,7 @@ odoo.define('pos_lot_select.pos', function(require){
 
               // self.render_list_lots(product_lot,undefined);
               options.qstr = "";
+              options.add_lot = false;
               // options.is_return = false;
               options.product_lot = product_lot;
               this._super(options);
@@ -344,6 +345,80 @@ odoo.define('pos_lot_select.pos', function(require){
                   self.renderElement();
 
               });
+              $(".new-lot").click(function(){
+                if (!self.options.add_lot) {
+                  self.options.add_lot=true;
+                  $(".new_lot").css({'display':'contents'});
+                }else {
+                  self.options.add_lot=false;
+                  $(".new_lot").css({'display':'none'});
+                  var name_lot = $(".name_lot").val();
+                  // var gr_wight = $(".gr_wight").val();
+                  var puri = $(".puri").val();
+                  // var pr_wight = $(".pr_wight").val();
+                  // console.log('named',self.check_name(name_lot));
+                  // console.log('pure',self.check_purity(puri));
+
+                  puri = self.check_purity(puri);
+
+                  if (self.check_name(name_lot)&&puri) {
+                    var list = [{
+                      'name': name_lot,
+                      'product_qty':0,
+                      'gross_weight':0,
+                      'pure_weight':0,
+                      'total_qty':0,
+                      'is_scrap':true,
+                      'purity_id':puri.id,
+                      'product_id':self.options.order_line.product.id,
+                      'company_id':self.options.order.pos.company.id
+                    }];
+                    rpc.query({
+                        model: 'stock.production.lot',
+                        method: 'create',
+                        args: [list],
+                    }, {async: true}).then(function(id) {
+                      // total_qty
+                      console.log(self.pos.list_lot_num);
+                      console.log(id);
+                      list = {
+                        'id':id,
+                        'name': name_lot,
+                        'product_qty':0,
+                        'gross_weight':0,
+                        'pure_weight':0,
+                        'total_qty':0,
+                        'is_scrap':true,
+                        'purity_id':[puri.id,puri.name],
+                        'product_id':[self.options.order_line.product.id,self.options.order_line.product.display_name],
+                      };
+                      console.log(list);
+                      self.pos.list_lot_num.push(list);
+                      // output.forEach(function(lot) {
+                      //     product_lot.push(lot);
+                      // });
+                      // self.pos.set({'list_lot_num' : product_lot});
+                      // console.log(product_lot);
+                      self.show(self.options);
+
+                    });
+                  }else {
+                    if (!self.check_name(name_lot)) {
+                      alert("Name must Be unique");
+                    }else {
+                      alert("Purity is not exist");
+                    }
+                  }
+
+                  // self.check_name(name_lot);
+
+                  console.log(name_lot,puri);
+                }
+                  console.log("NEEEEEEW");
+                  console.log(self.options);
+                  // self.gui.show_popup('AddLotWidget');
+                  // self.renderElement();
+              });
               // $(".is_return_bt").click(function(){
               //
               //     if(self.options.is_return){
@@ -359,6 +434,39 @@ odoo.define('pos_lot_select.pos', function(require){
               //     // self.renderElement();
               // });
           },
+          check_name: function(name){
+                // console.log(name);
+                var self = this;
+                var product_lots =  self.options.product_lot;
+                var f = true;
+                product_lots.forEach(function(lot) {
+                  // console.log(lot.name,name,lot.name==name,(lot.name).toLowerCase() == name.toLowerCase());
+
+                    if( (lot.name).toLowerCase() == name.toLowerCase()){
+                      f= false;
+                      return true;
+                    }
+                });
+                return f;
+          },
+          check_purity: function(purity){
+                console.log(purity);
+                var self = this;
+                var f = false;
+
+                console.log(self.pos.gold_purity);
+                var gold_puritys = self.pos.gold_purity;
+                gold_puritys.forEach(function(pure) {
+                  // console.log(lot.name,name,lot.name==name,(lot.name).toLowerCase() == name.toLowerCase());
+
+                    if( pure.display_name == purity){
+                      f= pure;
+                      return true;
+                    }
+                });
+                return f;
+          },
+
 
           change_price: function(gold_rate,pure_weight,qty,tot_qty){
               var pack_lot_lines = this.options.pack_lot_lines;
