@@ -35,9 +35,9 @@ class assemblyBackGold(models.Model):
     _name = 'assembly.back.component.gold'
     purchase_back_gold_id = fields.Many2one('purchase.order')
     product_id = fields.Many2one('product.product')
-    lot_state = fields.Selection([('exist','Existing Lot'),('new','New Lot')])
-    lot_id = fields.Many2one('stock.production.lot')
-    lot_name = fields.Char()
+    # lot_state = fields.Selection([('exist','Existing Lot'),('new','New Lot')])
+    # lot_id = fields.Many2one('stock.production.lot')
+    # lot_name = fields.Char()
     gold_rate = fields.Float(digits=(16,3),compute="_compute_rate")
     gross_weight = fields.Float()
     purity_id = fields.Many2one('gold.purity')
@@ -52,13 +52,13 @@ class assemblyBackGold(models.Model):
         for this in self:
             this.pure_weight = this.gross_weight * (this.purity / 1000)
 
-    @api.onchange('lot_id')
-    def getvalues(self):
-        if self.product_id and self.lot_id:
-            self.gross_weight = self.lot_id.gross_weight
-            self.purity_id = self.lot_id.purity_id.id
-            self.purity = self.lot_id.purity
-            self.pure_weight = self.lot_id.pure_weight
+    # @api.onchange('lot_id')
+    # def getvalues(self):
+    #     if self.product_id and self.lot_id:
+    #         self.gross_weight = self.lot_id.gross_weight
+    #         self.purity_id = self.lot_id.purity_id.id
+    #         self.purity = self.lot_id.purity
+    #         self.pure_weight = self.lot_id.pure_weight
     def _compute_total_vale(self):
         for this in self:
             this.total_value = this.gross_weight * this.gold_rate
@@ -68,17 +68,17 @@ class assemblyBackDiamond(models.Model):
     _name = 'assembly.back.component.diamond'
     purchase_back_diamond_id = fields.Many2one('purchase.order')
     product_id = fields.Many2one('product.product')
-    lot_state = fields.Selection([('exist','Existing Lot'),('new','New Lot')])
-    lot_id = fields.Many2one('stock.production.lot')
-    lot_name = fields.Char()
+    # lot_state = fields.Selection([('exist','Existing Lot'),('new','New Lot')])
+    # lot_id = fields.Many2one('stock.production.lot')
+    # lot_name = fields.Char()
     carat = fields.Float()
     carat_cost = fields.Float()
     total_cost = fields.Float(compute="_compute_total_vale")
 
-    @api.onchange('lot_id')
-    def getvalues(self):
-        if self.product_id and self.lot_id:
-            self.carat = self.lot_id.carat
+    # @api.onchange('lot_id')
+    # def getvalues(self):
+    #     if self.product_id and self.lot_id:
+    #         self.carat = self.lot_id.carat
     @api.onchange('carat','carat_cost')
     def _compute_total_vale(self):
         for this in self:
@@ -292,20 +292,20 @@ class PurchaseOrder(models.Model):
             elif self.order_type.is_unfixed:
                 sale_type = 'unfixed'
             for line in gold_components:
-                lot = self.env['stock.production.lot']
-                if line.lot_state == 'new':
-                    lot = self.env['stock.production.lot'].create({
-                    'name':line.lot_name,
-                    'product_id':line.product_id.id,
-                    'product_qty':1,
-                    'product_uom_id':line.product_id.uom_id.id,
-                    'gross_weight':line.gross_weight,
-                    'purity':line.purity_id.purity,
-                    'purity_id':line.purity_id.id,
-                    'pure_weight':line.pure_weight,
-                    })
-                else:
-                    lot = line.lot_id
+                # lot = self.env['stock.production.lot']
+                # if line.lot_state == 'new':
+                #     lot = self.env['stock.production.lot'].create({
+                #     'name':line.lot_name,
+                #     'product_id':line.product_id.id,
+                #     'product_qty':1,
+                #     'product_uom_id':line.product_id.uom_id.id,
+                #     'gross_weight':line.gross_weight,
+                #     'purity':line.purity_id.purity,
+                #     'purity_id':line.purity_id.id,
+                #     'pure_weight':line.pure_weight,
+                #     })
+                # else:
+                #     lot = line.lot_id
                 gold_move_lines.append((0, 0, {
                         'name': "assembly move",
                         'location_id': self.order_type.assembly_picking_type_id_back.default_location_src_id.id,
@@ -317,7 +317,7 @@ class PurchaseOrder(models.Model):
                         'gross_weight' : line.gross_weight ,
                         'pure_weight': line.pure_weight,
                         'purity': line.purity,
-                        'lot_id':lot.id,
+                        # 'lot_id':lot.id,
                         'origin': self.order_type.assembly_picking_type_id_back.default_location_dest_id.name + ' - Receive - Assembly Gold Transfer'
                         }))
             picking = self.env['stock.picking'].create({
@@ -332,9 +332,9 @@ class PurchaseOrder(models.Model):
                     })
             picking.action_confirm()
             picking.action_assign()
-            for this in picking:
-                for this_lot_line in this.move_line_ids_without_package:
-                    this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
+            # for this in picking:
+            #     for this_lot_line in this.move_line_ids_without_package:
+            #         this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
             picking.assembly_purchase_id = self.id
         if len(scrap_components) > 0:
             sale_type = ""
@@ -343,20 +343,20 @@ class PurchaseOrder(models.Model):
             elif self.order_type.is_unfixed:
                 sale_type = 'unfixed'
             for line in scrap_components:
-                lot = self.env['stock.production.lot']
-                if line.lot_state == 'new':
-                    lot = self.env['stock.production.lot'].create({
-                    'name':line.lot_name,
-                    'product_id':line.product_id.id,
-                    'product_qty':line.gross_weight,
-                    'product_uom_id':line.product_id.uom_id.id,
-                    'gross_weight':line.gross_weight,
-                    'purity':line.purity_id.purity,
-                    'purity_id':line.purity_id.id,
-                    'pure_weight':line.pure_weight,
-                    })
-                else:
-                    lot = line.lot_id
+                # lot = self.env['stock.production.lot']
+                # if line.lot_state == 'new':
+                #     lot = self.env['stock.production.lot'].create({
+                #     'name':line.lot_name,
+                #     'product_id':line.product_id.id,
+                #     'product_qty':line.gross_weight,
+                #     'product_uom_id':line.product_id.uom_id.id,
+                #     'gross_weight':line.gross_weight,
+                #     'purity':line.purity_id.purity,
+                #     'purity_id':line.purity_id.id,
+                #     'pure_weight':line.pure_weight,
+                #     })
+                # else:
+                #     lot = line.lot_id
                 scrap_move_lines.append((0, 0, {
                         'name': "assembly move",
                         'location_id': self.order_type.assembly_picking_type_id_back.default_location_src_id.id,
@@ -368,7 +368,7 @@ class PurchaseOrder(models.Model):
                         'gross_weight' : line.gross_weight ,
                         'pure_weight': line.pure_weight,
                         'purity': line.purity,
-                        'lot_id':lot.id,
+                        # 'lot_id':lot.id,
                         'origin': self.order_type.assembly_picking_type_id_back.default_location_dest_id.name + ' - Receive - Assembly Scrap Transfer'
                         }))
             picking = self.env['stock.picking'].create({
@@ -383,23 +383,23 @@ class PurchaseOrder(models.Model):
                     })
             picking.action_confirm()
             picking.action_assign()
-            for this in picking:
-                for this_lot_line in this.move_line_ids_without_package:
-                    this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
+            # for this in picking:
+            #     for this_lot_line in this.move_line_ids_without_package:
+            #         this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
             picking.assembly_purchase_id = self.id
         if len(diamond_components) > 0:
             for line in diamond_components:
-                lot = self.env['stock.production.lot']
-                if line.lot_state == 'new':
-                    lot = self.env['stock.production.lot'].create({
-                    'name':line.lot_name,
-                    'product_id':line.product_id.id,
-                    'product_qty':line.carat,
-                    'product_uom_id':line.product_id.uom_id.id,
-                    'carat':line.carat
-                    })
-                else:
-                    lot = line.lot_id
+                # lot = self.env['stock.production.lot']
+                # if line.lot_state == 'new':
+                #     lot = self.env['stock.production.lot'].create({
+                #     'name':line.lot_name,
+                #     'product_id':line.product_id.id,
+                #     'product_qty':line.carat,
+                #     'product_uom_id':line.product_id.uom_id.id,
+                #     'carat':line.carat
+                #     })
+                # else:
+                #     lot = line.lot_id
                 diamond_move_lines.append((0, 0, {
                         'name': "assembly move",
                         'location_id': self.order_type.assembly_picking_type_id_back.default_location_src_id.id,
@@ -409,7 +409,7 @@ class PurchaseOrder(models.Model):
                         'picking_type_id':  line.purchase_back_diamond_id.order_type.assembly_picking_type_id_back.id,
                         'carat':line.carat,
                         'product_uom_qty': line.carat,
-                        'lot_id':lot.id,
+                        # 'lot_id':lot.id,
                         'origin': self.order_type.assembly_picking_type_id_back.default_location_dest_id.name + ' - Receive - Assembly Diamond Transfer',
                         }))
             picking = self.env['stock.picking'].create({
@@ -423,9 +423,9 @@ class PurchaseOrder(models.Model):
                     })
             picking.action_confirm()
             picking.action_assign()
-            for this in picking:
-                for this_lot_line in this.move_line_ids_without_package:
-                    this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
+            # for this in picking:
+            #     for this_lot_line in this.move_line_ids_without_package:
+            #         this_lot_line.lot_id = this_lot_line.move_id.lot_id.id
             picking.assembly_purchase_id = self.id
         self.state = 'receive'
 

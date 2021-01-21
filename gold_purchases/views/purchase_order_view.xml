@@ -30,7 +30,7 @@
                 <page string="Assembly Gold Description" name="assembly_mrp_details_gold" attrs="{'invisible':[('assembly','!=', True)]}">
                   <field name="assembly_description_gold">
                     <tree editable="top">
-                      <field name="product_id"/>
+                      <field name="product_id" domain="['|',('gold','=',True),('scrap','=',True)]"/>
                       <field name="quantity"/>
                       <field name="gross_weight"/>
                       <field name="purity_id"/>
@@ -42,7 +42,7 @@
                 <page string="Assembly Diamond Description" name="assembly_mrp_details_diamond" attrs="{'invisible':[('assembly','!=', True)]}">
                   <field name="assembly_description_diamond">
                     <tree editable="top">
-                      <field name="product_id"/>
+                      <field name="product_id" domain="[('diamond','=',True)]"/>
                       <field name="carat"/>
                       <field name="stones_quantity"/>
                     </tree>
@@ -51,7 +51,7 @@
                 <page string="Assembly Gold Components" name="assembly_mrp_gold" attrs="{'invisible':[('assembly','!=', True)]}">
                   <field name="assembly_gold_ids">
                     <tree editable="top">
-                      <field name="product_id"/>
+                      <field name="product_id" domain="['|',('gold','=',True),('scrap','=',True)]"/>
                       <field name="location_id" domain="[('usage','=','internal')]"/>
                       <field name="lot_id" domain="[('product_id','=',product_id),('product_qty','>',0)]"/>
                       <field name="product_uom_qty"/>
@@ -64,7 +64,7 @@
                 <page string="Assembly Diamond Components" name="assembly_mrp_diamond" attrs="{'invisible':[('assembly','!=', True)]}">
                   <field name="assembly_diamond_ids">
                     <tree editable="top">
-                      <field name="product_id"/>
+                      <field name="product_id" domain="[('diamond','=',True)]"/>
                       <field name="location_id" domain="[('usage','=','internal')]"/>
                       <field name="lot_id" domain="[('product_id','=',product_id),('product_qty','>',0)]"/>
                       <field name="carat"/>
@@ -74,10 +74,10 @@
                 <page string="Assembly Gold Returned Components" name="assembly_mrp_gold_back" attrs="{'invisible':[('assembly','!=', True)]}">
                   <field name="assembly_back_gold_ids">
                     <tree editable="top">
-                      <field name="product_id"/>
-                      <field name="lot_state"/>
+                      <field name="product_id" domain="['|',('gold','=',True),('scrap','=',True)]"/>
+                      <!-- <field name="lot_state"/>
                       <field name="lot_id" domain="[('product_id','=',product_id),('product_qty','>',0)]" attrs="{'invisible':[('lot_state','!=','exist')] , 'required':[('lot_state','=','exist')]}"/>
-                      <field name="lot_name" attrs="{'invisible':[('lot_state','!=','new')] , 'required':[('lot_state','=','new')]}"/>
+                      <field name="lot_name" attrs="{'invisible':[('lot_state','!=','new')] , 'required':[('lot_state','=','new')]}"/> -->
                       <field name="gold_rate"/>
                       <field name="gross_weight"/>
                       <field name="purity_id"/>
@@ -90,10 +90,10 @@
                 <page string="Assembly Diamond Returned Components" name="assembly_mrp_diamond_back" attrs="{'invisible':[('assembly','!=', True)]}">
                   <field name="assembly_back_diamond_ids">
                     <tree editable="top">
-                      <field name="product_id"/>
-                      <field name="lot_state"/>
+                      <field name="product_id"  domain="[('diamond','=',True)]"/>
+                      <!-- <field name="lot_state"/>
                       <field name="lot_id" domain="[('product_id','=',product_id),('product_qty','>',0)]" attrs="{'invisible':[('lot_state','!=','exist')] , 'required':[('lot_state','=','exist')]}"/>
-                      <field name="lot_name" attrs="{'invisible':[('lot_state','!=','new')] , 'required':[('lot_state','=','new')]}"/>
+                      <field name="lot_name" attrs="{'invisible':[('lot_state','!=','new')] , 'required':[('lot_state','=','new')]}"/> -->
                       <field name="carat"/>
                       <field name="carat_cost"/>
                       <field name="total_cost"/>
