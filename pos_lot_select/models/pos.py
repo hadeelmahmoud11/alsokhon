@@ -123,14 +123,16 @@ class stock_production_lot(models.Model):
         # dic.get("C")
         # print('from_pos' in vals_list[0])
         # print(vals_list[0].get("from_pos"))
-        if not vals_list[0].get("from_pos",0):
-            vals_list[0]['from_pos'] = 0
+        if len(vals_list) > 0:
+            if not vals_list[0].get("from_pos",0):
+                vals_list[0]['from_pos'] = 0
         data = super(stock_production_lot, self).create(vals_list)
         # print("data")
         # print(data)
         # print(data and vals_list[0].get("from_pos"))
-        if data and vals_list[0].get("from_pos"):
-            self._compute_purity_id()
+        if len(vals_list) > 0:
+            if data and vals_list[0].get("from_pos"):
+                self._compute_purity_id()
         return data
 
 
