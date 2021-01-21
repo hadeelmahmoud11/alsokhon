@@ -118,17 +118,17 @@ class stock_production_lot(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         self._check_create()
-        print("vals_list")
-        print(vals_list[0])
+        # print("vals_list")
+        # print(vals_list[0])
         # dic.get("C")
-        print('from_pos' in vals_list[0])
-        print(vals_list[0].get("from_pos"))
+        # print('from_pos' in vals_list[0])
+        # print(vals_list[0].get("from_pos"))
         if not vals_list[0].get("from_pos",0):
             vals_list[0]['from_pos'] = 0
         data = super(stock_production_lot, self).create(vals_list)
-        print("data")
-        print(data)
-        print(data and vals_list[0].get("from_pos"))
+        # print("data")
+        # print(data)
+        # print(data and vals_list[0].get("from_pos"))
         if data and vals_list[0].get("from_pos"):
             self._compute_purity_id()
         return data
@@ -335,7 +335,7 @@ class PosOrder(models.Model):
                             'location_id': location_id if line.qty >= 0 else destination_id,
                             'location_dest_id': destination_id if line.qty >= 0 else return_pick_type != picking_type and return_pick_type.default_location_dest_id.id or location_id,
                         })
-                        print(moves)
+                        # print(moves)
                         # print(moves.move_line_ids)
                         # for value in moves.move_line_ids:
                         #     print(value)

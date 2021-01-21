@@ -144,7 +144,7 @@ class StockMove(models.Model):
                 svl_vals = move.product_id._prepare_in_svl_vals(
                     forced_quantity or valued_quantity, unit_cost)
             svl_vals.update(move._prepare_common_svl_vals())
-            print(svl_vals)
+            # print(svl_vals)
             if forced_quantity:
                 svl_vals[
                     'description'] = 'Correction of %s (modification of past move)' % move.picking_id.name or move.name
