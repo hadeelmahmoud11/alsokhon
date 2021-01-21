@@ -159,16 +159,37 @@ odoo.define('pos_lot_select.pos', function(require){
                             if(lot_list[i].name == lot_item.attributes['lot_name']){
                               // console.log((item.quantity*lot_list[i].gross_weight)/lot_list[i].total_qty);
                               // console.log((item.quantity*lot_list[i].pure_weight)/lot_list[i].total_qty);
-                              if (!item.product.categ.is_diamond) {
+                              if (item.product.categ.is_scrap || item.product.categ.is_gold) {
                                 // console.log(parseFloat(num.toFixed(3)));
-                                lot_list[i].gross_weight -= (item.quantity*lot_list[i].gross_weight)/lot_list[i].total_qty;
-                                lot_list[i].gross_weight = parseFloat((lot_list[i].gross_weight).toFixed(4))
-                                lot_list[i].pure_weight -= (item.quantity*lot_list[i].pure_weight)/lot_list[i].total_qty;
-                                lot_list[i].pure_weight = parseFloat((lot_list[i].pure_weight).toFixed(4))
+                                // console.log(lot_list[i]);
+
+                                if (lot_list[i].total_qty == 0) {
+                                  // console.log(lot_list[i].purity_id);
+                                  // console.log(self.pos.list_gold_purity[lot_list[i].purity_id[0]]);
+                                  scrap_purity = self.pos.list_gold_purity[lot_list[i].purity_id[0]].scrap_purity/1000;
+
+                                  // console.log(lot_list[i].gross_weight,item.quantity,lot_list[i].total_qty,lot_list[i].gross_weight-item.quantity);
+                                  // console.log(lot_list[i].pure_weight,item.quantity,lot_list[i].total_qty,lot_list[i].pure_weight-item.quantity*scrap_purity);
+                                  lot_list[i].gross_weight -= item.quantity;
+                                  lot_list[i].gross_weight = parseFloat((lot_list[i].gross_weight).toFixed(4))
+                                  lot_list[i].pure_weight -= (item.quantity*scrap_purity);
+                                  lot_list[i].pure_weight = parseFloat((lot_list[i].pure_weight).toFixed(4))
+
+                                }else {
+                                  // console.log(lot_list[i].gross_weight,item.quantity,lot_list[i].total_qty,lot_list[i].gross_weight-(item.quantity*lot_list[i].gross_weight)/lot_list[i].total_qty);
+                                  // console.log(lot_list[i].pure_weight,item.quantity,lot_list[i].total_qty,lot_list[i].pure_weight-(item.quantity*lot_list[i].pure_weight)/lot_list[i].total_qty);
+                                  lot_list[i].gross_weight -= (item.quantity*lot_list[i].gross_weight)/lot_list[i].total_qty;
+                                  lot_list[i].gross_weight = parseFloat((lot_list[i].gross_weight).toFixed(4))
+                                  lot_list[i].pure_weight -= (item.quantity*lot_list[i].pure_weight)/lot_list[i].total_qty;
+                                  lot_list[i].pure_weight = parseFloat((lot_list[i].pure_weight).toFixed(4))
+                                }
+
                               }else if (item.product.categ.is_diamond&&lot_list[i].total_qty!=1) {
                                 lot_list[i].carat -= (item.quantity*lot_list[i].carat)/lot_list[i].total_qty;
                                 lot_list[i].carat = parseFloat((lot_list[i].carat).toFixed(4))
                               }
+
+                              // console.log(lot_list[i].total_qty , item.quantity,lot_list[i].total_qty-item.quantity);
                               lot_list[i].total_qty -= item.quantity;
                               lot_list[i].total_qty = parseFloat((lot_list[i].total_qty).toFixed(4))
 
@@ -370,6 +391,7 @@ odoo.define('pos_lot_select.pos', function(require){
                       'total_qty':0,
                       'is_scrap':true,
                       'purity_id':puri.id,
+                      'from_pos':puri.id,
                       'product_id':self.options.order_line.product.id,
                       'company_id':self.options.order.pos.company.id
                     }];
@@ -379,8 +401,8 @@ odoo.define('pos_lot_select.pos', function(require){
                         args: [list],
                     }, {async: true}).then(function(id) {
                       // total_qty
-                      console.log(self.pos.list_lot_num);
-                      console.log(id);
+                      // console.log(self.pos.list_lot_num);
+                      // console.log(id);
                       list = {
                         'id':id,
                         'name': name_lot,
@@ -388,11 +410,12 @@ odoo.define('pos_lot_select.pos', function(require){
                         'gross_weight':0,
                         'pure_weight':0,
                         'total_qty':0,
+                        'from_pos':puri.id,
                         'is_scrap':true,
                         'purity_id':[puri.id,puri.name],
                         'product_id':[self.options.order_line.product.id,self.options.order_line.product.display_name],
                       };
-                      console.log(list);
+                      // console.log(list);
                       self.pos.list_lot_num.push(list);
                       // output.forEach(function(lot) {
                       //     product_lot.push(lot);
@@ -412,7 +435,7 @@ odoo.define('pos_lot_select.pos', function(require){
 
                   // self.check_name(name_lot);
 
-                  console.log(name_lot,puri);
+                  // console.log(name_lot,puri);
                 }
                   console.log("NEEEEEEW");
                   console.log(self.options);
@@ -450,11 +473,11 @@ odoo.define('pos_lot_select.pos', function(require){
                 return f;
           },
           check_purity: function(purity){
-                console.log(purity);
+                // console.log(purity);
                 var self = this;
                 var f = false;
 
-                console.log(self.pos.gold_purity);
+                // console.log(self.pos.gold_purity);
                 var gold_puritys = self.pos.gold_purity;
                 gold_puritys.forEach(function(pure) {
                   // console.log(lot.name,name,lot.name==name,(lot.name).toLowerCase() == name.toLowerCase());
@@ -497,12 +520,13 @@ odoo.define('pos_lot_select.pos', function(require){
                     var pure_weight = lot.pure_weight;
 
                     if (order_line.product.categ.is_scrap) {
-                      if (self.pos.list_gold_purity[lot.purity_id[0]].scrap_purity==0) {
+                      // console.log(lot);
+                      // console.log(self.pos.list_gold_purity[lot.purity_id[0]].scrap_purity);
+                      if (!self.pos.list_gold_purity[lot.purity_id[0]].scrap_purity) {
                         pure_weight = 0;
                       }
                       else {
                         pure_weight = self.pos.list_gold_purity[lot.purity_id[0]].scrap_purity/1000;
-
                       }
                     }
 
@@ -512,6 +536,7 @@ odoo.define('pos_lot_select.pos', function(require){
                       self.options.order_line.quantity*=-1;
                       self.options.order_line.quantityStr=String(self.options.order_line.quantity);
                     }
+                    // console.log(pure_weight);
 
 
 
@@ -561,8 +586,8 @@ odoo.define('pos_lot_select.pos', function(require){
                       $input = $(ev.target),
                       cid = $input.attr('cid'),
                       lot_name = $input.val();
-                      console.log("((pack_lot_lines))");
-                  console.log(pack_lot_lines);
+                  //     console.log("((pack_lot_lines))");
+                  // console.log(pack_lot_lines);
 
                   var lot_model = pack_lot_lines.get({cid: cid});
                   lot_model.set_lot_name(lot_name);  // First set current model then add new one

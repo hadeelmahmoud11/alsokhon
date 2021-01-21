@@ -93,6 +93,7 @@ class stock_production_lot(models.Model):
     _inherit = "stock.production.lot"
 
     gold_rate = fields.Float(string='Gold Rate', digits=(16, 3), compute="_compute_gold_rate")
+    from_pos = fields.Integer(string='From Pos')
 
     def _compute_gold_rate(self):
         for this in self:
@@ -114,26 +115,26 @@ class stock_production_lot(models.Model):
             else:
                 this.gold_rate = 0.00
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        self._check_create()
+        print("vals_list")
+        print(vals_list[0])
+        # dic.get("C")
+        print('from_pos' in vals_list[0])
+        print(vals_list[0].get("from_pos"))
+        if not vals_list[0].get("from_pos",0):
+            vals_list[0]['from_pos'] = 0
+        data = super(stock_production_lot, self).create(vals_list)
+        print("data")
+        print(data)
+        print(data and vals_list[0].get("from_pos"))
+        if data and vals_list[0].get("from_pos"):
+            self._compute_purity_id()
+        return data
+
 
     total_qty = fields.Float("Total Qty", compute="_computeTotalQty")
-    purity_id = fields.Many2one('gold.purity', compute="_compute_purity_id")
-
-    def _compute_purity_id(self):
-        for this in self:
-            stock_move_line = this.env['stock.move.line'].search([('lot_id','=',this.id)])
-            if stock_move_line:
-                if stock_move_line.picking_id:
-                    if stock_move_line.picking_id.group_id:
-                        group_id= stock_move_line.picking_id.group_id[0]
-                        if group_id.name:
-                            if 'P0' in group_id.name:
-                                purchase_order = this.env['purchase.order'].search([('name','=',group_id.name)])
-                                if purchase_order and len(purchase_order) == 1:
-                                    for line in purchase_order.order_line:
-                                        if line.product_id == this.product_id:
-                                            this.purity_id = line.purity_id.id
-            if not this.purity_id:
-                this.purity_id = False
     # @api.multi
     def _computeTotalQty(self):
         pos_config = self.env['pos.config'].search([], limit=1)
