@@ -14,6 +14,7 @@ from odoo.exceptions import UserError,ValidationError
 import logging
 _logger = logging.getLogger(__name__)
 
+#
 class DetailsAssembly(models.Model):
     """docstring for DetailsAssembly."""
     _name = 'details.assembly'
