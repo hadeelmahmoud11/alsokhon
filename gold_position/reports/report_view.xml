@@ -109,9 +109,9 @@
                                                 <t t-set="opening_balance"
                                                    t-value="opening_balance+line['in']"/>
                                             </t>
-                                            <t t-else="">
+<!--                                             <t t-else="">
                                                 <span>0.0</span>
-                                            </t>
+                                            </t> -->
                                         </td>
                                         <td style="text-align:center;">
                                             <t t-if="line['out'] != 0.0">
@@ -119,9 +119,9 @@
                                                 <t t-set="opening_balance"
                                                    t-value="opening_balance+line['out']"/>
                                             </t>
-                                            <t t-else="">
+<!--                                             <t t-else="">
                                                 <span>0.0</span>
-                                            </t>
+                                            </t> -->
                                         </td>
                                         <td style="text-align:center;">
                                             <span t-esc="opening_balance"/>
