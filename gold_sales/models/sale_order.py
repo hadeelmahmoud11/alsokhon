@@ -14,14 +14,14 @@ from odoo.exceptions import UserError,ValidationError
 import logging
 _logger = logging.getLogger(__name__)
 
-class DetailsAssembly(models.Model):
-    """docstring for DetailsAssembly."""
-    _name = 'details.assembly'
-
-    product_id = fields.Many2one('product.product')
-    quantity = fields.Float()
-    sale_id = fields.Many2one('sale.order')
-    sol_product = fields.Many2one('product.product')
+# class DetailsAssembly(models.Model):
+#     """docstring for DetailsAssembly."""
+#     _name = 'details.assembly'
+#
+#     product_id = fields.Many2one('product.product')
+#     quantity = fields.Float()
+#     sale_id = fields.Many2one('sale.order')
+#     sol_product = fields.Many2one('product.product')
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'

@@ -124,8 +124,15 @@ class StockMove(models.Model):
                             svl_vals = move.product_id._prepare_in_svl_vals(
                                 pol.product_qty, pol.price_unit + pol.d_make_value  + diamond_price)
             elif move.product_id.gold:
-                svl_vals = move.product_id._prepare_in_svl_vals(
-                    move.pure_weight, move.gold_rate)
+                if 'P0' in move.origin:
+                    svl_vals = move.product_id._prepare_in_svl_vals(
+                        move.pure_weight, move.gold_rate)
+                elif 'Assembly Gold Transfer' in move.origin:
+                    purchase_order = move.picking_id.assembly_purchase_id
+                    assembly_return = purchase_order.assembly_back_gold_ids.filtered(lambda x: x.product_id and
+                                                                   x.product_id == move.product_id)
+                    svl_vals = move.product_id._prepare_in_svl_vals(
+                        assembly_return.pure_weight , assembly_return.gold_rate)
             elif move.product_id.diamond:
                 purchase_order = self.env['purchase.order']
                 if 'P0' in move.origin:
@@ -375,14 +382,25 @@ class StockMoveLine(models.Model):
             })
         elif res.lot_id.product_id and res.lot_id.product_id.categ_id.is_assembly and res.move_id._is_in():
             print("^^^^^^^^^^^^^^^^^^^^^")
-            assembly_description = []
+            assembly_description_gold = []
+            assembly_description_diamond = []
             if res.move_id.origin and 'P0' in res.move_id.origin:
                 purchase_obj = self.env['purchase.order'].search([('name','=',res.move_id.origin)])
                 if purchase_obj:
-                    for line in purchase_obj.assembly_description:
-                        assembly_description.append((0,0,{
+                    for line in purchase_obj.assembly_description_gold:
+                        assembly_description_gold.append((0,0,{
                         'product_id':line.product_id.id,
                         'quantity':line.quantity,
+                        'gross_weight':line.gross_weight,
+                        'pure_weight':line.pure_weight,
+                        'purity_id':line.purity_id,
+                        'purity':line.purity,
+                        }))
+                    for line in purchase_obj.assembly_description_diamond:
+                        assembly_description_diamond.append((0,0,{
+                        'product_id':line.product_id.id,
+                        'carat':line.carat,
+                        'stones_quantity':line.stones_quantity,
                         }))
             res.lot_id.write({
             'carat': res.carat,

@@ -2,18 +2,33 @@
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
-class assemblyDescriptionLot(models.Model):
-    """docstring for assemblyDescription."""
-    _name = 'assembly.description.lot'
+class assemblyDescriptionLotGold(models.Model):
+    """docstring for assemblyDescriptionGold."""
+    _name = 'assembly.description.lot.gold'
 
     product_id = fields.Many2one('product.product')
     quantity = fields.Float()
-    lot_id = fields.Many2one('stock.production.lot')
+    gross_weight = fields.Float()
+    pure_weight = fields.Float()
+    purity_id = fields.Float()
+    purity = fields.Float()
+    lot_id_gold = fields.Many2one('stock.production.lot')
+
+class assemblyDescriptionLotDiamond(models.Model):
+    """docstring for assemblyDescriptionDiamond."""
+    _name = 'assembly.description.lot.diamond'
+
+    product_id = fields.Many2one('product.product')
+    carat = fields.Float()
+    stones_quantity = fields.Float()
+    lot_id_diamond = fields.Many2one('stock.production.lot')
+
 
 class StockProductionLot(models.Model):
     _inherit = 'stock.production.lot'
 
-    assembly_description = fields.One2many('assembly.description.lot','lot_id')
+    assembly_description_gold = fields.One2many('assembly.description.lot.gold','lot_id_gold')
+    assembly_description_diamond = fields.One2many('assembly.description.lot.diamond','lot_id_diamond')
     gold = fields.Boolean(string="Gold", compute="_compute_gold_state")
     diamond = fields.Boolean(string="Diamond", compute="_compute_gold_state")
     assembly = fields.Boolean(string="assembly", compute="_compute_gold_state")

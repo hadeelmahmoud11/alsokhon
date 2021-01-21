@@ -19,7 +19,7 @@
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
-              <page name="other_information" position="after">
+              <!-- <page name="other_information" position="after">
                 <page name="details_assembly" string="Assembly Products Description">
                   <field name="details_assembly">
                     <tree>
@@ -30,7 +30,7 @@
                     </tree>
                   </field>
                 </page>
-              </page>
+              </page> -->
               <field name="partner_id" position="after">
                 <field name="order_category" requiered="1"/>
               </field>

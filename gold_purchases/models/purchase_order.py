@@ -4,8 +4,31 @@ from datetime import date , timedelta , datetime
 from odoo.exceptions import ValidationError,UserError
 
 
-# ('assembly.back.component.gold','purchase_back_gold_id')
-# ('assembly.back.component.diamond','purchase_back_diamond_id')
+
+
+
+class assemblyDescriptionGold(models.Model):
+    """docstring for assemblyDescriptionGold."""
+    _name = 'assembly.description.gold'
+
+    product_id = fields.Many2one('product.product')
+    quantity = fields.Float()
+    gross_weight = fields.Float()
+    pure_weight = fields.Float()
+    purity_id = fields.Float()
+    purity = fields.Float()
+    purchase_id_gold = fields.Many2one('purchase.order')
+
+
+
+class assemblyDescriptionDiamond(models.Model):
+    """docstring for assemblyDescriptionDiamond."""
+    _name = 'assembly.description.diamond'
+
+    product_id = fields.Many2one('product.product')
+    carat = fields.Float()
+    stones_quantity = fields.Float()
+    purchase_id_diamond = fields.Many2one('purchase.order')
 
 class assemblyBackGold(models.Model):
     """docstring for assemblyBackGold."""
@@ -15,12 +38,15 @@ class assemblyBackGold(models.Model):
     lot_state = fields.Selection([('exist','Existing Lot'),('new','New Lot')])
     lot_id = fields.Many2one('stock.production.lot')
     lot_name = fields.Char()
-    gold_rate = fields.Float(digits=(16,3))
+    gold_rate = fields.Float(digits=(16,3),compute="_compute_rate")
     gross_weight = fields.Float()
     purity_id = fields.Many2one('gold.purity')
     purity = fields.Float()
     pure_weight = fields.Float(compute="_compute_pure_weight")
     total_value = fields.Float(compute="_compute_total_vale")
+    def _compute_rate(self):
+        for this in self:
+            this.gold_rate = this.purchase_back_gold_id.gold_rate/1000
     @api.onchange('gross_weight')
     def _compute_pure_weight(self):
         for this in self:
@@ -58,16 +84,6 @@ class assemblyBackDiamond(models.Model):
         for this in self:
             this.total_cost = this.carat * this.carat_cost
 
-
-
-
-class assemblyDescription(models.Model):
-    """docstring for assemblyDescription."""
-    _name = 'assembly.description'
-
-    product_id = fields.Many2one('product.product')
-    quantity = fields.Float()
-    purchase_id = fields.Many2one('purchase.order')
 
 class assemblyComponentsGold(models.Model):
     """Assembly Details."""
@@ -416,9 +432,11 @@ class PurchaseOrder(models.Model):
     def finish_processing(self):
         self.state = 'draft'
         self.ready = True
+        return self.button_confirm()
 
     ready = fields.Boolean(default=False)
-    assembly_description = fields.One2many('assembly.description','purchase_id')
+    assembly_description_gold = fields.One2many('assembly.description.gold','purchase_id_gold')
+    assembly_description_diamond = fields.One2many('assembly.description.diamond','purchase_id_diamond')
     def action_view_assembly_operations(self):
         """ This function returns an action that display existing picking orders of given purchase order ids. When only one found, show the picking immediately.
         """

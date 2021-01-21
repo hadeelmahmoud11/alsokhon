@@ -16,7 +16,7 @@
               <field name="ready" invisible="1"/>
               <button name="process" type="object" string="Process Assembly" class="oe_highlight" attrs="{'invisible':['|',('state','!=','draft'),('assembly','!=',True)]}"/>
               <button name="return_component" type="object" string="Receive Charge Components" class="oe_highlight" attrs="{'invisible':[('state','!=','processing')]}"/>
-              <button name="finish_processing" type="object" string="Finish Assembly" class="oe_highlight" attrs="{'invisible':[('state','!=','receive')]}"/>
+              <button name="finish_processing" type="object" string="Finish Assembly" class="oe_highlight" attrs="{'invisible':[('state','not in',['processing','receive'])]}"/>
             </xpath>
             <field name="state" position="replace">
               <field name="state" widget="statusbar" statusbar_visible="draft,processing,receive,sent,purchase" readonly="1"/>
@@ -27,11 +27,24 @@
               </button>
             </div>
               <page name="purchase_delivery_invoice" position="after">
-                <page string="Assembly Description" name="assembly_mrp_details" attrs="{'invisible':[('assembly','!=', True)]}">
-                  <field name="assembly_description">
+                <page string="Assembly Gold Description" name="assembly_mrp_details_gold" attrs="{'invisible':[('assembly','!=', True)]}">
+                  <field name="assembly_description_gold">
                     <tree editable="top">
                       <field name="product_id"/>
                       <field name="quantity"/>
+                      <field name="gross_weight"/>
+                      <field name="purity_id"/>
+                      <field name="purity"/>
+                      <field name="pure_weight"/>
+                    </tree>
+                  </field>
+                </page>
+                <page string="Assembly Diamond Description" name="assembly_mrp_details_diamond" attrs="{'invisible':[('assembly','!=', True)]}">
+                  <field name="assembly_description_diamond">
+                    <tree editable="top">
+                      <field name="product_id"/>
+                      <field name="carat"/>
+                      <field name="stones_quantity"/>
                     </tree>
                   </field>
                 </page>
