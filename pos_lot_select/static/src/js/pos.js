@@ -164,9 +164,9 @@ odoo.define('pos_lot_select.pos', function(require){
                                 // console.log(lot_list[i]);
 
                                 if (lot_list[i].total_qty == 0) {
-                                  // console.log(lot_list[i].purity_id);
-                                  // console.log(self.pos.list_gold_purity[lot_list[i].purity_id[0]]);
-                                  scrap_purity = self.pos.list_gold_purity[lot_list[i].purity_id[0]].scrap_purity/1000;
+                                  console.log(lot_list[i].purity_id);
+                                  console.log(self.pos.list_gold_purity[lot_list[i].purity_id[0]]);
+                                  var scrap_purity = self.pos.list_gold_purity[lot_list[i].purity_id[0]].scrap_purity/1000;
 
                                   // console.log(lot_list[i].gross_weight,item.quantity,lot_list[i].total_qty,lot_list[i].gross_weight-item.quantity);
                                   // console.log(lot_list[i].pure_weight,item.quantity,lot_list[i].total_qty,lot_list[i].pure_weight-item.quantity*scrap_purity);
