@@ -134,6 +134,12 @@ class StockMove(models.Model):
                         pol = self.env['purchase.order.line'].search([('order_id','=',purchase_order.id),('product_id','=',move.product_id.id)])
                         svl_vals = move.product_id._prepare_in_svl_vals(
                             pol.carat, (pol.price_unit + pol.d_make_value / pol.carat))
+                elif 'Assembly Diamond Transfer' in move.origin:
+                    purchase_order = move.picking_id.assembly_purchase_id
+                    assembly_return = purchase_order.assembly_back_diamond_ids.filtered(lambda x: x.product_id and
+                                                                   x.product_id == move.product_id)
+                    svl_vals = move.product_id._prepare_in_svl_vals(
+                        assembly_return.carat , assembly_return.carat_cost)
             else:
                 svl_vals = move.product_id._prepare_in_svl_vals(
                     forced_quantity or valued_quantity, unit_cost)
